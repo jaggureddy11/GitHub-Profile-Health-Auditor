@@ -33,7 +33,7 @@ class ScanResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 class FullReportResponse(BaseModel):
     scan_id: str = Field(validation_alias="id")
@@ -46,7 +46,7 @@ class FullReportResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 class FixRequest(BaseModel):
     scan_id: str

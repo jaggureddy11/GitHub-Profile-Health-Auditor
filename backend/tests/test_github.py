@@ -15,42 +15,54 @@ client = TestClient(app)
 @pytest.mark.asyncio
 async def test_list_public_repositories_success():
     """
-    Test successful repository listing including pagination and filtering.
+    Test successful repository scraping from HTML.
     """
-    mock_repos_page1 = [
-        {"name": "repo1", "html_url": "https://github.com/user/repo1", "fork": False, "pushed_at": "2026-01-01T00:00:00Z", "default_branch": "main"},
-        {"name": "repo-fork", "html_url": "https://github.com/user/repo-fork", "fork": True, "pushed_at": "2026-01-02T00:00:00Z", "default_branch": "main"},
-    ]
-    mock_repos_page2 = [
-        {"name": "repo2", "html_url": "https://github.com/user/repo2", "fork": False, "pushed_at": "2026-01-03T00:00:00Z", "default_branch": "develop"},
-    ]
+    page1_html = """
+    <div id="user-repositories-list">
+        <li class="public source" itemprop="owns">
+            <a href="/test-user/repo1" itemprop="name codeRepository">repo1</a>
+            <relative-time datetime="2026-01-01T00:00:00Z"></relative-time>
+        </li>
+        <li class="public fork" itemprop="owns">
+            <a href="/test-user/repo-fork" itemprop="name codeRepository">repo-fork</a>
+            <relative-time datetime="2026-01-02T00:00:00Z"></relative-time>
+        </li>
+    </div>
+    <a class="next_page" href="/test-user?page=2&tab=repositories">Next</a>
+    """
+    
+    page2_html = """
+    <div id="user-repositories-list">
+        <li class="public source" itemprop="owns">
+            <a href="/test-user/repo2" itemprop="name codeRepository">repo2</a>
+            <relative-time datetime="2026-01-03T00:00:00Z"></relative-time>
+        </li>
+    </div>
+    """
 
-    # Mock the AsyncClient get call
     mock_get = AsyncMock()
     
-    # Configure responses for page 1 and page 2
     mock_response_1 = MagicMock()
     mock_response_1.status_code = 200
-    mock_response_1.json.return_value = mock_repos_page1
+    mock_response_1.text = page1_html
     
     mock_response_2 = MagicMock()
     mock_response_2.status_code = 200
-    mock_response_2.json.return_value = mock_repos_page2
+    mock_response_2.text = page2_html
 
-    mock_response_empty = MagicMock()
-    mock_response_empty.status_code = 200
-    mock_response_empty.json.return_value = []
-
-    mock_get.side_effect = [mock_response_1, mock_response_2, mock_response_empty]
+    mock_get.side_effect = [mock_response_1, mock_response_2]
 
     with patch("httpx.AsyncClient.get", mock_get):
-        result = await list_public_repositories("test-user", per_page=2)
+        result = await list_public_repositories("test-user")
         
+        # Should have filtered out the fork repo
         assert len(result) == 2
         assert result[0]["name"] == "repo1"
-        assert result[0]["default_branch"] == "main"
+        assert result[0]["url"] == "https://github.com/test-user/repo1"
+        assert result[0]["last_commit"] == "2026-01-01T00:00:00Z"
         assert result[1]["name"] == "repo2"
-        assert result[1]["default_branch"] == "develop"
+        assert result[1]["url"] == "https://github.com/test-user/repo2"
+        assert result[1]["last_commit"] == "2026-01-03T00:00:00Z"
 
 @pytest.mark.asyncio
 async def test_list_public_repositories_rate_limit():
@@ -58,11 +70,7 @@ async def test_list_public_repositories_rate_limit():
     Test rate limit handling.
     """
     mock_response = MagicMock()
-    mock_response.status_code = 403
-    mock_response.headers = {
-        "X-RateLimit-Remaining": "0",
-        "X-RateLimit-Reset": "1773010000"
-    }
+    mock_response.status_code = 429
     
     mock_get = AsyncMock(return_value=mock_response)
 
@@ -70,8 +78,7 @@ async def test_list_public_repositories_rate_limit():
         with pytest.raises(GitHubRateLimitError) as exc_info:
             await list_public_repositories("test-user")
         
-        assert "rate limit exceeded" in str(exc_info.value)
-        assert exc_info.value.reset_time is not None
+        assert "rate limit reached" in str(exc_info.value)
 
 def test_api_scan_endpoint_success():
     """
@@ -81,11 +88,9 @@ def test_api_scan_endpoint_success():
         {"name": "repo1", "url": "https://github.com/user/repo1", "last_commit": "2026-01-01T00:00:00Z", "default_branch": "main"}
     ]
     
-    # Mock list_public_repositories to avoid hit to real API
     async_mock = AsyncMock(return_value=mock_repos)
     
     with patch("main.list_public_repositories", async_mock):
-        # Disable Redis queue during test
         with patch("main.scan_queue", None):
             response = client.post("/api/scan", json={"username": "test-user", "github_token": "dummy"})
             

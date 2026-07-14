@@ -34,4 +34,13 @@ This log tracks the build process and testing outcomes for each phase.
   - Configured `scanners/orchestrator.py` background job framework and wrote `worker.py` utilizing Redis Queue (RQ).
   - Wrote unit and integration tests verifying cloning, scanning, and database persistence with redacted credentials.
 
+## Phase 4 — Code Smell Scanning via Semgrep
+- Status: Completed
+- Completed features:
+  - Installed and verified Semgrep CLI tool.
+  - Developed `scan_smells` in `scanners/semgrep.py` to run Semgrep inside the cloned repository with the `auto` rule pack.
+  - Implemented logic to parse Semgrep JSON output bypass leading warnings, map severities, and record relative paths.
+  - Integrated Semgrep into the background orchestrator (`run_scan_job`) and wrote unit tests in `test_semgrep.py`.
+
+
 

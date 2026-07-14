@@ -1,0 +1,21 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Databases
+*.db
+*.sqlite
+
+# Environment variables
+.env
+.env.local
+
+# Node dependencies
+node_modules/
+dist/
+
+# OS metadata
+.DS_Store

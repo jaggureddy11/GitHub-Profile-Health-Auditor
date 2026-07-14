@@ -21,7 +21,7 @@ async def list_public_repositories(username: str, token: Optional[str] = None, p
     }
     if token:
         # Standard format is 'Bearer <token>' or 'token <token>'
-        headers["Authorization"] = f"token {token}"
+        headers["Authorization"] = f"Bearer {token}"
 
     repos = []
     page = 1

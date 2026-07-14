@@ -39,7 +39,7 @@ export default function ReportDashboard({ report, onReset }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Radial Score Gauge */}
-        <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xl">
+        <div className="glass-panel p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xl">
           <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-6">Profile Health</h3>
           <div className="relative w-36 h-36">
             {/* SVG Circle Gauge */}
@@ -75,7 +75,7 @@ export default function ReportDashboard({ report, onReset }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="md:col-span-2 bg-slate-900/50 backdrop-blur-md border border-slate-800 p-8 rounded-3xl shadow-xl flex flex-col justify-between">
+        <div className="md:col-span-2 glass-panel p-8 rounded-3xl shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -124,7 +124,7 @@ export default function ReportDashboard({ report, onReset }) {
       </div>
 
       {/* Prioritized AI Recommendations */}
-      <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 p-8 rounded-3xl shadow-xl">
+      <div className="glass-panel p-8 rounded-3xl shadow-xl">
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-sm shadow shadow-cyan-500/30">
             🤖

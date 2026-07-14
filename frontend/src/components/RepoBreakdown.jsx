@@ -49,7 +49,7 @@ export default function RepoBreakdown({ repositories, findings, onTriggerFix }) 
   };
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 p-8 rounded-3xl shadow-xl space-y-6">
+    <div className="glass-panel p-8 rounded-3xl shadow-xl space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-xl font-bold text-slate-100">Detailed Findings</h3>

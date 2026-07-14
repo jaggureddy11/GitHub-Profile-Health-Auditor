@@ -27,7 +27,7 @@ export default function ScanForm({ onScanStart, isLoading }) {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl shadow-cyan-950/20">
+    <div className="w-full max-w-xl mx-auto glass-panel p-8 rounded-3xl shadow-2xl shadow-cyan-950/10">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 mb-4 shadow-lg shadow-cyan-500/20 text-white font-extrabold text-2xl">
           🚀

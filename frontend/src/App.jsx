@@ -153,7 +153,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-cyan-500/30 relative overflow-hidden">
+      {/* Background Ambient Glows */}
+      <div className="ambient-glow-cyan top-[-10%] left-[-10%]"></div>
+      <div className="ambient-glow-blue bottom-[-10%] right-[-10%]"></div>
       
       {/* Header bar */}
       <header className="border-b border-slate-900 bg-slate-950/75 backdrop-blur-md sticky top-0 z-50 px-6 py-4">

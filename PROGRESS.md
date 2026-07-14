@@ -17,3 +17,11 @@ This log tracks the build process and testing outcomes for each phase.
   - Implemented pagination and rate-limit handling using GitHub headers.
   - Exposed `POST /api/scan` and `GET /api/scan/{scan_id}` endpoints in `main.py`.
   - Added unit tests in `test_github.py` covering pagination and rate-limiting using mocked API responses.
+
+## Phase 2 — Structural Hygiene Scan
+- Status: Completed
+- Completed features:
+  - Implemented `scan_hygiene` in `scanners/hygiene.py` to check for missing README, LICENSE, and `.gitignore`.
+  - Added scanning for committed leaks of `.env` files, `node_modules`, and `__pycache__` with path normalization.
+  - Wrote comprehensive unit tests in `test_hygiene.py` covering clean repo structure, missing standard files, and committed leaks.
+

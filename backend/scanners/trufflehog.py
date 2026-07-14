@@ -90,8 +90,8 @@ def scan_secrets(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
         except json.JSONDecodeError:
             # Skip invalid JSON lines
             continue
-        except Exception as e:
-            print(f"Error parsing TruffleHog finding: {e}")
+        except Exception:
+            print("Error parsing TruffleHog finding: raw output omitted for security.")
             continue
 
     return findings

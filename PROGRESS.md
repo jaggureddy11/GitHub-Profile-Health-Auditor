@@ -10,4 +10,10 @@ This log tracks the build process and testing outcomes for each phase.
   - Set up Vite + React + Tailwind CSS v3 frontend skeleton (build verified).
   - Wrote environment config template (`.env.example`) and decisions log (`DECISIONS.md`).
   - Added unit smoke test for backend `/health` endpoint and verified clean execution.
-
+## Phase 1 — GitHub Repo Enumeration
+- Status: Completed
+- Completed features:
+  - Developed `github_client.py` using `httpx` to list public, non-fork repositories for a user.
+  - Implemented pagination and rate-limit handling using GitHub headers.
+  - Exposed `POST /api/scan` and `GET /api/scan/{scan_id}` endpoints in `main.py`.
+  - Added unit tests in `test_github.py` covering pagination and rate-limiting using mocked API responses.

@@ -14,7 +14,6 @@ class RepositorySchema(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
 class FindingSchema(BaseModel):
     repo_name: str
     type: str
@@ -27,9 +26,8 @@ class FindingSchema(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
 class ScanResponse(BaseModel):
-    scan_id: str
+    scan_id: str = Field(validation_alias="id")
     username: str
     status: str
     created_at: datetime
@@ -37,9 +35,8 @@ class ScanResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
 class FullReportResponse(BaseModel):
-    scan_id: str
+    scan_id: str = Field(validation_alias="id")
     username: str
     status: str
     overall_score: Optional[int] = None
@@ -50,4 +47,3 @@ class FullReportResponse(BaseModel):
     completed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
-

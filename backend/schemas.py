@@ -47,3 +47,9 @@ class FullReportResponse(BaseModel):
     completed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+class FixRequest(BaseModel):
+    scan_id: str
+    repo_name: str
+    rule_id: str
+

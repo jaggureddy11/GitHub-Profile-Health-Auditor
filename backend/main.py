@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timezone
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import redis
@@ -161,6 +161,137 @@ def get_scan_report(scan_id: str, db: Session = Depends(get_db)):
         completed_at=db_scan.completed_at
     )
 
+@app.post("/api/fix")
+def generate_fix_patch(request: schemas.FixRequest, db: Session = Depends(get_db)):
+    # 1. Verify scan exists
+    scan = db.query(models.Scan).filter(models.Scan.id == request.scan_id).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+        
+    # 2. Check if a corresponding finding exists
+    finding = db.query(models.Finding).filter(
+        models.Finding.scan_id == request.scan_id,
+        models.Finding.repo_name == request.repo_name,
+        models.Finding.rule_id == request.rule_id
+    ).first()
+    if not finding:
+        raise HTTPException(status_code=404, detail="Corresponding finding not found for this repository")
+
+    # 3. Generate content based on the rule ID
+    file_path = finding.file_path
+    file_content = ""
+    
+    if request.rule_id == "missing-license":
+        file_path = "LICENSE"
+        file_content = """MIT License
+
+Copyright (c) 2026
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+    elif request.rule_id == "missing-gitignore":
+        file_path = ".gitignore"
+        file_content = """# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+.tsbuildinfo
+
+# Output directory for production build
+dist/
+build/
+
+# Python compiled bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+"""
+    elif request.rule_id == "missing-readme":
+        file_path = "README.md"
+        file_content = f"""# {request.repo_name}
+
+A public repository by {scan.username}.
+
+## Description
+This project was automatically audited and is missing a description. Update this README to describe the features and architecture of your application.
+
+## Installation
+```bash
+npm install
+# or
+pip install -r requirements.txt
+```
+
+## License
+MIT License. See LICENSE for details.
+"""
+    else:
+        raise HTTPException(status_code=400, detail="Auto-fix not supported for this finding category")
+
+    # 4. Format unified diff
+    lines = file_content.splitlines()
+    num_lines = len(lines)
+    
+    patch = []
+    patch.append(f"diff --git a/{file_path} b/{file_path}")
+    patch.append("new file mode 100644")
+    patch.append("index 0000000..0000000")
+    patch.append("--- /dev/null")
+    patch.append(f"+++ b/{file_path}")
+    patch.append(f"@@ -0,0 +1,{num_lines} @@")
+    for line in lines:
+         patch.append(f"+{line}")
+    patch.append("") # Trailing newline
+    
+    patch_text = "\n".join(patch)
+    
+    return Response(
+        content=patch_text,
+        media_type="text/x-diff",
+        headers={
+            "Content-Disposition": f"attachment; filename={request.repo_name}-{request.rule_id}-fix.patch"
+        }
+    )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

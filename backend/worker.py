@@ -1,6 +1,6 @@
 import os
 import redis
-from rq import Worker, Queue, Connection
+from rq import Worker, Queue
 
 # Ensure backend directory is in python path
 import sys
@@ -13,10 +13,11 @@ listen = ["scans"]
 conn = redis.from_url(REDIS_URL)
 
 def run_worker():
-    with Connection(conn):
-        worker = Worker(map(Queue, listen))
-        print("Starting RQ worker listening on 'scans' queue...")
-        worker.work()
+    # Setup queues with direct connection reference
+    queues = [Queue(name, connection=conn) for name in listen]
+    worker = Worker(queues, connection=conn)
+    print("Starting RQ worker listening on 'scans' queue...")
+    worker.work()
 
 if __name__ == "__main__":
     run_worker()

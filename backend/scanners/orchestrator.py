@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import subprocess
+import asyncio
 from datetime import datetime, timezone
 from database import SessionLocal
 import models
@@ -105,7 +106,7 @@ def run_scan_job(scan_id: str, username: str, token: str = None):
 
         # 5. Run AI Synthesis Layer (Phase 5)
         print(f"[Scan {scan_id}] Synthesizing report with {len(all_findings)} findings...")
-        score, summary_json = synthesize_report(all_findings)
+        score, summary_json = asyncio.run(synthesize_report(all_findings))
         
         # 6. Update Scan status
         scan.overall_score = score

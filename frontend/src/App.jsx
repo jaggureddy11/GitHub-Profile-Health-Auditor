@@ -3,7 +3,7 @@ import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
 
-// API Base URL (assumes local dev on port 8000)
+// API Base URL
 const API_BASE_URL = 'http://localhost:8000';
 
 export default function App() {
@@ -30,7 +30,6 @@ export default function App() {
   useEffect(() => {
     let intervalId;
     if (scanState === 'loading' && currentScanId) {
-      // Cycle loading messages every 3.5 seconds
       intervalId = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
       }, 3500);
@@ -38,7 +37,6 @@ export default function App() {
     return () => clearInterval(intervalId);
   }, [scanState, currentScanId]);
 
-  // Handle starting a scan
   const handleStartScan = async (username, githubToken) => {
     setScanState('loading');
     setErrorMessage('');
@@ -58,13 +56,11 @@ export default function App() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || `Server returned status ${response.status}`);
+        throw new Error(errorData.detail || `Server returned status {response.status}`);
       }
 
       const initialReport = await response.json();
       setCurrentScanId(initialReport.scan_id);
-
-      // Start polling status
       pollScanStatus(initialReport.scan_id);
     } catch (err) {
       console.error(err);
@@ -73,7 +69,6 @@ export default function App() {
     }
   };
 
-  // Poll scan status until completed/failed
   const pollScanStatus = (scanId) => {
     const pollInterval = setInterval(async () => {
       try {
@@ -95,11 +90,9 @@ export default function App() {
         }
       } catch (err) {
         console.error("Polling error:", err);
-        // We don't clear the interval immediately on a single transient network error
       }
     }, 2000);
 
-    // Timeout polling after 4 minutes
     setTimeout(() => {
       clearInterval(pollInterval);
       setScanState((currentState) => {
@@ -112,7 +105,6 @@ export default function App() {
     }, 240000);
   };
 
-  // Handle resetting state for a new audit
   const handleReset = () => {
     setScanState('idle');
     setScanReport(null);
@@ -120,7 +112,6 @@ export default function App() {
     setErrorMessage('');
   };
 
-  // Handle Phase 7 Auto-Fix patch trigger (Stretch)
   const handleTriggerFix = async (finding) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/fix`, {
@@ -153,23 +144,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-cyan-500/30 relative overflow-hidden">
-      {/* Background Ambient Glows */}
-      <div className="ambient-glow-cyan top-[-10%] left-[-10%]"></div>
-      <div className="ambient-glow-blue bottom-[-10%] right-[-10%]"></div>
+    <div className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-white/20">
       
       {/* Header bar */}
-      <header className="border-b border-slate-900 bg-slate-950/75 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+      <header className="border-b border-zinc-800 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={handleReset}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-cyan-500/20 text-white">
+            <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center font-bold text-lg shadow-md border border-zinc-800">
               🛡️
             </div>
-            <div>
-              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <div className="flex items-center space-x-3">
+              <span className="font-bold text-lg tracking-tight text-white">
                 Profile Health Auditor
               </span>
-              <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-cyan-500/10 text-cyan-400 rounded-full border border-cyan-500/20">
+              <span className="px-2.5 py-0.5 text-[10px] font-bold bg-zinc-900 text-zinc-300 rounded-full border border-zinc-800 uppercase tracking-wider">
                 AI Engine Active
               </span>
             </div>
@@ -177,7 +165,7 @@ export default function App() {
           {scanState === 'completed' && (
             <button
               onClick={handleReset}
-              className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold px-4 py-2 rounded-lg border border-slate-800 transition duration-150"
+              className="text-xs bg-zinc-950 hover:bg-zinc-900 text-white font-bold px-4 py-2 rounded-lg border border-zinc-800 transition duration-150"
             >
               New Scan
             </button>
@@ -191,11 +179,11 @@ export default function App() {
         {scanState === 'idle' && (
           <div className="space-y-12 animate-fade-in">
             <div className="text-center space-y-6 max-w-3xl mx-auto">
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl bg-gradient-to-r from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl text-white leading-tight">
                 Audit Your GitHub Profile <br className="hidden sm:inline" />
                 Like a Recruiter Would
               </h1>
-              <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
                 Our automated auditor combs through your public repositories checking for committed API keys, structural hygiene failures (.gitignore/README), and general code smells.
               </p>
             </div>
@@ -207,28 +195,28 @@ export default function App() {
           <div className="flex flex-col items-center justify-center py-20 max-w-lg mx-auto text-center space-y-8 animate-pulse">
             {/* Spinning Radar */}
             <div className="relative w-28 h-28 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-4 border-dashed border-cyan-500/20 animate-spin" style={{ animationDuration: '15s' }}></div>
-              <div className="absolute inset-2 rounded-full border-4 border-dashed border-blue-500/40 animate-spin" style={{ animationDuration: '8s', animationDirection: 'reverse' }}></div>
-              <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-3xl shadow-lg shadow-cyan-500/30 text-white animate-pulse">
+              <div className="absolute inset-0 rounded-full border-4 border-dashed border-zinc-800 animate-spin" style={{ animationDuration: '15s' }}></div>
+              <div className="absolute inset-2 rounded-full border-4 border-dashed border-zinc-700 animate-spin" style={{ animationDuration: '8s', animationDirection: 'reverse' }}></div>
+              <div className="absolute inset-4 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-3xl shadow-md text-white animate-pulse">
                 🔍
               </div>
             </div>
 
             <div className="space-y-3 w-full">
-              <h3 className="text-lg font-bold text-slate-200">Analyzing Developer Repositories</h3>
-              <p className="text-xs text-cyan-400 font-semibold font-mono h-8">
+              <h3 className="text-lg font-bold text-zinc-200">Analyzing Developer Repositories</h3>
+              <p className="text-xs text-white font-semibold font-mono h-8">
                 {loadingMessages[loadingStep]}
               </p>
               
               {/* Progress Pulse Bar */}
-              <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800/50">
+              <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
                 <div 
-                  className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-1000 ease-out"
+                  className="h-full bg-white transition-all duration-1000 ease-out"
                   style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
                 ></div>
               </div>
               
-              <span className="text-[10px] text-slate-500 uppercase tracking-widest block pt-2">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest block pt-2">
                 This may take a minute depending on repository size
               </span>
             </div>
@@ -241,26 +229,25 @@ export default function App() {
             <RepoBreakdown 
               repositories={scanReport.repositories} 
               findings={scanReport.findings} 
-              // We pass the auto-fix trigger. If backend supports Phase 7, it's clickable.
               onTriggerFix={handleTriggerFix} 
             />
           </div>
         )}
 
         {scanState === 'error' && (
-          <div className="w-full max-w-md mx-auto bg-slate-900/60 backdrop-blur-xl border border-rose-950/40 p-8 rounded-3xl text-center space-y-6 shadow-2xl shadow-rose-950/10">
-            <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
+          <div className="w-full max-w-md mx-auto mono-panel p-8 rounded-3xl text-center space-y-6 shadow-xl">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center text-2xl mx-auto">
               ⚠️
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-100">Audit Interrupted</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
+              <h3 className="text-xl font-bold text-white">Audit Interrupted</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">
                 {errorMessage}
               </p>
             </div>
             <button
               onClick={handleReset}
-              className="py-3 px-6 w-full rounded-xl bg-rose-950/30 hover:bg-rose-500 text-rose-400 hover:text-white font-bold transition duration-200 border border-rose-500/30 hover:border-rose-500 shadow-md active:scale-95"
+              className="py-3 px-6 w-full rounded-xl bg-white hover:bg-zinc-200 text-black font-bold transition duration-200 border border-white shadow-md active:scale-95"
             >
               Reset & Try Again
             </button>
@@ -270,7 +257,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900/50 py-6 text-center text-xs text-slate-500 bg-slate-950">
+      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500 bg-black">
         <p>&copy; {new Date().getFullYear()} Profile Health Auditor. Enabled with static analysis & AI synthesis.</p>
       </footer>
     </div>

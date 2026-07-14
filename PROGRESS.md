@@ -25,3 +25,13 @@ This log tracks the build process and testing outcomes for each phase.
   - Added scanning for committed leaks of `.env` files, `node_modules`, and `__pycache__` with path normalization.
   - Wrote comprehensive unit tests in `test_hygiene.py` covering clean repo structure, missing standard files, and committed leaks.
 
+## Phase 3 — Secret Scanning via TruffleHog
+- Status: Completed
+- Completed features:
+  - Installed and verified TruffleHog CLI tool.
+  - Implemented `scan_secrets` in `scanners/trufflehog.py` that runs TruffleHog in filesystem mode and processes JSON stdout stream.
+  - Resolved dynamic line numbers for raw findings and implemented absolute redaction of secret values.
+  - Configured `scanners/orchestrator.py` background job framework and wrote `worker.py` utilizing Redis Queue (RQ).
+  - Wrote unit and integration tests verifying cloning, scanning, and database persistence with redacted credentials.
+
+

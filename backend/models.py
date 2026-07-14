@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from database import Base
 
 class Scan(Base):
@@ -11,7 +11,7 @@ class Scan(Base):
     status = Column(String, default="pending", nullable=False) # pending, running, completed, failed
     overall_score = Column(Integer, nullable=True)
     summary = Column(String, nullable=True) # JSON/text containing the synthesized AI report
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     completed_at = Column(DateTime, nullable=True)
 
     repositories = relationship("Repository", back_populates="scan", cascade="all, delete-orphan")

@@ -20,3 +20,19 @@ This document records the architectural and design decisions made during the dev
 
 ## Secret Redaction
 - **Decision**: The backend will immediately redact any secret values found by TruffleHog. We will only store the first/last characters or entirely replace it with `[REDACTED]` in the DB and response payloads. The actual secret is never logged or saved.
+
+## SaaS Database Upgrade
+- **Decision**: Support both SQLite (local development fallback) and PostgreSQL (production).
+- **Rationale**: Implemented using SQLAlchemy dialects and dynamic `postgres://` to `postgresql://` string normalization to prevent deployment errors.
+
+## Authentication (Python 3.13 Compatibility)
+- **Decision**: JWT with standard `bcrypt` hashing (bypassing `passlib`).
+- **Rationale**: Python 3.13 removed the standard library `crypt` module, causing `passlib` to throw errors or fail. Using `bcrypt` directly provides a lightweight, highly compatible hashing solution.
+
+## Rate Limiting & Abuse Prevention
+- **Decision**: Custom Redis-based rate limiting (5 scans per hour per user).
+- **Rationale**: Bypasses heavy dependencies (like `slowapi`) by leveraging the existing Redis connection already used for RQ queue workers.
+
+## SPA Routing & Collapsible Tree UI
+- **Decision**: Custom state-based routing in React, rather than `react-router-dom`, with a nested tree folder expansion pattern for repository findings.
+- **Rationale**: Simplifies client-side bundling, matches GitHub's actual tree layout, and enables on-the-fly rendering of simulated syntax-highlighted code panels.

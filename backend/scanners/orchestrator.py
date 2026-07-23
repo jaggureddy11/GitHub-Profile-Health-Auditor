@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import subprocess
 import asyncio
+import concurrent.futures
 from datetime import datetime, timezone
 from database import SessionLocal
 import models
@@ -38,16 +39,43 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
             url = url.replace("https://github.com/", f"https://{token}@github.com/")
 
     try:
+        # Use check=False to avoid raising CalledProcessError which leaks cmd arguments in traceback
         result = subprocess.run(
             ["git", "clone", "--depth", "1", url, dest_path],
             capture_output=True,
             text=True,
-            check=True
+            check=False
         )
+        if result.returncode != 0:
+            stderr_clean = result.stderr
+            stdout_clean = result.stdout
+            if token:
+                stderr_clean = stderr_clean.replace(token, "[REDACTED]")
+                stdout_clean = stdout_clean.replace(token, "[REDACTED]")
+            print(f"Error cloning repository {repo_url} (exit code {result.returncode}):\nStdout: {stdout_clean}\nStderr: {stderr_clean}")
+            return False
         return True
     except Exception as e:
-        print(f"Error cloning repository {repo_url}: {e}")
+        err_msg = str(e)
+        if token:
+            err_msg = err_msg.replace(token, "[REDACTED]")
+        print(f"Unexpected error cloning repository {repo_url}: {err_msg}")
         return False
+
+def _safe_run_coroutine(coro):
+    """
+    Safely executes an async coroutine from either a synchronous worker thread or a running asyncio loop.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+    else:
+        return asyncio.run(coro)
 
 def run_scan_job(scan_id: str, username: str, token: str = None):
     """
@@ -99,14 +127,15 @@ def run_scan_job(scan_id: str, username: str, token: str = None):
                 rule_id=f["rule_id"],
                 severity=f["severity"],
                 description=f["description"],
-                verification_status=f["verification_status"]
+                verification_status=f["verification_status"],
+                code_snippet=f.get("code_snippet")
             )
             db.add(db_finding)
         db.commit()
 
         # 5. Run AI Synthesis Layer (Phase 5)
         print(f"[Scan {scan_id}] Synthesizing report with {len(all_findings)} findings...")
-        score, summary_json = asyncio.run(synthesize_report(all_findings))
+        score, summary_json = _safe_run_coroutine(synthesize_report(all_findings))
         
         # 6. Update Scan status
         scan.overall_score = score

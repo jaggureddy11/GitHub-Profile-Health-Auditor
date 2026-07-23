@@ -3,10 +3,23 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    github_username = Column(String, nullable=True)
+    github_oauth_token = Column(String, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    scans = relationship("Scan", back_populates="user", cascade="all, delete-orphan")
+
 class Scan(Base):
     __tablename__ = "scans"
 
     id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     username = Column(String, index=True, nullable=False)
     status = Column(String, default="pending", nullable=False) # pending, running, completed, failed
     overall_score = Column(Integer, nullable=True)
@@ -14,6 +27,7 @@ class Scan(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     completed_at = Column(DateTime, nullable=True)
 
+    user = relationship("User", back_populates="scans")
     repositories = relationship("Repository", back_populates="scan", cascade="all, delete-orphan")
     findings = relationship("Finding", back_populates="scan", cascade="all, delete-orphan")
 
@@ -42,5 +56,6 @@ class Finding(Base):
     severity = Column(String, nullable=False) # low, medium, high, critical
     description = Column(String, nullable=False)
     verification_status = Column(String, nullable=True) # live, unverified, or NULL
+    code_snippet = Column(String, nullable=True) # Redacted code snippet for key/smell context
 
     scan = relationship("Scan", back_populates="findings")

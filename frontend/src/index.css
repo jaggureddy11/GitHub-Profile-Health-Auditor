@@ -8,8 +8,8 @@
   body {
     margin: 0;
     font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
-    background-color: #000000; /* Pure Black */
-    color: #ffffff; /* Pure White */
+    background-color: #030303;
+    color: #ffffff;
     overflow-x: hidden;
   }
   
@@ -18,7 +18,7 @@
   }
 }
 
-/* Grayscale animations */
+/* Grayscale & Glassmorphic Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -31,7 +31,25 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphism styling */
+.glass-card {
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(24, 24, 27, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(255, 255, 255, 0.05);
 }
 
 /* Custom scrollbars */
@@ -45,26 +63,30 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a; /* Zinc 800 */
+  background: #27272a;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46; /* Zinc 700 */
+  background: #3f3f46;
 }
 
-/* Premium Monochrome Panel styling */
-.mono-panel {
-  background: #09090b; /* Zinc 950 */
-  border: 1px solid #27272a; /* Zinc 800 */
-}
-
-.mono-panel-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.mono-panel-hover:hover {
-  background: #18181b; /* Zinc 900 */
-  border-color: #52525b; /* Zinc 600 */
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -10px rgba(255, 255, 255, 0.05);
+/* Print export optimization rules */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, footer, button, .print\:hidden {
+    display: none !important;
+  }
+  .mono-panel, div {
+    border-color: #e4e4e7 !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+  h1, h2, h3, h4, span, p {
+    color: #000000 !important;
+  }
 }

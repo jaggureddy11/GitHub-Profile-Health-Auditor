@@ -81,13 +81,25 @@ def test_run_scan_job_integration():
     from scanners.orchestrator import run_scan_job
     import models
 
-    # Create tables in test db (SessionLocal points to health_auditor.db, but we can use it for test)
+    # Create tables in test db
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
+    # Create dummy user
+    user_id = "test-user-uuid"
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        user = models.User(
+            id=user_id,
+            email="test-user@example.com",
+            hashed_password="dummy-hashed-pwd"
+        )
+        db.add(user)
+        db.commit()
+
     # Create dummy scan and repository
     scan_id = "test-scan-uuid"
-    db_scan = models.Scan(id=scan_id, username="test-user", status="pending")
+    db_scan = models.Scan(id=scan_id, user_id=user_id, username="test-user", status="pending")
     db_repo = models.Repository(scan_id=scan_id, name="test-repo", url="https://github.com/test-user/test-repo")
     
     db.query(models.Finding).filter(models.Finding.scan_id == scan_id).delete()

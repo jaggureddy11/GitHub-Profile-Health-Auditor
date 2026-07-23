@@ -68,7 +68,25 @@ This log tracks the build process and testing outcomes for each phase.
   - Integrated the auto-fix trigger into the frontend, enabling one-click file patch downloads.
   - Added test suite `test_fix.py` verifying patch generation formats.
 
+## Stage A — Full Audit & Fixes
+- Status: Completed
+- Completed features:
+  - Addressed 401 Unauthorized errors by dynamically adapting headers based on GITHUB_TOKEN prefix (`ghp_`/`gho_` vs `Bearer` tokens).
+  - Wrote robust username sanitization and validation in `schemas.py` and `github_client.py` (rejecting empty values and email patterns).
+  - Patched critical plaintext token leak in `clone_repo` by replacing the raw GITHUB_TOKEN with `[REDACTED]` from standard error logging.
+  - Implemented explicit deletion of raw TruffleHog secrets from memory.
+  - Documented findings, severities, and patches in `AUDIT.md`.
 
-
-
-
+## Stage B — SaaS Upgrade
+- Status: Completed
+- Completed features:
+  - Developed a robust User database entity and linked scans dynamically using foreign keys.
+  - Implemented JWT-based password authentication, user details retrieval, and account deletion endpoints.
+  - Added full OAuth2 GitHub login flow (code-to-token callback exchange).
+  - Added Redis-based rate limiting (max 5 scans/hour per user).
+  - Containerized services with Docker Compose (Postgres, Redis, API Backend, RQ Worker, Nginx Frontend SPA).
+  - Redesigned frontend to mimic GitHub UI (dark-mode first, badge severities, collapsible folder structures, and mock syntax-highlighted code panels).
+  - Added integration and E2E Playwright tests verifying registration, login, rate limits, multi-tenant isolation, and dashboard views.
+  - Upgraded code preview functionality from simulated templates to dynamic, database-backed snippets, securing them with a multi-layered, regex-based regex scrubber.
+  - Implemented database-level `NOT NULL` constraint on `Scan.user_id` to strictly enforce multi-tenant isolation.
+  - Wrote a dedicated automated test suite verifying code snippet redaction logic.

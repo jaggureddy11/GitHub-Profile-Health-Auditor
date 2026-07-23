@@ -9,9 +9,10 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
     Parses and normalizes code smell findings.
     """
     findings = []
-    semgrep_path = "/Library/Frameworks/Python.framework/Versions/3.13/bin/semgrep"
+    import shutil
+    semgrep_path = shutil.which("semgrep") or "/Library/Frameworks/Python.framework/Versions/3.13/bin/semgrep"
 
-    if not os.path.exists(semgrep_path):
+    if not semgrep_path or not os.path.exists(semgrep_path):
         print(f"Warning: Semgrep binary not found at {semgrep_path}. Skipping code smell scan.")
         return findings
 
@@ -67,6 +68,12 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
             else:
                 severity = "low"
 
+            from scanners.trufflehog import get_redacted_code_snippet
+            code_snippet = None
+            if line_number:
+                full_abs_path = os.path.join(repo_path, rel_file_path)
+                code_snippet = get_redacted_code_snippet(full_abs_path, line_number)
+
             findings.append({
                 "repo_name": repo_name,
                 "type": "smell",
@@ -75,7 +82,8 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
                 "rule_id": check_id,
                 "severity": severity,
                 "description": message,
-                "verification_status": None
+                "verification_status": None,
+                "code_snippet": code_snippet
             })
 
     except json.JSONDecodeError as e:

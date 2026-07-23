@@ -8,3 +8,6 @@ pydantic
 python-dotenv
 pytest
 pytest-asyncio
+PyJWT
+bcrypt
+psycopg2-binary

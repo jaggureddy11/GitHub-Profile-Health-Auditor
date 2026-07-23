@@ -17,14 +17,25 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
         return findings
 
     try:
-        # Run semgrep with auto config in JSON mode
-        # --max-target-bytes prevents scanning huge binary files
+        # Run semgrep with auto config in JSON mode with 30s timeout and folder exclusions
         result = subprocess.run(
-            [semgrep_path, "--config", "auto", "--json", "--max-target-bytes", "5000000", repo_path],
+            [
+                semgrep_path, "--config", "auto", "--json", 
+                "--max-target-bytes", "5000000",
+                "--exclude", "node_modules",
+                "--exclude", "venv",
+                "--exclude", "dist",
+                "--exclude", "build",
+                repo_path
+            ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            timeout=30
         )
+    except subprocess.TimeoutExpired:
+        print(f"Warning: Semgrep scan timed out for repository {repo_path} after 30s.")
+        return findings
     except Exception as e:
         print(f"Error running Semgrep: {e}")
         return findings

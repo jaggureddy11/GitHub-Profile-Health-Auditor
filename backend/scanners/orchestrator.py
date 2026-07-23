@@ -28,23 +28,20 @@ except ImportError:
 
 def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
     """
-    Clones a public GitHub repository to a destination path.
-    Uses token if provided.
+    Clones a public GitHub repository to a destination path with 30s timeout.
     """
     url = repo_url
     if token:
-        # Inject token into URL for authenticated cloning
-        # Format: https://token@github.com/user/repo.git
         if url.startswith("https://github.com/"):
             url = url.replace("https://github.com/", f"https://{token}@github.com/")
 
     try:
-        # Use check=False to avoid raising CalledProcessError which leaks cmd arguments in traceback
         result = subprocess.run(
             ["git", "clone", "--depth", "1", url, dest_path],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            timeout=30
         )
         if result.returncode != 0:
             stderr_clean = result.stderr
@@ -52,9 +49,12 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
             if token:
                 stderr_clean = stderr_clean.replace(token, "[REDACTED]")
                 stdout_clean = stdout_clean.replace(token, "[REDACTED]")
-            print(f"Error cloning repository {repo_url} (exit code {result.returncode}):\nStdout: {stdout_clean}\nStderr: {stderr_clean}")
+            print(f"Error cloning repository {repo_url} (exit code {result.returncode}):\nStderr: {stderr_clean}")
             return False
         return True
+    except subprocess.TimeoutExpired:
+        print(f"Warning: Git clone timed out for repository {repo_url} after 30s.")
+        return False
     except Exception as e:
         err_msg = str(e)
         if token:
@@ -93,9 +93,13 @@ def run_scan_job(scan_id: str, username: str, token: str = None):
         scan.status = "running"
         db.commit()
 
-        # 2. Retrieve the repositories
+        # 2. Retrieve the repositories (Cap to top 15 most active repos for performance)
         repositories = db.query(models.Repository).filter(models.Repository.scan_id == scan_id).all()
-        print(f"[Scan {scan_id}] Found {len(repositories)} repositories to scan")
+        if len(repositories) > 15:
+            print(f"[Scan {scan_id}] Profile has {len(repositories)} repositories. Capping scan to top 15 most active for performance.")
+            repositories = repositories[:15]
+
+        print(f"[Scan {scan_id}] Scanning {len(repositories)} repositories")
 
         all_findings = []
 

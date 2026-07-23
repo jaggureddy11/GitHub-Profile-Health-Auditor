@@ -356,8 +356,8 @@ export default function App() {
               <span className="font-bold text-base tracking-tight text-white font-mono">
                 GitHub Profile Auditor
               </span>
-              <span className="hidden sm:inline px-2 py-0.5 text-[9px] font-bold bg-zinc-900 text-zinc-400 rounded-full border border-zinc-800 uppercase tracking-wider font-mono">
-                v2.0 saas
+              <span className="hidden sm:inline px-2.5 py-0.5 text-[9px] font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider font-mono">
+                Beta
               </span>
             </div>
           </div>

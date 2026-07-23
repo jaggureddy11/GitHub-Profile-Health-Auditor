@@ -64,7 +64,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         {/* Version Badge */}
         <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-full text-xs font-mono text-zinc-300 shadow-lg backdrop-blur-md hover:border-zinc-700 transition duration-200 cursor-default">
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-          <span className="font-semibold text-zinc-200 tracking-wider text-[11px] uppercase">SECURITY ENGINE v2.0</span>
+          <span className="font-semibold text-zinc-200 tracking-wider text-[11px] uppercase">SECURITY ENGINE (BETA)</span>
           <span className="text-zinc-700 font-bold">•</span>
           <span className="text-zinc-400 font-medium flex items-center space-x-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />

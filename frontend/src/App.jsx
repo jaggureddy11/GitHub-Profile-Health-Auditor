@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
+import LandingPage from './components/LandingPage';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -394,88 +395,19 @@ export default function App() {
         
         {/* VIEW: LANDING */}
         {view === 'landing' && (
-          <div className="space-y-16 animate-fade-in py-6">
-            <div className="text-center space-y-6 max-w-4xl mx-auto">
-              <div className="flex justify-center pb-2">
-                <img 
-                  src="/logo.png" 
-                  alt="GitHub Profile Auditor Logo" 
-                  className="w-20 h-20 rounded-2xl object-cover border border-zinc-800 shadow-2xl shadow-white/5 bg-black"
-                />
-              </div>
-
-              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-zinc-900/80 border border-zinc-800 rounded-full text-[11px] font-mono text-zinc-300">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
-                <span>Production Security Scanners &amp; AI Synthesis Active</span>
-              </div>
-
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl text-white leading-tight font-mono">
-                Audit Your GitHub <br />
-                <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">Profile Health</span>
-              </h1>
-              
-              <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-                Scan public GitHub repositories for committed API credentials, missing Git hygiene files, and dangerous code smells. Receive AI synthesized recruiter reports, dynamic README health shields, and 1-click auto-fix code patches.
-              </p>
-
-              <div className="pt-2 flex flex-col sm:flex-row justify-center items-center gap-4">
-                <button 
-                  onClick={() => { setView('auth'); setAuthMode('register'); }}
-                  className="w-full sm:w-auto px-8 py-3 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold transition duration-150 text-sm shadow-xl shadow-white/5 active:scale-98"
-                >
-                  Create Free Account
-                </button>
-                <button 
-                  onClick={handleGitHubOAuth}
-                  className="w-full sm:w-auto px-8 py-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 rounded-xl font-bold text-zinc-200 transition duration-150 text-sm active:scale-98 flex items-center justify-center space-x-2"
-                >
-                  <span>Log In with GitHub</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Feature Showcase Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto pt-4">
-              <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl">
-                  🛡️
-                </div>
-                <h3 className="font-bold text-white text-sm">TruffleHog &amp; Semgrep Engine</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Deep filesystem scanning catches API keys, credentials, and code smells across all default branch files.
-                </p>
-              </div>
-
-              <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl">
-                  🏷️
-                </div>
-                <h3 className="font-bold text-white text-sm">Embeddable README Shields</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Generate embeddable SVG badges showing your verified profile score directly on your GitHub profile README.
-                </p>
-              </div>
-
-              <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl">
-                  🔧
-                </div>
-                <h3 className="font-bold text-white text-sm">1-Click Auto-Fix Patches</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Instantly generate unified `.patch` files to fix missing LICENSE, `.gitignore`, and README files with one command.
-                </p>
-              </div>
-            </div>
-
-            {/* Redaction Guarantee callout */}
-            <div className="max-w-2xl mx-auto glass-card p-6 rounded-2xl text-center space-y-2 border border-zinc-850">
-              <span className="text-2xl">🔒</span>
-              <h3 className="font-bold text-white text-sm">Absolute Secret Redaction Guarantee</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Your repositories are scanned on-the-fly inside temporary memory. Verified API credentials and secrets identified by TruffleHog are redacted immediately in worker memory. No raw credentials are ever persisted in the database or logged in plain text.
-              </p>
-            </div>
-          </div>
+          <LandingPage 
+            onStartRegister={() => { setView('auth'); setAuthMode('register'); }}
+            onGitHubOAuth={handleGitHubOAuth}
+            onStartQuickScan={(username) => {
+              if (token) {
+                setView('dashboard');
+                handleStartScan(username, '');
+              } else {
+                setView('auth');
+                setAuthMode('register');
+              }
+            }}
+          />
         )}
 
         {/* VIEW: DATA PRIVACY */}

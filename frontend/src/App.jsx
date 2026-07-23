@@ -550,7 +550,7 @@ export default function App() {
                 <h3 className="font-bold text-sm text-white font-mono flex items-center">
                   <Zap className="w-4 h-4 mr-2 text-emerald-400" /> New Repository Scan
                 </h3>
-                <ScanForm onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
+                <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
               </div>
 
               {/* Scan History list */}

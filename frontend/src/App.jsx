@@ -18,6 +18,7 @@ export default function App() {
   // Scan state
   const [scanState, setScanState] = useState('idle'); // 'idle', 'loading', 'completed', 'error'
   const [scanReport, setScanReport] = useState(null);
+  const [publicScanReport, setPublicScanReport] = useState(null); // zero-auth quick scan result
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
@@ -38,7 +39,7 @@ export default function App() {
     "Redacting and checking verification status of discovered secrets...",
     "Running Semgrep to parse configuration smells and dangerous eval statements...",
     "Aggregating security and hygiene logs...",
-    "Synthesizing findings via Hugging Face AI Inference Layer...",
+    "Synthesizing findings via Groq AI Engine (llama-3.3-70b)...",
     "Finalizing Health Score calculation..."
   ];
 
@@ -236,6 +237,38 @@ export default function App() {
       }
     } catch (err) {
       alert("Error: " + err.message);
+    }
+  };
+
+  const handleStartQuickScan = async (username) => {
+    // Zero-auth public scan — no login required
+    let cleanUsername = username.trim();
+    if (cleanUsername.includes('github.com/')) {
+      cleanUsername = cleanUsername.split('github.com/')[1].split('/')[0];
+    }
+    cleanUsername = cleanUsername.replace(/^@/, '').trim();
+    if (!cleanUsername) return;
+
+    setScanState('loading');
+    setErrorMessage('');
+    setLoadingStep(0);
+    setPublicScanReport(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/public-scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUsername })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Public scan failed');
+      }
+      setPublicScanReport(data);
+      setScanState('public-completed');
+    } catch (err) {
+      setScanState('error');
+      setErrorMessage(err.message || 'Failed to connect to scanning server.');
     }
   };
 
@@ -439,11 +472,112 @@ export default function App() {
                 setView('dashboard');
                 handleStartScan(username, '');
               } else {
-                setView('auth');
-                setAuthMode('register');
+                handleStartQuickScan(username);
+                setView('public-scan');
               }
             }}
           />
+        )}
+
+        {/* VIEW: PUBLIC SCAN — Zero-auth quick scan results */}
+        {view === 'public-scan' && (
+          <div className="max-w-3xl mx-auto w-full space-y-8 py-6 animate-fade-in">
+            {scanState === 'loading' && (
+              <div className="flex flex-col items-center justify-center py-24 space-y-5 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-800 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-emerald-400 animate-pulse" />
+                </div>
+                <p className="text-white font-bold text-base font-mono">Analyzing GitHub Profile...</p>
+                <p className="text-zinc-400 text-xs font-mono">{loadingMessages[loadingStep]}</p>
+              </div>
+            )}
+
+            {scanState === 'error' && (
+              <div className="text-center py-16 space-y-4">
+                <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
+                <p className="text-white font-bold">{errorMessage || 'Scan failed.'}</p>
+                <button onClick={() => { setScanState('idle'); setView('landing'); }} className="px-5 py-2.5 bg-white text-black font-bold rounded-lg text-xs hover:bg-zinc-200 transition">
+                  Try Again
+                </button>
+              </div>
+            )}
+
+            {scanState === 'public-completed' && publicScanReport && (
+              <div className="space-y-6">
+                {/* Basic Report Header */}
+                <div className="text-center space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-950/60 border border-emerald-800/60 rounded-full text-emerald-400 text-[10px] font-mono font-bold">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>PUBLIC BASIC AUDIT REPORT</span>
+                  </div>
+                  <h2 className="text-2xl font-extrabold text-white font-mono">@{publicScanReport.username}</h2>
+                  <p className="text-zinc-400 text-xs">{publicScanReport.checked_repos} of {publicScanReport.total_repos} repositories analyzed{publicScanReport.capped ? ' (top 15 most active)' : ''}</p>
+                </div>
+
+                {/* Basic Score Card */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                    <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.basic_score}</div>
+                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">HYGIENE SCORE</div>
+                  </div>
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                    <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.total_repos}</div>
+                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">PUBLIC REPOS</div>
+                  </div>
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                    <div className="text-3xl font-extrabold text-amber-400 font-mono">{publicScanReport.hygiene_issues?.length || 0}</div>
+                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">ISSUES FOUND</div>
+                  </div>
+                </div>
+
+                {/* Repositories Preview */}
+                {publicScanReport.repositories?.length > 0 && (
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-white font-mono">Repositories Preview</h3>
+                    <div className="divide-y divide-zinc-900">
+                      {publicScanReport.repositories.map((repo, i) => (
+                        <div key={i} className="flex items-center justify-between py-2.5">
+                          <div>
+                            <a href={repo.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-white hover:text-emerald-400 transition font-mono">{repo.name}</a>
+                            {repo.description && <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-xs">{repo.description}</p>}
+                          </div>
+                          <span className="text-[9px] text-zinc-600 font-mono">{repo.default_branch}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upgrade CTA */}
+                <div className="bg-gradient-to-br from-emerald-950/40 to-zinc-950 border border-emerald-800/50 rounded-2xl p-6 text-center space-y-4">
+                  <h3 className="text-base font-extrabold text-white">Unlock the Full Security Audit</h3>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                    {publicScanReport.upgrade_message}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={() => { setView('auth'); setAuthMode('register'); setScanState('idle'); }}
+                      className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-lg transition font-mono"
+                    >
+                      Create Free Account
+                    </button>
+                    <button
+                      onClick={() => { setView('auth'); setAuthMode('login'); setScanState('idle'); }}
+                      className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs rounded-lg transition font-mono"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <button onClick={() => { setScanState('idle'); setView('landing'); setPublicScanReport(null); }} className="text-[11px] text-zinc-500 hover:text-zinc-300 transition font-mono">
+                    ← Back to Home
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* VIEW: DATA PRIVACY */}

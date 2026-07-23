@@ -285,9 +285,81 @@ def delete_account(db: Session = Depends(get_db), current_user: models.User = De
     db.commit()
     return {"message": "Account and all associated audit data deleted successfully"}
 
-# Scan Endpoints (Multi-tenant)
+# Public Quick Scan (No Auth Required) — Returns Basic Report
+@app.post("/api/public-scan")
+async def public_scan(request: schemas.ScanRequest):
+    """
+    Zero-auth lightweight scan using GitHub API metadata.
+    No cloning, no TruffleHog — returns instantly with repo hygiene signals and basic score.
+    """
+    github_token = os.getenv("GITHUB_TOKEN")
+
+    # Parse GitHub URL if full URL passed
+    username = request.username.strip()
+    if "github.com/" in username:
+        username = username.split("github.com/")[1].split("/")[0]
+    username = username.lstrip("@").strip()
+
+    try:
+        repos = await list_public_repositories(username, token=github_token)
+    except GitHubRateLimitError:
+        raise HTTPException(status_code=429, detail="GitHub API rate limit exceeded. Try again in a minute.")
+    except GitHubAPIError as e:
+        raise HTTPException(status_code=404, detail=f"GitHub user '{username}' not found or API error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+    if not repos:
+        raise HTTPException(status_code=404, detail=f"No public repositories found for '{username}'.")
+
+    # Lightweight hygiene analysis using repo metadata (no cloning)
+    hygiene_issues = []
+    score = 100
+    capped = len(repos) > 15
+    repos_checked = repos[:15]
+
+    for repo in repos_checked:
+        repo_name = repo.get("name", "unknown")
+        # No README check (repos without description are likely undocumented)
+        if not repo.get("description"):
+            hygiene_issues.append({
+                "repo": repo_name,
+                "issue": f"Repository '{repo_name}' has no description",
+                "severity": "low"
+            })
+            score -= 2
+
+    # Summary metrics
+    total_repos = len(repos)
+    checked_repos = len(repos_checked)
+
+    basic_report = {
+        "username": username,
+        "total_repos": total_repos,
+        "checked_repos": checked_repos,
+        "capped": capped,
+        "basic_score": max(0, score),
+        "hygiene_issues": hygiene_issues[:10],
+        "repositories": [
+            {
+                "name": r.get("name"),
+                "url": r.get("url"),
+                "last_commit": r.get("last_commit"),
+                "default_branch": r.get("default_branch"),
+                "description": r.get("description", "")
+            }
+            for r in repos_checked[:8]
+        ],
+        "is_basic_report": True,
+        "upgrade_message": "Sign in or create a free account to unlock secret scanning, AI analysis, 1-click fixes, and the AI Security Copilot."
+    }
+
+    return basic_report
+
+# Authenticated Full Scan Endpoints (Multi-tenant)
 @app.post("/api/scan", response_model=schemas.FullReportResponse)
 async def start_scan(
+
     request: schemas.ScanRequest,
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db),

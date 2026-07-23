@@ -64,7 +64,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
 
   const getSeverityBadgeClass = (severity) => {
     const sev = severity ? severity.toLowerCase() : '';
-    if (sev === 'critical') return 'bg-red-950 text-red-300 border-red-800 font-extrabold';
+    if (sev === 'critical') return 'bg-red-950 text-red-300 border-red-800 font-extrabold animate-critical-pulse';
     if (sev === 'high') return 'bg-orange-950 text-orange-300 border-orange-800 font-bold';
     if (sev === 'medium') return 'bg-amber-950 text-amber-300 border-amber-800 font-bold';
     return 'bg-zinc-900 text-zinc-300 border-zinc-700 font-medium';
@@ -245,7 +245,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
             });
 
             return (
-              <div key={repoName} className="border border-zinc-850 rounded-2xl overflow-hidden bg-black shadow-md">
+              <div key={repoName} className="border border-zinc-850 hover:border-zinc-750 rounded-2xl overflow-hidden bg-black shadow-md transition duration-300">
                 {/* Repo Header */}
                 <div 
                   onClick={() => toggleRepo(repoName)}
@@ -365,7 +365,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
       {/* Auto-Fix Patch Inspector Modal */}
       {activePatchFinding && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-2xl w-full p-7 space-y-5 shadow-2xl animate-fade-in">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-2xl w-full p-7 space-y-5 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
               <div>
                 <h3 className="text-base font-extrabold text-white flex items-center space-x-2">

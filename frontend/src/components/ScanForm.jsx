@@ -81,8 +81,10 @@ export default function ScanForm({ onScanStart, isLoading, defaultUser = '' }) {
             <span>Analyzing Repositories...</span>
           </>
         ) : (
-          <span>Run Repository Scan</span>
-          <Play className="w-3.5 h-3.5 ml-1" />
+          <>
+            <span>Run Repository Scan</span>
+            <Play className="w-3.5 h-3.5 fill-black" />
+          </>
         )}
       </button>
 

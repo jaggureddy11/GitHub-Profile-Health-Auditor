@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderOpen, FolderClosed, Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X } from 'lucide-react';
+import { FolderOpen, FolderClosed, Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X, Search, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -190,13 +190,16 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search files or rules..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-3.5 py-2 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 text-xs w-52 font-mono"
-          />
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search files or rules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-3.5 py-2 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 text-xs w-56 font-mono"
+            />
+          </div>
 
           <select
             value={filterType}
@@ -249,9 +252,10 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
                   className="bg-zinc-950 hover:bg-zinc-900/60 p-5 flex items-center justify-between cursor-pointer select-none transition duration-150 border-b border-zinc-900"
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-zinc-400 text-sm transition-transform duration-150 transform inline-block">
-                      {isRepoExpanded ? '▼' : '▶'}
+                    <span className="text-zinc-400">
+                      {isRepoExpanded ? <ChevronDown className="w-4 h-4 text-zinc-400" /> : <ChevronRight className="w-4 h-4 text-zinc-400" />}
                     </span>
+                    <GitBranch className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span className="font-extrabold text-base text-white font-mono">{repoName}</span>
                   </div>
                   

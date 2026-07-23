@@ -142,7 +142,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
             </div>
 
             {/* Interactive Tab Controls */}
-            <div className="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-850 text-xs font-mono">
+            <div className="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-850 text-xs font-mono overflow-x-auto max-w-full">
               <button
                 onClick={() => setDemoTab('terminal')}
                 className={`px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 ${

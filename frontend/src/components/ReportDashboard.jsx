@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -147,10 +147,10 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                 </button>
                 <button
                   onClick={() => handleExport('json')}
-                  className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl"
+                  className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5"
                   title="Export JSON file"
                 >
-                  <span>JSON</span>
+                  <FileJson className="w-3.5 h-3.5" /><span>Export JSON</span>
                 </button>
                 <button
                   onClick={handlePrint}

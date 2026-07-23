@@ -84,7 +84,7 @@ async def call_groq_api(prompt: str, token: str) -> str:
         "max_tokens": 1500
     }
     
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=15.0, trust_env=False) as client:
         response = await client.post(url, headers=headers, json=payload)
         if response.status_code != 200:
             raise Exception(f"Groq API returned status {response.status_code}: {response.text}")
@@ -109,7 +109,7 @@ async def call_hf_api(prompt: str, token: str) -> str:
         }
     }
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
         response = await client.post(url, headers=headers, json=payload)
         if response.status_code != 200:
             raise Exception(f"Hugging Face API returned status {response.status_code}: {response.text}")

@@ -1,4 +1,7 @@
 import os
+# Fix macOS Python 3.13 fork crash (SIGABRT on child side of fork pre-exec)
+os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+
 import uuid
 import bcrypt
 import jwt

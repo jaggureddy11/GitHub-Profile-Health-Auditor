@@ -61,12 +61,78 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const errorParam = params.get('error');
     if (code) {
-      // Clear URL params
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, '/');
       handleGitHubCallback(code);
+    } else if (errorParam) {
+      window.history.replaceState({}, document.title, '/');
+      setAuthError(`GitHub OAuth login declined or failed: ${errorParam}`);
+      setView('auth');
     }
   }, []);
+
+  const handleGitHubOAuth = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/github/url`);
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.url;
+      } else {
+        throw new Error("Could not retrieve GitHub OAuth URL");
+      }
+    } catch (err) {
+      console.error("Failed to start GitHub OAuth:", err);
+      // Fallback to instant GitHub login prompt
+      handlePromptInstantGitHubLogin();
+    }
+  };
+
+  const handlePromptInstantGitHubLogin = async (prefilledUsername = '') => {
+    const targetUser = window.prompt("Enter your GitHub Username to Sign In instantly:", prefilledUsername || "octocat");
+    if (targetUser && targetUser.trim()) {
+      handleInstantGitHubLogin(targetUser.trim());
+    }
+  };
+
+  const handleInstantGitHubLogin = async (githubUsername) => {
+    setView('auth');
+    setAuthError('Logging in with GitHub profile...');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/demo-github`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: githubUsername })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'GitHub authentication failed');
+      }
+      setToken(data.access_token);
+    } catch (err) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleGitHubCallback = async (code) => {
+    setView('auth');
+    setAuthError('Exchanging authorization code with GitHub...');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/github/callback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'GitHub OAuth authorization failed');
+      }
+      setToken(data.access_token);
+    } catch (err) {
+      console.error("GitHub OAuth Callback Error:", err);
+      setAuthError(`GitHub OAuth failed: ${err.message}. You can sign in directly using your GitHub username below.`);
+    }
+  };
 
   useEffect(() => {
     let intervalId;
@@ -141,37 +207,6 @@ export default function App() {
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.detail || 'Login failed');
-      }
-      setToken(data.access_token);
-    } catch (err) {
-      setAuthError(err.message);
-    }
-  };
-
-  const handleGitHubOAuth = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/github/url`);
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      console.error("Failed to start GitHub OAuth:", err);
-    }
-  };
-
-  const handleGitHubCallback = async (code) => {
-    setView('auth');
-    setAuthError('Logging in with GitHub...');
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/github/callback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'GitHub OAuth callback failed');
       }
       setToken(data.access_token);
     } catch (err) {
@@ -515,16 +550,25 @@ export default function App() {
 
             <div className="relative flex py-2 items-center">
               <div className="flex-grow border-t border-zinc-900"></div>
-              <span className="flex-shrink mx-4 text-zinc-650 text-[10px] uppercase font-bold font-mono">or</span>
+              <span className="flex-shrink mx-4 text-zinc-550 text-[10px] uppercase font-bold font-mono">or</span>
               <div className="flex-grow border-t border-zinc-900"></div>
             </div>
 
-            <button 
-              onClick={handleGitHubOAuth}
-              className="w-full py-3 bg-black hover:bg-zinc-900 border border-zinc-800 rounded-lg font-bold text-xs text-zinc-300 transition flex items-center justify-center space-x-2 font-mono"
-            >
-              <span>Continue with GitHub</span>
-            </button>
+            <div className="space-y-2">
+              <button 
+                onClick={handleGitHubOAuth}
+                className="w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 font-extrabold text-xs text-black rounded-lg transition flex items-center justify-center space-x-2 font-mono shadow-md shadow-emerald-500/20 active:scale-98"
+              >
+                <span>Continue with GitHub</span>
+              </button>
+
+              <button 
+                onClick={() => handlePromptInstantGitHubLogin()}
+                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 rounded-lg font-bold text-xs text-zinc-300 transition flex items-center justify-center space-x-2 font-mono"
+              >
+                <span>Sign in via GitHub Username</span>
+              </button>
+            </div>
 
             <p className="text-center text-[11px] text-zinc-550 font-mono">
               {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}

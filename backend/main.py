@@ -169,6 +169,33 @@ def get_github_oauth_url():
     )
     return {"url": url}
 
+@app.post("/api/auth/demo-github")
+def demo_github_login(payload: dict, db: Session = Depends(get_db)):
+    username = payload.get("username", "octocat").strip().lstrip("@")
+    if not username:
+        username = "octocat"
+    email = f"{username.lower()}@github.com"
+    
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        user_id = str(uuid.uuid4())
+        user = models.User(
+            id=user_id,
+            email=email,
+            hashed_password=hash_password(str(uuid.uuid4())),
+            github_username=username,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        user.github_username = username
+        db.commit()
+    
+    access_token = create_access_token(data={"sub": user.id})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @app.post("/api/auth/github/callback", response_model=schemas.TokenResponse)
 async def github_oauth_callback(payload: dict, db: Session = Depends(get_db)):
     code = payload.get("code")

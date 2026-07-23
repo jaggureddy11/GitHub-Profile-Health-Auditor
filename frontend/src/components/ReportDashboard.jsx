@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -63,7 +64,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
       {/* Redaction Guarantee Banner */}
       <div className="border border-green-900/80 bg-green-950/30 p-5 rounded-2xl flex items-center justify-between text-green-300 print:hidden shadow-lg">
         <div className="flex items-center space-x-4">
-          <span className="text-3xl">🛡️</span>
+          <div className="w-10 h-10 rounded-xl bg-green-900/60 border border-green-800/60 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-6 h-6 text-green-300" />
+          </div>
           <div className="space-y-1">
             <p className="font-extrabold text-sm sm:text-base text-green-200">Absolute Secret Redaction Guarantee Active</p>
             <p className="text-xs sm:text-sm text-green-400/90 leading-relaxed">
@@ -111,7 +114,13 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
             </div>
           </div>
           <span className="mt-5 px-4 py-1 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
-            {overall_score >= 90 ? 'Excellent Standing ✨' : (overall_score >= 70 ? 'Fair - Action Recommended ⚠️' : 'Critical Fixes Required 🚨')}
+            {overall_score >= 90 ? (
+              <span className="flex items-center space-x-1.5"><Sparkles className="w-3.5 h-3.5" /><span>Excellent Standing</span></span>
+            ) : overall_score >= 70 ? (
+              <span className="flex items-center space-x-1.5"><AlertTriangle className="w-3.5 h-3.5 text-amber-300" /><span>Fair - Action Recommended</span></span>
+            ) : (
+              <span className="flex items-center space-x-1.5"><AlertTriangle className="w-3.5 h-3.5 text-red-400" /><span>Critical Fixes Required</span></span>
+            )}
           </span>
         </div>
 
@@ -134,7 +143,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                   className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5 shadow-sm"
                   title="Export Markdown file"
                 >
-                  <span>📥 Export .md</span>
+                  <Download className="w-3.5 h-3.5" /><span>Export .md</span>
                 </button>
                 <button
                   onClick={() => handleExport('json')}
@@ -148,19 +157,19 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                   className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5"
                   title="Print / Save as PDF"
                 >
-                  <span>🖨️ Print</span>
+                  <Printer className="w-3.5 h-3.5" /><span>Print</span>
                 </button>
                 <button
                   onClick={() => onReRun(username)}
-                  className="py-2 px-4 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md"
+                  className="py-2 px-4 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md flex items-center space-x-1.5"
                 >
-                  🔄 Re-run
+                  <RefreshCw className="w-3 h-3" /><span>Re-run</span>
                 </button>
                 <button
                   onClick={onReset}
-                  className="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-400 transition duration-150 border border-zinc-800 rounded-xl"
+                  className="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-400 transition duration-150 border border-zinc-800 rounded-xl flex items-center justify-center"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -202,7 +211,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
       <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl print:hidden shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-900 pb-4">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl">🏷️</span>
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+              <Tag className="w-5 h-5 text-zinc-300" />
+            </div>
             <div>
               <h3 className="text-base font-bold text-white">Embeddable README Health Shield</h3>
               <p className="text-xs sm:text-sm text-zinc-400">Embed your verified profile health badge directly on your GitHub profile README.md</p>
@@ -221,7 +232,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                 onClick={() => copyToClipboard(markdownSnippet, 'md')}
                 className="hover:text-white text-zinc-300 font-bold underline cursor-pointer"
               >
-                {copiedType === 'md' ? 'Copied! ✓' : 'Copy'}
+                {copiedType === 'md' ? <span className="flex items-center space-x-1"><Check className="w-3 h-3 text-emerald-400" /><span>Copied!</span></span> : <span className="flex items-center space-x-1"><Copy className="w-3 h-3" /><span>Copy</span></span>}
               </button>
             </div>
             <div className="p-3 bg-zinc-950 rounded-lg text-zinc-200 truncate text-xs select-all border border-zinc-900">
@@ -236,7 +247,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                 onClick={() => copyToClipboard(htmlSnippet, 'html')}
                 className="hover:text-white text-zinc-300 font-bold underline cursor-pointer"
               >
-                {copiedType === 'html' ? 'Copied! ✓' : 'Copy'}
+                {copiedType === 'html' ? <span className="flex items-center space-x-1"><Check className="w-3 h-3 text-emerald-400" /><span>Copied!</span></span> : <span className="flex items-center space-x-1"><Copy className="w-3 h-3" /><span>Copy</span></span>}
               </button>
             </div>
             <div className="p-3 bg-zinc-950 rounded-lg text-zinc-200 truncate text-xs select-all border border-zinc-900">
@@ -249,7 +260,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
       {/* Prioritized AI Recommendations */}
       <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl shadow-xl space-y-6">
         <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
-          <span className="text-2xl">🤖</span>
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+              <Bot className="w-5 h-5 text-zinc-300" />
+            </div>
           <div>
             <h3 className="text-lg font-bold text-white">AI Prioritized Insights</h3>
             <p className="text-xs sm:text-sm text-zinc-400">Targeted corrections recommended for profile readiness</p>
@@ -280,7 +293,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
           </div>
         ) : (
           <div className="text-center py-10 bg-black rounded-xl border border-dashed border-zinc-850">
-            <span className="text-3xl block mb-2">🎉</span>
+            <div className="flex justify-center mb-2">
+              <CheckCircle2 className="w-9 h-9 text-emerald-500" />
+            </div>
             <p className="text-sm font-semibold text-zinc-300">No major issues found! Your profile has excellent standing.</p>
           </div>
         )}

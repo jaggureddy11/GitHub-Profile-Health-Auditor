@@ -1,11 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { 
+  Zap, 
+  Terminal, 
+  ShieldCheck, 
+  Activity, 
+  Wrench, 
+  Cpu, 
+  Lock, 
+  Shield, 
+  Sparkles, 
+  AlertTriangle, 
+  Check, 
+  Copy, 
+  CheckCircle2, 
+  Plus, 
+  Minus, 
+  ArrowRight, 
+  FileCode2, 
+  KeyRound, 
+  FileText
+} from 'lucide-react';
 
 export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQuickScan }) {
   const [quickUsername, setQuickUsername] = useState('');
   const [demoTab, setDemoTab] = useState('terminal'); // 'terminal', 'findings', 'scorecard', 'patches'
   const [activeFaq, setActiveFaq] = useState(null);
-
-  // Copy state for badge snippet
   const [copied, setCopied] = useState(false);
 
   const handleQuickSubmit = (e) => {
@@ -46,7 +65,10 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </span>
           <span className="font-medium">Static Security Analysis &amp; AI Synthesis Engine v2.0</span>
           <span className="text-zinc-600">|</span>
-          <span className="text-emerald-400 font-semibold">Zero-Secret Retention</span>
+          <span className="text-emerald-400 font-semibold flex items-center space-x-1">
+            <ShieldCheck className="w-3.5 h-3.5 inline mr-1" />
+            Zero-Secret Retention
+          </span>
         </div>
 
         {/* Hero Title */}
@@ -80,20 +102,21 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               className="w-full sm:w-auto shrink-0 px-6 py-3 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:from-emerald-300 hover:to-teal-400 text-black font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 shimmer-btn transition active:scale-95 flex items-center justify-center space-x-1.5"
             >
               <span>Scan Profile</span>
-              <span>⚡</span>
+              <Zap className="w-3.5 h-3.5 text-black fill-black" />
             </button>
           </form>
           
           <div className="mt-3 flex items-center justify-center space-x-4 text-xs font-mono text-zinc-500">
             <span className="flex items-center space-x-1">
-              <span className="text-emerald-400">✓</span> <span>No installation needed</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline" /> 
+              <span>No installation needed</span>
             </span>
             <span>•</span>
             <button 
               onClick={onGitHubOAuth}
-              className="text-zinc-400 hover:text-white underline font-medium transition"
+              className="text-zinc-400 hover:text-white underline font-medium transition flex items-center space-x-1 inline-flex"
             >
-              Log in with GitHub
+              <span>Log in with GitHub</span>
             </button>
           </div>
         </div>
@@ -122,35 +145,39 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
             <div className="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-850 text-xs font-mono">
               <button
                 onClick={() => setDemoTab('terminal')}
-                className={`px-3 py-1.5 rounded-lg transition font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 ${
                   demoTab === 'terminal' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                📟 Live Execution
+                <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Live Execution</span>
               </button>
               <button
                 onClick={() => setDemoTab('findings')}
-                className={`px-3 py-1.5 rounded-lg transition font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 ${
                   demoTab === 'findings' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                🛡️ Secret &amp; Code Findings
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Secret &amp; Code Findings</span>
               </button>
               <button
                 onClick={() => setDemoTab('scorecard')}
-                className={`px-3 py-1.5 rounded-lg transition font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 ${
                   demoTab === 'scorecard' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                📊 AI Health Score
+                <Activity className="w-3.5 h-3.5 text-purple-400" />
+                <span>AI Health Score</span>
               </button>
               <button
                 onClick={() => setDemoTab('patches')}
-                className={`px-3 py-1.5 rounded-lg transition font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 ${
                   demoTab === 'patches' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                🔧 Auto-Fix Patch
+                <Wrench className="w-3.5 h-3.5 text-amber-400" />
+                <span>Auto-Fix Patch</span>
               </button>
             </div>
           </div>
@@ -163,18 +190,31 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               <div className="space-y-3 leading-relaxed text-zinc-300">
                 <p className="text-zinc-500"># Initializing ephemeral Redis Queue scanning worker...</p>
                 <p className="text-emerald-400">➜ GitHub REST API: Enumerating public non-fork repositories for user @octocat</p>
-                <p className="text-zinc-400">  ✓ Found 6 public repositories [api-service, frontend-app, ml-pipeline, dotfiles, utils-cli, docs]</p>
+                <p className="text-zinc-400 flex items-center"><Check className="w-3 h-3 text-emerald-400 inline mr-1.5 shrink-0" /><span>Found 6 public repositories [api-service, frontend-app, ml-pipeline, dotfiles, utils-cli, docs]</span></p>
                 <p className="text-cyan-400">➜ Executing Hygiene Scanner...</p>
-                <p className="text-amber-400">  ⚠️ api-service: Missing standard LICENSE file</p>
-                <p className="text-amber-400">  ⚠️ ml-pipeline: Missing root .gitignore file</p>
+                <p className="text-amber-400 flex items-center">
+                  <AlertTriangle className="w-3 h-3 text-amber-400 inline mr-1.5 shrink-0" />
+                  <span>api-service: Missing standard LICENSE file</span>
+                </p>
+                <p className="text-amber-400 flex items-center">
+                  <AlertTriangle className="w-3 h-3 text-amber-400 inline mr-1.5 shrink-0" />
+                  <span>ml-pipeline: Missing root .gitignore file</span>
+                </p>
                 <p className="text-red-400 font-bold">➜ Executing TruffleHog Filesystem Scanner v3.63...</p>
-                <p className="text-red-400">  🚨 CRITICAL FINDING: Identified AWS Access Key in repo 'api-service/config/aws.json' [line 14]</p>
-                <p className="text-emerald-400">  🛡️ Absolute Redaction Engine: Secret stripped from memory: 'AKIA... [REDACTED]'</p>
+                <p className="text-red-400 flex items-center">
+                  <KeyRound className="w-3.5 h-3.5 text-red-400 inline mr-1.5 shrink-0" />
+                  <span>CRITICAL FINDING: Identified AWS Access Key in repo 'api-service/config/aws.json' [line 14]</span>
+                </p>
+                <p className="text-emerald-400 flex items-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline mr-1.5 shrink-0" />
+                  <span>Absolute Redaction Engine: Secret stripped from memory: 'AKIA... [REDACTED]'</span>
+                </p>
                 <p className="text-purple-400">➜ Executing Semgrep Rule Pack (auto)...</p>
-                <p className="text-amber-300">  ⚠️ frontend-app: Hardcoded localhost binding detected in production build</p>
+                <p className="text-amber-300 flex items-center"><AlertTriangle className="w-3 h-3 text-amber-300 inline mr-1.5 shrink-0" /><span>frontend-app: Hardcoded localhost binding detected in production build</span></p>
                 <p className="text-emerald-400">➜ Invoking Hugging Face AI Synthesis Model (Qwen2.5-Coder-32B)...</p>
-                <p className="text-white font-bold bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800">
-                  ✨ Profile Health Score Synthesized: <span className="text-emerald-400 text-sm">88 / 100</span> (Strong Senior Profile with 1 Security Risk)
+                <p className="text-white font-bold bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 flex items-center">
+                  <Sparkles className="w-4 h-4 text-emerald-400 inline mr-2 shrink-0" />
+                  <span>Profile Health Score Synthesized: <span className="text-emerald-400 text-sm ml-1">88 / 100</span> (Strong Senior Profile with 1 Security Risk)</span>
                 </p>
               </div>
             )}
@@ -184,8 +224,9 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-zinc-400 pb-2 border-b border-zinc-850">
                   <span>Audited Discovered Issues (3 Total)</span>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-                    Secrets Auto-Redacted
+                  <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800 flex items-center space-x-1">
+                    <ShieldCheck className="w-3 h-3 text-emerald-400 inline" />
+                    <span>Secrets Auto-Redacted</span>
                   </span>
                 </div>
 
@@ -242,7 +283,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   {/* Recruiter Evaluation */}
                   <div className="md:col-span-2 bg-zinc-950 border border-zinc-800 p-4 rounded-xl space-y-2">
                     <h4 className="font-bold text-emerald-400 text-xs flex items-center">
-                      <span className="mr-1.5">🤖</span> AI Recruiter Assessment
+                      <Cpu className="w-4 h-4 text-emerald-400 mr-1.5" />
+                      <span>AI Recruiter Assessment</span>
                     </h4>
                     <p className="text-zinc-300 text-[11px] leading-relaxed">
                       "Candidate demonstrates excellent commit consistency, clean documentation structure, and strong modularity across 6 repositories. Resolving 1 committed AWS credential and adding a missing LICENSE file will bring profile health to 96/100."
@@ -252,7 +294,10 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
                 <div className="p-3 bg-zinc-900/60 border border-zinc-850 rounded-xl flex items-center justify-between text-[11px]">
                   <span className="text-zinc-400">Recruiter Damage Index: <strong className="text-amber-400">Low (1 minor patch needed)</strong></span>
-                  <span className="text-emerald-400 font-bold">Verified Audit Shield Generated ✓</span>
+                  <span className="text-emerald-400 font-bold flex items-center space-x-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline" />
+                    <span>Verified Audit Shield Generated</span>
+                  </span>
                 </div>
               </div>
             )}
@@ -261,7 +306,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
             {demoTab === 'patches' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-zinc-400 pb-2 border-b border-zinc-850">
-                  <span>Generated Unified Unified Patch File</span>
+                  <span>Generated Unified Patch File</span>
                   <span className="text-emerald-400 font-mono text-[11px]">ml-pipeline-missing-gitignore.patch</span>
                 </div>
 
@@ -285,8 +330,9 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-[10px] text-zinc-500 font-mono">Apply with: <code className="text-zinc-300">git apply patchfile.patch</code></span>
-                  <button className="px-3 py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-lg hover:bg-emerald-400 transition">
-                    Download .patch File
+                  <button className="px-3 py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-lg hover:bg-emerald-400 transition flex items-center space-x-1">
+                    <Wrench className="w-3.5 h-3.5 text-black" />
+                    <span>Download .patch File</span>
                   </button>
                 </div>
               </div>
@@ -309,8 +355,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           
           <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3 border border-zinc-800">
-            <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-xl text-emerald-400">
-              🔒
+            <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
+              <Lock className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-white text-sm">100% In-Memory Secret Redaction</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
@@ -319,8 +365,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </div>
 
           <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3 border border-zinc-800">
-            <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-xl text-cyan-400">
-              ⚡
+            <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
+              <Zap className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-white text-sm">Ephemeral Clone Memory</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
@@ -329,8 +375,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </div>
 
           <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3 border border-zinc-800">
-            <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-800/60 flex items-center justify-center text-xl text-purple-400">
-              🛡️
+            <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-800/60 flex items-center justify-center text-purple-400">
+              <Shield className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-white text-sm">Multi-Tenant Isolation</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
@@ -339,8 +385,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </div>
 
           <div className="glass-card glass-card-hover p-6 rounded-2xl space-y-3 border border-zinc-800">
-            <div className="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-800/60 flex items-center justify-center text-xl text-amber-400">
-              🔧
+            <div className="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-800/60 flex items-center justify-center text-amber-400">
+              <Wrench className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-white text-sm">1-Click Auto-Fix Patches</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
@@ -442,15 +488,16 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         <div className="space-y-2 font-mono text-xs">
           <div className="flex items-center justify-between text-zinc-400">
             <span>Copy Markdown for your README.md</span>
-            {copied && <span className="text-emerald-400 font-bold">Copied to clipboard! ✓</span>}
+            {copied && <span className="text-emerald-400 font-bold flex items-center space-x-1"><Check className="w-3.5 h-3.5 text-emerald-400 inline" /> <span>Copied to clipboard!</span></span>}
           </div>
           <div className="p-3 bg-black border border-zinc-850 rounded-xl flex items-center justify-between text-zinc-300">
             <code className="truncate pr-4 text-emerald-400">{badgeMarkdown}</code>
             <button
               onClick={handleCopyBadge}
-              className="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-750 text-white font-bold rounded-lg text-xs transition shrink-0"
+              className="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-750 text-white font-bold rounded-lg text-xs transition shrink-0 flex items-center space-x-1"
             >
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
         </div>
@@ -472,7 +519,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between"
             >
               <span>Are my GitHub tokens or passwords stored?</span>
-              <span className="text-emerald-400 font-mono">{activeFaq === 1 ? '−' : '+'}</span>
+              <span className="text-emerald-400 font-mono">{activeFaq === 1 ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}</span>
             </button>
             {activeFaq === 1 && (
               <div className="p-5 pt-0 text-xs text-zinc-400 leading-relaxed font-mono border-t border-zinc-900/60">
@@ -488,7 +535,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between"
             >
               <span>What happens if a secret or API key is found in my repository?</span>
-              <span className="text-emerald-400 font-mono">{activeFaq === 2 ? '−' : '+'}</span>
+              <span className="text-emerald-400 font-mono">{activeFaq === 2 ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}</span>
             </button>
             {activeFaq === 2 && (
               <div className="p-5 pt-0 text-xs text-zinc-400 leading-relaxed font-mono border-t border-zinc-900/60">
@@ -504,7 +551,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between"
             >
               <span>Do you access or clone my private repositories?</span>
-              <span className="text-emerald-400 font-mono">{activeFaq === 3 ? '−' : '+'}</span>
+              <span className="text-emerald-400 font-mono">{activeFaq === 3 ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}</span>
             </button>
             {activeFaq === 3 && (
               <div className="p-5 pt-0 text-xs text-zinc-400 leading-relaxed font-mono border-t border-zinc-900/60">
@@ -520,7 +567,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               className="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between"
             >
               <span>How are the 1-Click Auto-Fix patches generated?</span>
-              <span className="text-emerald-400 font-mono">{activeFaq === 4 ? '−' : '+'}</span>
+              <span className="text-emerald-400 font-mono">{activeFaq === 4 ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}</span>
             </button>
             {activeFaq === 4 && (
               <div className="p-5 pt-0 text-xs text-zinc-400 leading-relaxed font-mono border-t border-zinc-900/60">
@@ -545,9 +592,10 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 relative z-10">
           <button
             onClick={onStartRegister}
-            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-black font-bold text-sm rounded-xl shadow-xl shadow-emerald-500/20 shimmer-btn transition hover:scale-105 active:scale-95"
+            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-black font-bold text-sm rounded-xl shadow-xl shadow-emerald-500/20 shimmer-btn transition hover:scale-105 active:scale-95 flex items-center justify-center space-x-1.5"
           >
-            Create Free Account
+            <span>Create Free Account</span>
+            <ArrowRight className="w-4 h-4 text-black" />
           </button>
           <button
             onClick={onGitHubOAuth}

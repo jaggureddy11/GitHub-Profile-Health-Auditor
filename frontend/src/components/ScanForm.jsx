@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Lock, Play } from 'lucide-react';
 
 export default function ScanForm({ onScanStart, isLoading, defaultUser = '' }) {
   const [username, setUsername] = useState(defaultUser || '');
@@ -80,12 +81,13 @@ export default function ScanForm({ onScanStart, isLoading, defaultUser = '' }) {
             <span>Analyzing Repositories...</span>
           </>
         ) : (
-          <span>Run Repository Scan 🚀</span>
+          <span>Run Repository Scan</span>
+          <Play className="w-3.5 h-3.5 ml-1" />
         )}
       </button>
 
       <div className="pt-1 flex items-center justify-center space-x-1.5 text-[10px] text-zinc-550 border-t border-zinc-900/60 font-mono">
-        <span>🔒</span>
+        <Lock className="w-3 h-3" />
         <span>Authenticated via GitHub API &amp; Server Tokens</span>
       </div>
     </form>

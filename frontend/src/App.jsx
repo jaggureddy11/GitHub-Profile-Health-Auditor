@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Zap, FolderOpen, Search, AlertTriangle, LogOut, ShieldCheck } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
@@ -547,7 +548,7 @@ export default function App() {
               {/* Scan Form Panel */}
               <div className="border border-zinc-900 bg-zinc-950 p-6 rounded-2xl space-y-4">
                 <h3 className="font-bold text-sm text-white font-mono flex items-center">
-                  <span className="mr-2">⚡</span> New Repository Scan
+                  <Zap className="w-4 h-4 mr-2 text-emerald-400" /> New Repository Scan
                 </h3>
                 <ScanForm onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
               </div>
@@ -555,7 +556,7 @@ export default function App() {
               {/* Scan History list */}
               <div className="border border-zinc-900 bg-zinc-950 p-6 rounded-2xl space-y-4">
                 <h3 className="font-bold text-sm text-white font-mono flex items-center justify-between">
-                  <span>📂 Scan History</span>
+                  <span className="flex items-center space-x-1.5"><FolderOpen className="w-4 h-4 text-zinc-400" /><span>Scan History</span></span>
                   <span className="text-[10px] text-zinc-550">({scanHistory.length} total)</span>
                 </h3>
                 
@@ -612,7 +613,9 @@ export default function App() {
               
               {scanState === 'idle' && (
                 <div className="border border-dashed border-zinc-800 p-20 rounded-2xl text-center space-y-3">
-                  <span className="text-4xl block">🔍</span>
+                  <div className="flex justify-center">
+                    <Search className="w-10 h-10 text-zinc-700" />
+                  </div>
                   <h4 className="font-bold text-sm text-zinc-400">Ready for scan analysis</h4>
                   <p className="text-xs text-zinc-550 max-w-sm mx-auto leading-relaxed">
                     Provide a public GitHub profile username in the scanner on the left to start a profile health check.
@@ -625,8 +628,8 @@ export default function App() {
                   <div className="relative w-24 h-24 flex items-center justify-center">
                     <div className="absolute inset-0 rounded-full border-4 border-dashed border-zinc-850 animate-spin" style={{ animationDuration: '10s' }}></div>
                     <div className="absolute inset-2 rounded-full border-4 border-dashed border-zinc-800 animate-spin" style={{ animationDuration: '5s', animationDirection: 'reverse' }}></div>
-                    <div className="absolute inset-4 rounded-full bg-black border border-zinc-900 flex items-center justify-center text-2xl animate-pulse">
-                      🔍
+                    <div className="absolute inset-4 rounded-full bg-black border border-zinc-900 flex items-center justify-center animate-pulse">
+                      <ShieldCheck className="w-7 h-7 text-emerald-400" />
                     </div>
                   </div>
 
@@ -670,8 +673,8 @@ export default function App() {
 
               {scanState === 'error' && (
                 <div className="border border-zinc-900 bg-zinc-950 p-10 rounded-2xl text-center space-y-6">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-850 text-white flex items-center justify-center text-xl mx-auto">
-                    ⚠️
+                  <div className="w-12 h-12 rounded-xl bg-red-950/40 border border-red-900/60 flex items-center justify-center mx-auto">
+                    <AlertTriangle className="w-6 h-6 text-red-400" />
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-white font-mono">Audit Interrupted</h3>

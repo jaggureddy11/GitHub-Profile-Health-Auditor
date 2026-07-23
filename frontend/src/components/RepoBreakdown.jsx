@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FolderOpen, FolderClosed, Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -181,7 +182,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-900 pb-6">
         <div>
           <h3 className="text-xl font-extrabold text-white flex items-center">
-            <span className="mr-2.5">📁</span> Detailed Repository Findings
+            <FolderClosed className="w-5 h-5 mr-2.5 text-zinc-400" /> Detailed Repository Findings
           </h3>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
             Audited file locations, severities, and remediation steps. <span className="text-green-400 font-bold underline decoration-dotted">Secrets are strictly redacted.</span>
@@ -289,7 +290,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
                             className="flex items-center justify-between cursor-pointer select-none hover:text-white py-1 transition duration-150"
                           >
                             <div className="flex items-center space-x-2 font-mono text-sm text-zinc-200 font-semibold">
-                              <span>{isFileExpanded ? '📂' : '📁'}</span>
+                              {isFileExpanded ? <FolderOpen className="w-4 h-4 text-zinc-400" /> : <FolderClosed className="w-4 h-4 text-zinc-500" />}
                               <span className="underline decoration-zinc-700">{filePath}</span>
                               <span className="text-xs text-zinc-500 font-normal">({fileFindings.length} issue{fileFindings.length > 1 ? 's' : ''})</span>
                             </div>
@@ -331,7 +332,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
                                         onClick={() => handleOpenFixModal(finding)}
                                         className="py-1.5 px-3.5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-lg text-xs transition duration-150 border border-white flex items-center space-x-1.5 shadow-md"
                                       >
-                                        <span>🔧 View &amp; Copy 1-Click Auto-Fix Patch</span>
+                                        <Wrench className="w-3.5 h-3.5" /><span>View &amp; Copy 1-Click Auto-Fix Patch</span>
                                       </button>
                                     </div>
                                   )}
@@ -349,7 +350,9 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
           })
         ) : (
           <div className="text-center py-16 bg-black rounded-2xl border border-dashed border-zinc-850">
-            <span className="text-4xl block mb-3">🎉</span>
+            <div className="flex justify-center mb-3">
+              <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+            </div>
             <p className="text-sm font-semibold text-zinc-300">No issues found matching your filter criteria!</p>
           </div>
         )}
@@ -362,7 +365,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
             <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
               <div>
                 <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
-                  <span>🔧 Unified Auto-Fix Patch Inspector</span>
+                  <Wrench className="w-4 h-4 text-white" /><span>Unified Auto-Fix Patch Inspector</span>
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1">
                   Repo: <span className="font-mono text-white font-bold">{activePatchFinding.repo_name}</span> | Rule: <span className="font-mono text-white font-bold">{activePatchFinding.rule_id}</span>
@@ -370,9 +373,9 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
               </div>
               <button
                 onClick={() => setActivePatchFinding(null)}
-                className="text-zinc-400 hover:text-white text-base p-1 font-bold"
+                className="text-zinc-400 hover:text-white p-1 font-bold"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -398,15 +401,15 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
                 <div className="flex items-center justify-end space-x-3 pt-3 border-t border-zinc-900">
                   <button
                     onClick={handleCopyPatch}
-                    className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 border border-zinc-700 rounded-xl transition duration-150"
+                    className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 border border-zinc-700 rounded-xl transition duration-150 flex items-center space-x-1.5"
                   >
-                    {copiedPatch ? 'Copied to Clipboard! ✓' : '📋 Copy Patch'}
+                    {copiedPatch ? <><ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" /><span>Copied!</span></> : <><Clipboard className="w-3.5 h-3.5" /><span>Copy Patch</span></>}
                   </button>
                   <button
                     onClick={handleDownloadPatch}
-                    className="py-2 px-5 bg-white hover:bg-zinc-200 text-xs font-extrabold text-black rounded-xl transition duration-150 shadow-md"
+                    className="py-2 px-5 bg-white hover:bg-zinc-200 text-xs font-extrabold text-black rounded-xl transition duration-150 shadow-md flex items-center space-x-1.5"
                   >
-                    📥 Download .patch File
+                    <Download className="w-3.5 h-3.5" /><span>Download .patch File</span>
                   </button>
                 </div>
               </div>

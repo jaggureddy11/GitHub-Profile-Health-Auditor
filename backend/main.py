@@ -822,14 +822,23 @@ User Question: {user_msg_text}
 Provide a concise, expert, and actionable answer. Explain any security risks or git purge steps clearly with code snippets if applicable.
 """
 
+    groq_token = os.getenv("GROQ_API_TOKEN")
     hf_token = os.getenv("HF_API_TOKEN")
     reply_text = ""
-    if hf_token and not hf_token.startswith("dummy"):
+
+    if groq_token and not groq_token.startswith("dummy"):
+        try:
+            from scanners.ai_synthesizer import call_groq_api
+            reply_text = await call_groq_api(prompt, groq_token)
+        except Exception as e:
+            print("Copilot Groq LLM call failed:", e)
+
+    if not reply_text and hf_token and not hf_token.startswith("dummy"):
         try:
             from scanners.ai_synthesizer import call_hf_api
             reply_text = await call_hf_api(prompt, hf_token)
         except Exception as e:
-            print("Copilot LLM call failed:", e)
+            print("Copilot HF LLM call failed:", e)
 
     if not reply_text or len(reply_text.strip()) < 5:
         lowered = user_msg_text.lower()

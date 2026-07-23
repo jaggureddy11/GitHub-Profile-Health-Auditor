@@ -3,8 +3,9 @@ import json
 import httpx
 from typing import List, Dict, Any, Tuple
 
-# Default model ID
+# Default model IDs
 HF_MODEL_ID = "Qwen/Qwen2.5-Coder-32B-Instruct"
+GROQ_MODEL_ID = "llama-3.3-70b-versatile"
 
 def calculate_fallback_score(findings: List[Dict[str, Any]]) -> int:
     """
@@ -29,7 +30,6 @@ def build_fallback_report(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     score = calculate_fallback_score(findings)
     
-    # Extract top 5 issues by severity
     severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
     sorted_findings = sorted(findings, key=lambda x: severity_order.get(x.get("severity", "low"), 4))
     
@@ -41,7 +41,6 @@ def build_fallback_report(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
             "severity": f.get("severity", "medium")
         })
 
-    # Group summaries by repo
     repo_summaries = {}
     for f in findings:
         repo_name = f.get("repo_name", "unknown")
@@ -51,16 +50,13 @@ def build_fallback_report(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "summary": "Flagged issues: "
             }
         
-        # Calculate impact
         sev = f.get("severity", "low").lower()
         impact = -25 if sev == "critical" else (-15 if sev == "high" else (-5 if sev == "medium" else -2))
         repo_summaries[repo_name]["score_impact"] += impact
         repo_summaries[repo_name]["summary"] += f"{f.get('rule_id')} ({f.get('severity')}); "
 
-    # Clean up trailing semicolons
     for r in repo_summaries:
         repo_summaries[r]["summary"] = repo_summaries[r]["summary"].rstrip("; ")
-        # Ensure score impact is capped/clamped reasonably
         repo_summaries[r]["score_impact"] = max(-100, repo_summaries[r]["score_impact"])
 
     return {
@@ -69,9 +65,35 @@ def build_fallback_report(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
         "repo_summaries": repo_summaries
     }
 
+async def call_groq_api(prompt: str, token: str) -> str:
+    """
+    High-speed LLM inference via Groq API (sub-second response).
+    """
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": GROQ_MODEL_ID,
+        "messages": [
+            {"role": "system", "content": "You are a senior Application Security and Code Hygiene auditor. Return requested output strictly in requested format."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.1,
+        "max_tokens": 1500
+    }
+    
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.post(url, headers=headers, json=payload)
+        if response.status_code != 200:
+            raise Exception(f"Groq API returned status {response.status_code}: {response.text}")
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
+
 async def call_hf_api(prompt: str, token: str) -> str:
     """
-    Makes the HTTP request to Hugging Face Inference API.
+    Makes HTTP request to Hugging Face Inference API.
     """
     url = f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}"
     headers = {
@@ -89,7 +111,6 @@ async def call_hf_api(prompt: str, token: str) -> str:
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(url, headers=headers, json=payload)
-        
         if response.status_code != 200:
             raise Exception(f"Hugging Face API returned status {response.status_code}: {response.text}")
             
@@ -101,9 +122,6 @@ async def call_hf_api(prompt: str, token: str) -> str:
         return str(data)
 
 def clean_llm_json(response_text: str) -> str:
-    """
-    Cleans markdown wrappers (like ```json ... ```) from the LLM output.
-    """
     text = response_text.strip()
     if text.startswith("```json"):
         text = text[7:]
@@ -115,10 +133,9 @@ def clean_llm_json(response_text: str) -> str:
 
 async def synthesize_report(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
     """
-    Aggregates findings and calls Hugging Face LLM to synthesize report.
+    Aggregates findings and calls Groq (or Hugging Face) LLM to synthesize report.
     Returns: (overall_score, summary_json_string)
     """
-    # If no findings, return perfect score
     if not findings:
         empty_report = {
             "overall_score": 100,
@@ -127,13 +144,9 @@ async def synthesize_report(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
         }
         return 100, json.dumps(empty_report)
 
+    groq_token = os.getenv("GROQ_API_TOKEN")
     hf_token = os.getenv("HF_API_TOKEN")
-    if not hf_token or hf_token.startswith("dummy"):
-        print("Warning: HF_API_TOKEN is missing or dummy. Using fallback synthesizer.")
-        fallback_report = build_fallback_report(findings)
-        return fallback_report["overall_score"], json.dumps(fallback_report)
 
-    # Format findings summary for the prompt
     findings_summary = []
     for f in findings:
         findings_summary.append({
@@ -173,36 +186,31 @@ Aggregated Findings:
 {prompt_schema_desc}
 """
 
-    response_text = ""
-    try:
-        # First attempt
-        response_text = await call_hf_api(prompt, hf_token)
-        cleaned_text = clean_llm_json(response_text)
-        parsed_json = json.loads(cleaned_text)
-        
-        # Verify basic structure
-        overall_score = int(parsed_json.get("overall_score", 50))
-        return overall_score, json.dumps(parsed_json)
-        
-    except Exception as e:
-        print(f"First AI synthesis attempt failed: {e}. Retrying once...")
+    # 1. Try Groq API (High Speed)
+    if groq_token and not groq_token.startswith("dummy"):
         try:
-            # Re-prompt once with error context
-            retry_prompt = f"""{prompt}
-            
-            Your previous output failed validation with the following error: {str(e)}
-            Your previous output was:
-            {response_text}
-            
-            Please correct the JSON format and ensure it conforms STRICTLY to the requested schema. Return ONLY the valid raw JSON.
-            """
-            response_text = await call_hf_api(retry_prompt, hf_token)
+            print("Invoking Groq API AI Engine (llama-3.3-70b)...")
+            response_text = await call_groq_api(prompt, groq_token)
             cleaned_text = clean_llm_json(response_text)
             parsed_json = json.loads(cleaned_text)
             overall_score = int(parsed_json.get("overall_score", 50))
             return overall_score, json.dumps(parsed_json)
-            
-        except Exception as retry_err:
-            print(f"Second AI synthesis attempt failed: {retry_err}. Using fallback report.")
-            fallback_report = build_fallback_report(findings)
-            return fallback_report["overall_score"], json.dumps(fallback_report)
+        except Exception as e:
+            print(f"Groq API synthesis failed: {e}. Falling back to Hugging Face / Deterministic engine...")
+
+    # 2. Try Hugging Face API
+    if hf_token and not hf_token.startswith("dummy"):
+        try:
+            print("Invoking Hugging Face API AI Engine...")
+            response_text = await call_hf_api(prompt, hf_token)
+            cleaned_text = clean_llm_json(response_text)
+            parsed_json = json.loads(cleaned_text)
+            overall_score = int(parsed_json.get("overall_score", 50))
+            return overall_score, json.dumps(parsed_json)
+        except Exception as e:
+            print(f"Hugging Face API synthesis failed: {e}.")
+
+    # 3. Deterministic Fallback
+    print("Using deterministic fallback report engine.")
+    fallback_report = build_fallback_report(findings)
+    return fallback_report["overall_score"], json.dumps(fallback_report)

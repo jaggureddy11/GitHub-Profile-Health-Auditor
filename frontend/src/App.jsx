@@ -483,12 +483,63 @@ export default function App() {
         {view === 'public-scan' && (
           <div className="max-w-3xl mx-auto w-full space-y-8 py-6 animate-fade-in">
             {scanState === 'loading' && (
-              <div className="flex flex-col items-center justify-center py-24 space-y-5 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-800 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-emerald-400 animate-pulse" />
+              <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6 max-w-lg mx-auto">
+                <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+                  <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
+                    <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
+                  </div>
                 </div>
-                <p className="text-white font-bold text-base font-mono">Analyzing GitHub Profile...</p>
-                <p className="text-zinc-400 text-xs font-mono">{loadingMessages[loadingStep]}</p>
+
+                <div className="space-y-3.5 text-left">
+                  {loadingMessages.map((msg, idx) => {
+                    const isCompleted = idx < loadingStep;
+                    const isActive = idx === loadingStep;
+                    const isPending = idx > loadingStep;
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`flex items-center space-x-3 transition-all duration-300 ${
+                          isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
+                        }`}
+                      >
+                        {isCompleted && (
+                          <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
+                            ✓
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                        )}
+                        {isPending && (
+                          <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
+                        )}
+                        <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
+                    <div 
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
+                      style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-[9px] text-zinc-650 font-mono">
+                    <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
+                    <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -802,32 +853,65 @@ export default function App() {
               )}
 
               {scanState === 'loading' && (
-                <div className="border border-zinc-900 bg-zinc-950 p-12 rounded-2xl flex flex-col items-center justify-center text-center space-y-8 animate-pulse">
-                  <div className="relative w-24 h-24 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-4 border-dashed border-zinc-850 animate-spin" style={{ animationDuration: '10s' }}></div>
-                    <div className="absolute inset-2 rounded-full border-4 border-dashed border-zinc-800 animate-spin" style={{ animationDuration: '5s', animationDirection: 'reverse' }}></div>
-                    <div className="absolute inset-4 rounded-full bg-black border border-zinc-900 flex items-center justify-center animate-pulse">
-                      <ShieldCheck className="w-7 h-7 text-emerald-400" />
+                <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
+                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
+                      <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
                     </div>
                   </div>
 
-                  <div className="space-y-3 w-full max-w-md">
-                    <h3 className="text-sm font-bold text-white font-mono">Running Static Code Analysis</h3>
-                    <p className="text-[11px] text-white font-semibold font-mono h-8 leading-normal">
-                      {loadingMessages[loadingStep]}
-                    </p>
-                    
-                    {/* Progress Pulse Bar */}
+                  {/* Progressive steps checklist */}
+                  <div className="space-y-3.5 text-left max-w-lg">
+                    {loadingMessages.map((msg, idx) => {
+                      const isCompleted = idx < loadingStep;
+                      const isActive = idx === loadingStep;
+                      const isPending = idx > loadingStep;
+
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center space-x-3 transition-all duration-300 ${
+                            isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
+                          }`}
+                        >
+                          {isCompleted && (
+                            <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
+                              ✓
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
+                          )}
+                          <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="space-y-1.5 pt-2">
                     <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
                       <div 
-                        className="h-full bg-white transition-all duration-1000 ease-out"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
                         style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
                       ></div>
                     </div>
-                    
-                    <span className="text-[9px] text-zinc-650 uppercase tracking-widest block pt-1 font-mono">
-                      Temporary repo clone folders will be destroyed on completion
-                    </span>
+                    <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
+                      <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
+                      <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
+                    </div>
                   </div>
                 </div>
               )}

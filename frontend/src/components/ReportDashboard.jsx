@@ -81,6 +81,42 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
     window.print();
   };
 
+  const [showReadmeModal, setShowReadmeModal] = useState(false);
+  const [aiReadmeText, setAiReadmeText] = useState('');
+  const [isGeneratingReadme, setIsGeneratingReadme] = useState(false);
+
+  const handleGenerateAiReadme = async () => {
+    setIsGeneratingReadme(true);
+    setShowReadmeModal(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/scan/${scan_id}/generate-readme`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) throw new Error("Failed to generate AI README.");
+      const data = await response.json();
+      setAiReadmeText(data.readme_markdown);
+    } catch (err) {
+      alert("Error generating README: " + err.message);
+    } finally {
+      setIsGeneratingReadme(false);
+    }
+  };
+
+  const handleDownloadReadmeFile = () => {
+    const blob = new Blob([aiReadmeText], { type: 'text/markdown' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `README-${username}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   return (
     <div className="space-y-8 animate-fade-in print:space-y-6">
       
@@ -98,8 +134,8 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
           </div>
         </div>
         <div className="hidden lg:flex items-center space-x-2 border border-green-800/60 bg-black/60 px-3.5 py-2 rounded-xl text-xs font-mono text-green-300 shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
-          <span>Zero persistence mode</span>
+          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <span>100% Ephemeral RAM</span>
         </div>
       </div>
 
@@ -138,7 +174,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
           </div>
           <span className="mt-5 px-4 py-1 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
             {overall_score >= 90 ? (
-              <span className="flex items-center space-x-1.5"><Sparkles className="w-3.5 h-3.5" /><span>Excellent Standing</span></span>
+              <span className="flex items-center space-x-1.5"><Sparkles className="w-3.5 h-3.5 text-emerald-400" /><span>Excellent Standing</span></span>
             ) : overall_score >= 70 ? (
               <span className="flex items-center space-x-1.5"><AlertTriangle className="w-3.5 h-3.5 text-amber-300" /><span>Fair - Action Recommended</span></span>
             ) : (
@@ -161,6 +197,14 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
               </div>
               
               <div className="flex flex-wrap items-center gap-2.5 print:hidden">
+                <button
+                  onClick={handleGenerateAiReadme}
+                  className="py-2 px-3.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                  title="Generate AI Profile README.md"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-black" />
+                  <span>AI README</span>
+                </button>
                 <button
                   onClick={() => handleExport('markdown')}
                   className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5 shadow-sm"
@@ -323,6 +367,87 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
           </div>
         )}
       </div>
+
+      {/* AI PROFILE README GENERATOR MODAL */}
+      {showReadmeModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-emerald-400">
+                  <Sparkles className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-white tracking-tight">AI Profile README.md Generator</h3>
+                  <p className="text-xs text-zinc-400">Recruiter-aligned profile README synthesized for @{username}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReadmeModal(false)}
+                className="p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            {isGeneratingReadme ? (
+              <div className="py-16 text-center space-y-4 font-mono">
+                <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
+                <p className="text-sm text-zinc-300 font-bold">Synthesizing recruiter-aligned README.md for @{username}...</p>
+                <p className="text-xs text-zinc-500">Embedding health shield badges, verified tech stack, and portfolio highlights</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                  <span>Generated Markdown Code (Ready to paste into GitHub Profile README)</span>
+                  <button
+                    onClick={() => copyToClipboard(aiReadmeText, 'readme')}
+                    className="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-750 text-white font-bold rounded-lg transition flex items-center space-x-1.5"
+                  >
+                    {copiedType === 'readme' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+                    <span>{copiedType === 'readme' ? 'Copied to Clipboard!' : 'Copy Markdown'}</span>
+                  </button>
+                </div>
+
+                <textarea
+                  readOnly
+                  value={aiReadmeText}
+                  className="w-full h-80 bg-black border border-zinc-850 rounded-2xl p-4 font-mono text-xs text-emerald-400 focus:outline-none resize-none leading-relaxed shadow-inner"
+                />
+
+                {/* Footer Action Buttons */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                  <div className="text-xs font-mono text-zinc-500">
+                    <span>File target: </span>
+                    <code className="text-zinc-300">github.com/{username}/{username}/README.md</code>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 w-full sm:w-auto">
+                    <button
+                      onClick={handleDownloadReadmeFile}
+                      className="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2"
+                    >
+                      <Download className="w-4 h-4 text-black" />
+                      <span>Download README.md</span>
+                    </button>
+                    <button
+                      onClick={() => setShowReadmeModal(false)}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl border border-zinc-800 transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

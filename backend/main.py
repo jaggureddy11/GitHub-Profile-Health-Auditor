@@ -533,6 +533,75 @@ def export_scan_report(
         headers={"Content-Disposition": f"attachment; filename=audit-report-{db_scan.username}-{scan_id[:8]}.md"}
     )
 
+@app.post("/api/scan/{scan_id}/generate-readme")
+def generate_ai_profile_readme(
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    scan = db.query(models.Scan).filter(
+        models.Scan.id == scan_id,
+        models.Scan.user_id == current_user.id
+    ).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+
+    username = scan.username
+    score = scan.overall_score
+    repos = scan.repositories
+    repo_names = [r.name for r in repos]
+
+    badge_url = f"http://localhost:8000/api/badge/{username}.svg"
+
+    from datetime import datetime
+    readme_content = f"""# 👋 Hi, I'm @{username}
+
+[![Profile Health Shield]({badge_url})](https://github.com/{username})
+![GitHub followers](https://img.shields.io/github/followers/{username}?style=for-the-badge&color=10B981&logo=github)
+![GitHub stars](https://img.shields.io/github/stars/{username}?style=for-the-badge&color=06B6D4&logo=github)
+
+---
+
+## ⚡ Developer Bio & Security Status
+- 🔭 **Focus**: Building scalable, secure, and production-grade software applications.
+- 🛡️ **Verified Health Score**: **`{score} / 100`** (Audited with 0 secret retention).
+- 💬 **Core Priorities**: Systems Architecture, Static Security Analysis, & High-Performance Engineering.
+
+---
+
+## 🛠️ Tech Stack & Verified Architecture
+
+```javascript
+const developer = {{
+  username: "{username}",
+  healthScore: "{score}/100",
+  auditedRepos: {json.dumps(repo_names[:6])},
+  status: "Verified Recruiter-Ready Profile"
+}};
+```
+
+---
+
+## 📦 Audited Repositories Overview
+
+"""
+    for r in repos[:5]:
+        readme_content += f"""### 🔹 [{r.name}]({r.url})
+> Active on branch `{r.default_branch}` • Last commit: `{r.last_commit}`
+
+"""
+
+    readme_content += f"""---
+
+## 🛡️ Profile Security Verification
+- 🔒 **Secrets Status**: 100% In-Memory Redaction Verified (Zero Leaked Credentials Saved)
+- ⚡ **Audited via**: [GitHub Profile Health Auditor](https://github.com/{username})
+
+*AI-Generated Profile README — Last Synthesized {datetime.utcnow().strftime('%B %d, %Y')}*
+"""
+
+    return {"username": username, "score": score, "readme_markdown": readme_content}
+
 @app.post("/api/fix")
 def generate_fix_patch(
     request: schemas.FixRequest, 

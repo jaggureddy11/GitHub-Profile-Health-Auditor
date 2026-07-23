@@ -760,6 +760,103 @@ MIT License. See LICENSE for details.
         }
     )
 
+@app.get("/api/scan/{scan_id}/copilot-chat", response_model=List[schemas.CopilotMessageSchema])
+def get_copilot_chat_history(
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    scan = db.query(models.Scan).filter(
+        models.Scan.id == scan_id,
+        models.Scan.user_id == current_user.id
+    ).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+
+    messages = db.query(models.CopilotMessage).filter(
+        models.CopilotMessage.scan_id == scan_id,
+        models.CopilotMessage.user_id == current_user.id
+    ).order_by(models.CopilotMessage.id.asc()).all()
+
+    return messages
+
+@app.post("/api/scan/{scan_id}/copilot-chat", response_model=List[schemas.CopilotMessageSchema])
+async def post_copilot_chat(
+    scan_id: str,
+    payload: schemas.CopilotChatRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    scan = db.query(models.Scan).filter(
+        models.Scan.id == scan_id,
+        models.Scan.user_id == current_user.id
+    ).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+
+    user_msg_text = payload.message.strip()
+    if not user_msg_text:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+    user_msg = models.CopilotMessage(
+        scan_id=scan_id,
+        user_id=current_user.id,
+        role="user",
+        content=user_msg_text,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(user_msg)
+    db.commit()
+
+    findings_summary = [f"{f.type.upper()}: {f.repo_name} -> {f.description} ({f.severity})" for f in scan.findings[:8]]
+    findings_text = "\n".join(findings_summary) if findings_summary else "No severe security leaks found."
+
+    prompt = f"""You are the Security Copilot AI assistant for GitHub Profile Health Auditor.
+Target Profile: @{scan.username}
+Profile Health Score: {scan.overall_score}/100
+Key Audit Findings:
+{findings_text}
+
+User Question: {user_msg_text}
+
+Provide a concise, expert, and actionable answer. Explain any security risks or git purge steps clearly with code snippets if applicable.
+"""
+
+    hf_token = os.getenv("HF_API_TOKEN")
+    reply_text = ""
+    if hf_token and not hf_token.startswith("dummy"):
+        try:
+            from scanners.ai_synthesizer import call_hf_api
+            reply_text = await call_hf_api(prompt, hf_token)
+        except Exception as e:
+            print("Copilot LLM call failed:", e)
+
+    if not reply_text or len(reply_text.strip()) < 5:
+        lowered = user_msg_text.lower()
+        if "secret" in lowered or "key" in lowered or "aws" in lowered or "purge" in lowered:
+            reply_text = f"To completely remove a leaked secret or key from git commit history in **@{scan.username}**, use `git-filter-repo`:\n\n```bash\n# 1. Revoke the key immediately on your provider dashboard\n# 2. Purge file from history\ngit filter-repo --invert-paths --path <file_path>\n# 3. Force push clean history\ngit push origin main --force\n```"
+        elif "score" in lowered or "raise" in lowered or "improve" in lowered:
+            reply_text = f"To raise @{scan.username}'s Profile Health score from **{scan.overall_score}/100**:\n1. Add missing LICENSE files across repositories.\n2. Ensure root `.gitignore` ignores `node_modules/` and `.env`.\n3. Add concise `README.md` overviews to empty repositories."
+        else:
+            reply_text = f"Regarding @{scan.username}'s profile audit (Score: **{scan.overall_score}/100**): All findings have been scanned in memory with 0 credentials stored. You can download 1-Click `.patch` fixes from the Repo Breakdown tab or generate an AI README.md profile template."
+
+    assistant_msg = models.CopilotMessage(
+        scan_id=scan_id,
+        user_id=current_user.id,
+        role="assistant",
+        content=reply_text,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(assistant_msg)
+    db.commit()
+
+    messages = db.query(models.CopilotMessage).filter(
+        models.CopilotMessage.scan_id == scan_id,
+        models.CopilotMessage.user_id == current_user.id
+    ).order_by(models.CopilotMessage.id.asc()).all()
+
+    return messages
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

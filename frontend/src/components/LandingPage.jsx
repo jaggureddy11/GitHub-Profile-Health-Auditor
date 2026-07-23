@@ -34,12 +34,17 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
   const handleQuickSubmit = (e) => {
     e.preventDefault();
-    if (quickUsername.trim()) {
-      if (onStartQuickScan) {
-        onStartQuickScan(quickUsername.trim());
-      } else {
-        onStartRegister();
-      }
+    let raw = quickUsername.trim();
+    if (!raw) return;
+
+    // Support full URLs like https://github.com/username or github.com/username
+    if (raw.includes('github.com/')) {
+      raw = raw.split('github.com/')[1].split('/')[0];
+    }
+    raw = raw.replace(/^@/, '').trim();
+
+    if (raw) {
+      onStartQuickScan(raw);
     }
   };
 

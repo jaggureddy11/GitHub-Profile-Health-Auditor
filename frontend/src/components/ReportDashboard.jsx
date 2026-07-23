@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson } from 'lucide-react';
+import SecurityCopilot from './SecurityCopilot';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -324,48 +325,72 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
         </div>
       </div>
 
-      {/* Prioritized AI Recommendations */}
-      <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl shadow-xl space-y-6 animate-slide-up-3 hover:border-zinc-700 transition-all duration-300">
-        <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+      {/* Prioritized AI Recommendations & AI Copilot Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up-3">
+        
+        {/* AI Prioritized Insights */}
+        <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl shadow-xl space-y-6 hover:border-zinc-700 transition-all duration-300">
+          <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
             <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
               <Bot className="w-5 h-5 text-zinc-300" />
             </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">AI Prioritized Insights</h3>
-            <p className="text-xs sm:text-sm text-zinc-400">Targeted corrections recommended for profile readiness</p>
+            <div>
+              <h3 className="text-lg font-bold text-white">AI Prioritized Insights</h3>
+              <p className="text-xs sm:text-sm text-zinc-400">Targeted corrections recommended for profile readiness</p>
+            </div>
           </div>
+
+          {topIssues.length > 0 ? (
+            <div className="space-y-4">
+              {topIssues.slice(0, 5).map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-black border border-zinc-850 p-4 rounded-xl flex flex-col items-start justify-between gap-3 shadow-sm hover:border-zinc-700 transition-all duration-200"
+                >
+                  <div className="space-y-1 w-full">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-5 h-5 rounded-full bg-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-300 border border-zinc-750 shrink-0">
+                          {index + 1}
+                        </span>
+                        <h4 className="font-bold text-white text-xs sm:text-sm">{item.issue}</h4>
+                      </div>
+                      <span className={`px-2.5 py-0.5 text-[10px] font-extrabold rounded-full border shrink-0 ${getSeverityBadgeClass(item.severity)}`}>
+                        {item.severity ? item.severity.toUpperCase() : 'HIGH'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 pl-7 leading-relaxed font-normal">{item.justification}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-black rounded-xl border border-dashed border-zinc-850">
+              <div className="flex justify-center mb-2">
+                <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              </div>
+              <p className="text-xs font-semibold text-zinc-300">No major issues found! Profile has excellent standing.</p>
+            </div>
+          )}
         </div>
 
-        {topIssues.length > 0 ? (
-          <div className="space-y-4">
-            {topIssues.slice(0, 5).map((item, index) => (
-              <div
-                key={index}
-                className="bg-black border border-zinc-850 p-5 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:border-zinc-700 hover:scale-[1.01] transition-all duration-200"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2.5">
-                    <span className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-xs font-bold text-zinc-300 border border-zinc-750 shrink-0">
-                      {index + 1}
-                    </span>
-                    <h4 className="font-bold text-white text-sm sm:text-base">{item.issue}</h4>
-                  </div>
-                  <p className="text-xs sm:text-sm text-zinc-300 pl-8 leading-relaxed font-normal">{item.justification}</p>
-                </div>
-                <span className={`px-3 py-1 text-xs font-extrabold rounded-full border shrink-0 ${getSeverityBadgeClass(item.severity)}`}>
-                  {item.severity ? item.severity.toUpperCase() : 'HIGH'}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* AI Security Copilot Interactive Assistant */}
+        {token ? (
+          <SecurityCopilot scanId={scan_id} token={token} username={username} score={overall_score} />
         ) : (
-          <div className="text-center py-10 bg-black rounded-xl border border-dashed border-zinc-850">
-            <div className="flex justify-center mb-2">
-              <CheckCircle2 className="w-9 h-9 text-emerald-500" />
+          <div className="border border-zinc-850 bg-zinc-950 p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center text-center space-y-4 font-mono">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-emerald-400">
+              <Bot className="w-6 h-6 text-emerald-400" />
             </div>
-            <p className="text-sm font-semibold text-zinc-300">No major issues found! Your profile has excellent standing.</p>
+            <div className="space-y-1">
+              <h4 className="text-base font-extrabold text-white">Unlock AI Security Copilot Assistant</h4>
+              <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                Sign in to chat directly with AI Security Copilot about your audit findings, secret purging steps, and custom git fixes.
+              </p>
+            </div>
           </div>
         )}
+
       </div>
 
       {/* AI PROFILE README GENERATOR MODAL */}

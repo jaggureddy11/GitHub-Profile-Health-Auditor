@@ -59,3 +59,14 @@ class Finding(Base):
     code_snippet = Column(String, nullable=True) # Redacted code snippet for key/smell context
 
     scan = relationship("Scan", back_populates="findings")
+
+class CopilotMessage(Base):
+    __tablename__ = "copilot_messages"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    scan_id = Column(String, ForeignKey("scans.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(String, nullable=False) # user or assistant
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+

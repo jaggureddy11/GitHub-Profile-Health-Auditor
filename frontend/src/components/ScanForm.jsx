@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Play, Zap, CheckCircle2, UserCheck } from 'lucide-react';
+import { Lock, Play, Zap, UserCheck } from 'lucide-react';
 
 export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '' }) {
   const loggedInGithubUser = user?.github_username;
@@ -9,8 +9,8 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
   useEffect(() => {
     if (defaultUser) {
       setUsername(defaultUser);
-    } else if (loggedInGithubUser && !username) {
-      setUsername(loggedInGithubUser);
+    } else if (loggedInGithubUser) {
+      setUsername((prev) => prev || loggedInGithubUser);
     }
   }, [defaultUser, loggedInGithubUser]);
 

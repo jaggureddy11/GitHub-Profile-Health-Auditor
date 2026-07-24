@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
 import { 
-  Zap, 
   Terminal, 
   ShieldCheck, 
   Activity, 
   Wrench, 
   Cpu, 
-  Lock, 
-  Shield, 
   Sparkles, 
   AlertTriangle, 
   Check, 
   Copy, 
   CheckCircle2, 
   ArrowRight, 
-  FileCode2, 
   KeyRound, 
-  FileText,
   ChevronDown,
   Search,
-  CheckCircle,
-  Code,
-  Layers,
-  Database,
   EyeOff
 } from 'lucide-react';
 

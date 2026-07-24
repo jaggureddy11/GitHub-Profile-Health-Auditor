@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, LogOut, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
 import LandingPage from './components/LandingPage';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -43,20 +43,6 @@ export default function App() {
     "Finalizing Health Score calculation..."
   ];
 
-  // Load user profile if token is set
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-      fetchUserProfile();
-      fetchScanHistory();
-      setView('dashboard');
-    } else {
-      localStorage.removeItem('token');
-      setUser(null);
-      setScanHistory([]);
-      if (view === 'dashboard') setView('landing');
-    }
-  }, [token]);
 
   // Handle GitHub OAuth callback parameters
   useEffect(() => {
@@ -133,19 +119,10 @@ export default function App() {
       console.error("GitHub OAuth Callback Error:", err);
       setAuthError(`GitHub OAuth failed: ${err.message}. You can sign in directly using your GitHub username below.`);
     }
-  };
+  }
 
-  useEffect(() => {
-    let intervalId;
-    if (scanState === 'loading') {
-      intervalId = setInterval(() => {
-        setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
-      }, 3500);
-    }
-    return () => clearInterval(intervalId);
-  }, [scanState]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
+    if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -160,9 +137,10 @@ export default function App() {
       console.error(err);
       setToken('');
     }
-  };
+  }, [token]);
 
-  const fetchScanHistory = async () => {
+  const fetchScanHistory = useCallback(async () => {
+    if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/scans`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -174,7 +152,47 @@ export default function App() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [token]);
+
+  // Load user profile if token is set
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+      fetchUserProfile();
+      fetchScanHistory();
+      setView((prevView) => prevView === 'landing' || prevView === 'auth' ? 'dashboard' : prevView);
+    } else {
+      localStorage.removeItem('token');
+      setUser(null);
+      setScanHistory([]);
+      setView((prevView) => prevView === 'dashboard' ? 'landing' : prevView);
+    }
+  }, [token, fetchUserProfile, fetchScanHistory]);
+
+  // Handle GitHub OAuth callback parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const errorParam = params.get('error');
+    if (code) {
+      window.history.replaceState({}, document.title, '/');
+      handleGitHubCallback(code);
+    } else if (errorParam) {
+      window.history.replaceState({}, document.title, '/');
+      setAuthError(`GitHub OAuth login declined or failed: ${errorParam}`);
+      setView('auth');
+    }
+  }, []);
+
+  useEffect(() => {
+    let intervalId;
+    if (scanState === 'loading') {
+      intervalId = setInterval(() => {
+        setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
+      }, 3500);
+    }
+    return () => clearInterval(intervalId);
+  }, [scanState, loadingMessages.length]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -369,7 +387,7 @@ export default function App() {
     }
   };
 
-  const handleTriggerFix = async (finding) => {
+  const _handleTriggerFix = async (finding) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/fix`, {
         method: 'POST',

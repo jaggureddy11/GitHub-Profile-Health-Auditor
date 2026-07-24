@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, User, Sparkles, RefreshCw, ShieldAlert, Code } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bot, Send, User, Sparkles, RefreshCw } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function SecurityCopilot({ scanId, token, username, score }) {
   const [messages, setMessages] = useState([]);
@@ -9,7 +9,8 @@ export default function SecurityCopilot({ scanId, token, username, score }) {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  const fetchChatHistory = async () => {
+  const fetchChatHistory = useCallback(async () => {
+    if (!scanId || !token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}/copilot-chat`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -21,13 +22,11 @@ export default function SecurityCopilot({ scanId, token, username, score }) {
     } catch (err) {
       console.error("Failed to load chat history:", err);
     }
-  };
+  }, [scanId, token]);
 
   useEffect(() => {
-    if (scanId && token) {
-      fetchChatHistory();
-    }
-  }, [scanId, token]);
+    fetchChatHistory();
+  }, [fetchChatHistory]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

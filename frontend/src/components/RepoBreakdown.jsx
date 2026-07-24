@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FolderOpen, FolderClosed, Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X, Search, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export default function RepoBreakdown({ repositories, findings, token, scanId }) {
+export default function RepoBreakdown({ _repositories, findings, token, scanId }) {
   const [expandedRepos, setExpandedRepos] = useState({});
   const [expandedFiles, setExpandedFiles] = useState({});
   const [filterType, setFilterType] = useState('all');
@@ -17,28 +17,33 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
   const [copiedPatch, setCopiedPatch] = useState(false);
 
   // Filter findings
-  const filteredFindings = findings.filter(f => {
-    const matchesType = filterType === 'all' || f.type === filterType;
-    const matchesSeverity = filterSeverity === 'all' || f.severity === filterSeverity;
-    const matchesSearch = (
-      f.repo_name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
-      f.file_path.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
-      f.description.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
-    );
-    return matchesType && matchesSeverity && matchesSearch;
-  });
+  const filteredFindings = useMemo(() => {
+    return findings.filter(f => {
+      const matchesType = filterType === 'all' || f.type === filterType;
+      const matchesSeverity = filterSeverity === 'all' || f.severity === filterSeverity;
+      const matchesSearch = (
+        f.repo_name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
+        f.file_path.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
+        f.description.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+      );
+      return matchesType && matchesSeverity && matchesSearch;
+    });
+  }, [findings, filterType, filterSeverity, searchQuery]);
 
   // Group findings by repo, and then by file path
-  const grouped = {};
-  filteredFindings.forEach(f => {
-    if (!grouped[f.repo_name]) {
-      grouped[f.repo_name] = {};
-    }
-    if (!grouped[f.repo_name][f.file_path]) {
-      grouped[f.repo_name][f.file_path] = [];
-    }
-    grouped[f.repo_name][f.file_path].push(f);
-  });
+  const grouped = useMemo(() => {
+    const res = {};
+    filteredFindings.forEach(f => {
+      if (!res[f.repo_name]) {
+        res[f.repo_name] = {};
+      }
+      if (!res[f.repo_name][f.file_path]) {
+        res[f.repo_name][f.file_path] = [];
+      }
+      res[f.repo_name][f.file_path].push(f);
+    });
+    return res;
+  }, [filteredFindings]);
 
   // Auto-expand all repos and file trees by default
   useEffect(() => {
@@ -52,7 +57,7 @@ export default function RepoBreakdown({ repositories, findings, token, scanId })
     });
     setExpandedRepos(defaultExpandedRepos);
     setExpandedFiles(defaultExpandedFiles);
-  }, [findings]);
+  }, [grouped]);
 
   const toggleRepo = (repoName) => {
     setExpandedRepos(prev => ({ ...prev, [repoName]: !prev[repoName] }));

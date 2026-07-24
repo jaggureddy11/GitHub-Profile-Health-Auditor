@@ -186,29 +186,33 @@ Aggregated Findings:
 {prompt_schema_desc}
 """
 
-    # 1. Try Groq API (High Speed)
+    # 1. Try Groq API (High Speed) with retry on malformed JSON
     if groq_token and not groq_token.startswith("dummy"):
-        try:
-            print("Invoking Groq API AI Engine (llama-3.3-70b)...")
-            response_text = await call_groq_api(prompt, groq_token)
-            cleaned_text = clean_llm_json(response_text)
-            parsed_json = json.loads(cleaned_text)
-            overall_score = int(parsed_json.get("overall_score", 50))
-            return overall_score, json.dumps(parsed_json)
-        except Exception as e:
-            print(f"Groq API synthesis failed: {e}. Falling back to Hugging Face / Deterministic engine...")
+        for attempt in range(2):
+            try:
+                print(f"Invoking Groq API AI Engine (attempt {attempt+1})...")
+                response_text = await call_groq_api(prompt, groq_token)
+                cleaned_text = clean_llm_json(response_text)
+                parsed_json = json.loads(cleaned_text)
+                overall_score = int(parsed_json.get("overall_score", 50))
+                return overall_score, json.dumps(parsed_json)
+            except Exception as e:
+                print(f"Groq API synthesis attempt {attempt+1} failed: {e}")
+                if attempt == 1:
+                    print("Falling back to Hugging Face / Deterministic engine...")
 
-    # 2. Try Hugging Face API
+    # 2. Try Hugging Face API with retry on malformed JSON
     if hf_token and not hf_token.startswith("dummy"):
-        try:
-            print("Invoking Hugging Face API AI Engine...")
-            response_text = await call_hf_api(prompt, hf_token)
-            cleaned_text = clean_llm_json(response_text)
-            parsed_json = json.loads(cleaned_text)
-            overall_score = int(parsed_json.get("overall_score", 50))
-            return overall_score, json.dumps(parsed_json)
-        except Exception as e:
-            print(f"Hugging Face API synthesis failed: {e}.")
+        for attempt in range(2):
+            try:
+                print(f"Invoking Hugging Face API AI Engine (attempt {attempt+1})...")
+                response_text = await call_hf_api(prompt, hf_token)
+                cleaned_text = clean_llm_json(response_text)
+                parsed_json = json.loads(cleaned_text)
+                overall_score = int(parsed_json.get("overall_score", 50))
+                return overall_score, json.dumps(parsed_json)
+            except Exception as e:
+                print(f"Hugging Face API synthesis attempt {attempt+1} failed: {e}")
 
     # 3. Deterministic Fallback
     print("Using deterministic fallback report engine.")

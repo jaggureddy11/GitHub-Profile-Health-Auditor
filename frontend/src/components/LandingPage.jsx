@@ -54,10 +54,10 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
 
-      {/* Static Octocat Icon Watermark (No Outer Square, No Animation, Pure Watermark) */}
-      <div className="absolute top-4 sm:top-8 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[480px] pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-15 sm:opacity-20 select-none">
+      {/* Static Octocat Fine Double-Line Outline Watermark */}
+      <div className="absolute top-2 sm:top-6 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[480px] pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-30 sm:opacity-35 select-none">
         <img 
-          src="/octocat-icon-only.png" 
+          src="/octocat-fine-outline.png" 
           alt="GitHub Octocat Watermark" 
           className="w-[420px] sm:w-[540px] max-w-none" 
         />

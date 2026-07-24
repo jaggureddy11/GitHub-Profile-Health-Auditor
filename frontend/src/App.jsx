@@ -430,45 +430,45 @@ export default function App() {
     <div className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-white/20 font-sans">
       
       {/* Global Header */}
-      <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+      <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-6 py-3.5 sm:py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setView(token ? 'dashboard' : 'landing')}>
+          <div className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer" onClick={() => setView(token ? 'dashboard' : 'landing')}>
             <img 
               src="/logo.png" 
               alt="GitHub Profile Auditor" 
-              className="w-9 h-9 rounded-lg object-cover border border-zinc-800 bg-black"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover border border-zinc-800 bg-black shrink-0"
             />
-            <div className="flex items-center space-x-3">
-              <span className="font-bold text-base tracking-tight text-white font-mono">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="font-bold text-xs sm:text-base tracking-tight text-white font-mono truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none">
                 GitHub Profile Auditor
               </span>
-              <span className="hidden sm:inline px-2.5 py-0.5 text-[9px] font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider font-mono">
+              <span className="hidden sm:inline px-2 py-0.5 text-[9px] font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider font-mono">
                 Beta
               </span>
             </div>
           </div>
 
-          <nav className="flex items-center space-x-4 text-xs font-semibold">
+          <nav className="flex items-center space-x-2 sm:space-x-4 text-xs font-semibold shrink-0">
             <button 
               onClick={() => setView('privacy')}
-              className={`hover:text-white transition ${view === 'privacy' ? 'text-white' : 'text-zinc-400'}`}
+              className={`hover:text-white transition text-xs sm:text-sm ${view === 'privacy' ? 'text-white' : 'text-zinc-400'}`}
             >
-              Data Privacy
+              Privacy
             </button>
             {token ? (
               <>
                 <span className="text-zinc-650 hidden md:inline font-mono">| {user?.email}</span>
                 <button 
                   onClick={handleLogout}
-                  className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 rounded border border-zinc-850 transition font-mono"
+                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 rounded border border-zinc-850 transition font-mono text-[11px] sm:text-xs"
                 >
-                  logout
+                  Logout
                 </button>
               </>
             ) : (
               <button 
                 onClick={() => { setView('auth'); setAuthMode('login'); }}
-                className="px-3 py-1.5 bg-white text-black hover:bg-zinc-200 rounded font-semibold transition"
+                className="px-3 py-1.5 bg-white text-black hover:bg-zinc-200 rounded font-semibold transition text-xs"
               >
                 Sign In
               </button>
@@ -478,7 +478,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-6xl w-full mx-auto px-6 py-10 flex-grow flex flex-col justify-center">
+      <main className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-6 sm:py-10 flex-grow flex flex-col justify-center">
         
         {/* VIEW: LANDING */}
         {view === 'landing' && (

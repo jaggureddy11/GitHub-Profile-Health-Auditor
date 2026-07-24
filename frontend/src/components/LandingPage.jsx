@@ -48,7 +48,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
   };
 
   return (
-    <div className="space-y-28 py-6 text-white relative overflow-hidden font-sans">
+    <div className="space-y-16 sm:space-y-24 lg:space-y-28 py-4 sm:py-6 text-white relative overflow-hidden font-sans">
       
       {/* Background Subtle Grid & Ambient Radial Beam */}
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>

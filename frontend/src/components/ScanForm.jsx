@@ -74,7 +74,7 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
             <span className="text-[10px] text-zinc-500">Public repos only</span>
           </div>
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 font-bold select-none">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 font-bold select-none text-xs">
               github.com/
             </span>
             <input
@@ -85,7 +85,7 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
               placeholder={loggedInGithubUser || "octocat"}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="block w-full pl-24 pr-3 py-2.5 bg-black border border-zinc-800 rounded-lg text-white placeholder-zinc-700 focus:outline-none focus:border-zinc-500 disabled:opacity-50 text-xs font-mono transition duration-150"
+              className="block w-full pl-24 pr-3 py-2.5 sm:py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-700 focus:outline-none focus:border-zinc-500 disabled:opacity-50 text-xs sm:text-sm font-mono transition duration-150"
             />
           </div>
         </div>

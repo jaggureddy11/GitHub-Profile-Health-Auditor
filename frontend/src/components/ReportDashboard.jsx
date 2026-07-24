@@ -141,12 +141,12 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
       </div>
 
       {/* Overview Block */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 animate-slide-up-2">
         
         {/* Radial Score Gauge */}
-        <div className="border border-zinc-800 bg-zinc-950 p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl">
+        <div className="border border-zinc-800 bg-zinc-950 p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl">
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">Overall Profile Score</h3>
-          <div className="relative w-36 h-36">
+          <div className="relative w-32 h-32 sm:w-36 sm:h-36">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               <circle
                 cx="50"
@@ -169,11 +169,11 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-extrabold tracking-tight text-white transition-all duration-300">{animatedScore}</span>
+              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white transition-all duration-300">{animatedScore}</span>
               <span className="text-xs text-zinc-500 font-bold uppercase mt-0.5">/ 100</span>
             </div>
           </div>
-          <span className="mt-5 px-4 py-1 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
+          <span className="mt-4 sm:mt-5 px-3.5 sm:px-4 py-1 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
             {overall_score >= 90 ? (
               <span className="flex items-center space-x-1.5"><Sparkles className="w-3.5 h-3.5 text-emerald-400" /><span>Excellent Standing</span></span>
             ) : overall_score >= 70 ? (
@@ -185,22 +185,22 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
         </div>
 
         {/* Stats Grid & Action Bar */}
-        <div className="md:col-span-2 border border-zinc-800 bg-zinc-950 p-8 rounded-2xl flex flex-col justify-between shadow-xl space-y-6">
+        <div className="md:col-span-2 border border-zinc-800 bg-zinc-950 p-5 sm:p-8 rounded-2xl flex flex-col justify-between shadow-xl space-y-6">
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-900 pb-5">
               <div>
-                <h3 className="text-xl font-extrabold text-white tracking-tight">
+                <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
                   Audit Summary Dashboard
                 </h3>
-                <p className="text-sm text-zinc-400 mt-1">
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1">
                   Target Profile: <span className="text-white font-bold font-mono">@{username}</span>
                 </p>
               </div>
               
-              <div className="flex flex-wrap items-center gap-2.5 print:hidden">
+              <div className="flex flex-wrap items-center gap-2 print:hidden w-full sm:w-auto">
                 <button
                   onClick={handleGenerateAiReadme}
-                  className="py-2 px-3.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                  className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
                   title="Generate AI Profile README.md"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-black" />
@@ -208,28 +208,28 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
                 </button>
                 <button
                   onClick={() => handleExport('markdown')}
-                  className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5 shadow-sm"
+                  className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
                   title="Export Markdown file"
                 >
                   <Download className="w-3.5 h-3.5" /><span>Export .md</span>
                 </button>
                 <button
                   onClick={() => handleExport('json')}
-                  className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5"
+                  className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5"
                   title="Export JSON file"
                 >
                   <FileJson className="w-3.5 h-3.5" /><span>Export JSON</span>
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="py-2 px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center space-x-1.5"
+                  className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5"
                   title="Print / Save as PDF"
                 >
                   <Printer className="w-3.5 h-3.5" /><span>Print</span>
                 </button>
                 <button
                   onClick={() => onReRun(username)}
-                  className="py-2 px-4 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md flex items-center space-x-1.5"
+                  className="flex-1 sm:flex-initial py-2 px-3.5 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md flex items-center justify-center space-x-1.5"
                 >
                   <RefreshCw className="w-3 h-3" /><span>Re-run</span>
                 </button>
@@ -242,7 +242,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-5 sm:mt-6">
               <div className="bg-black p-4 rounded-xl border border-zinc-850 shadow-inner">
                 <span className="text-xs text-zinc-400 font-bold block uppercase tracking-wider">Repositories</span>
                 <span className="text-2xl sm:text-3xl font-extrabold text-white mt-1 block">{totalRepos}</span>

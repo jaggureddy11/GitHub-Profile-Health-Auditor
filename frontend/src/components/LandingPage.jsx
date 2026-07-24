@@ -54,12 +54,12 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
 
-      {/* Expansive Ambient Octocat Watermark Artwork (Lifted Position) */}
-      <div className="absolute top-1 sm:top-3 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[720px] pointer-events-none z-0 flex items-center justify-center opacity-[0.10] sm:opacity-[0.13] select-none">
+      {/* Expansive Ambient Octocat Watermark Artwork (Lifted Higher Position) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[720px] pointer-events-none z-0 flex items-center justify-center opacity-[0.10] sm:opacity-[0.13] select-none">
         <img 
           src="/octocat-user-outline.png" 
           alt="GitHub Profile Auditor Background Artwork" 
-          className="w-[660px] sm:w-[840px] lg:w-[960px] max-w-none transform translate-y-1 sm:translate-y-2" 
+          className="w-[660px] sm:w-[840px] lg:w-[960px] max-w-none transform -translate-y-4 sm:-translate-y-6" 
         />
       </div>
 

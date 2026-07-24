@@ -52,7 +52,16 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       
       {/* Background Subtle Grid & Ambient Radial Beam */}
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/20 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
+
+      {/* Octocat Magnifying Glass Background Watermark */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[550px] pointer-events-none -z-10 flex items-center justify-center overflow-hidden opacity-10 mix-blend-screen select-none">
+        <img 
+          src="/octocat-bg.png" 
+          alt="GitHub Octocat Audit Watermark" 
+          className="w-[480px] sm:w-[620px] max-w-none filter invert brightness-125 contrast-125 animate-float" 
+        />
+      </div>
 
       {/* HERO SECTION - DEVELOPER-GRADE ELEGANCE */}
       <section className="text-center space-y-9 max-w-4xl mx-auto pt-8 relative animate-fade-in">

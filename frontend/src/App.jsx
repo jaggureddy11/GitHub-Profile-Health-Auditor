@@ -478,7 +478,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-6 sm:py-10 flex-grow flex flex-col justify-center">
+      <main className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-6 sm:py-10 flex-grow flex flex-col justify-start">
         
         {/* VIEW: LANDING */}
         {view === 'landing' && (

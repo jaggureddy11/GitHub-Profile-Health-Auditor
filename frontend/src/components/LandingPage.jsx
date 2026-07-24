@@ -54,17 +54,17 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
 
-      {/* Octocat Magnifying Glass Background Watermark */}
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[550px] pointer-events-none -z-10 flex items-center justify-center overflow-hidden opacity-10 mix-blend-screen select-none">
+      {/* Octocat Magnifying Glass Background Watermark (Pure Transparent PNG) */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[520px] pointer-events-none -z-10 flex items-center justify-center overflow-hidden opacity-20 select-none">
         <img 
-          src="/octocat-bg.png" 
+          src="/octocat-transparent.png" 
           alt="GitHub Octocat Audit Watermark" 
-          className="w-[480px] sm:w-[620px] max-w-none filter invert brightness-125 contrast-125 animate-float" 
+          className="w-[450px] sm:w-[580px] max-w-none animate-float drop-shadow-[0_0_25px_rgba(16,185,129,0.3)]" 
         />
       </div>
 
       {/* HERO SECTION - DEVELOPER-GRADE ELEGANCE */}
-      <section className="text-center space-y-9 max-w-4xl mx-auto pt-8 relative animate-fade-in">
+      <section className="text-center space-y-9 max-w-4xl mx-auto pt-2 sm:pt-4 relative animate-fade-in">
         
         {/* Version Badge */}
         <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-full text-xs font-mono text-zinc-300 shadow-lg backdrop-blur-md hover:border-zinc-700 transition duration-200 cursor-default">

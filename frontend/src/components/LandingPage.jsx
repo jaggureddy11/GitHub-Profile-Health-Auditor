@@ -54,6 +54,15 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
 
+      {/* Octocat User Outline Background Watermark */}
+      <div className="absolute top-2 sm:top-6 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[480px] pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-20 sm:opacity-25 select-none">
+        <img 
+          src="/octocat-user-outline.png" 
+          alt="GitHub Profile Auditor Watermark" 
+          className="w-[420px] sm:w-[540px] max-w-none" 
+        />
+      </div>
+
 
       {/* HERO SECTION - DEVELOPER-GRADE ELEGANCE */}
       <section className="text-center space-y-9 max-w-4xl mx-auto pt-2 sm:pt-4 relative z-10 animate-fade-in">

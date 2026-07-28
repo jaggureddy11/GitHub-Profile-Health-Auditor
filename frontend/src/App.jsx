@@ -342,7 +342,13 @@ export default function App() {
   const handleStartSingleRepoScan = async (repo) => {
     const repoName = repo.name;
     const targetUsername = activeUsername || repo.owner?.login || 'octocat';
-    setRepoStatuses((prev) => ({ ...prev, [repoName]: 'queued' }));
+    
+    setScanState('loading');
+    setErrorMessage('');
+    setLoadingStep(0);
+    setScanReport(null);
+    setRepoStatuses((prev) => ({ ...prev, [repoName]: 'running' }));
+    
     try {
       const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
         method: 'POST',
@@ -354,59 +360,32 @@ export default function App() {
       });
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.detail || 'Repo scan request failed');
+        throw new Error(errData.detail || 'Single repo scan request failed');
       }
       const data = await res.json();
-      setRepoStatuses((prev) => ({ ...prev, [repoName]: 'running' }));
-      pollScanStatus(data.scan_id, repoName);
+      setCurrentScanId(data.scan_id);
+      pollSingleRepoScanStatus(data.scan_id, repoName);
     } catch (err) {
       console.error(`Single repo scan error for ${repoName}:`, err);
+      setScanState('error');
+      setErrorMessage(err.message || `Failed to start audit for ${repoName}`);
       setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
     }
   };
 
   const handleStartScan = async (username, githubToken) => {
     setActiveUsername(username);
-    setScanState('loading');
+    setScanState('idle');
     setErrorMessage('');
-    setLoadingStep(0);
     setScanReport(null);
 
-    // Concurrently trigger quickstats fetch and repo listing (<2s target)
+    // Concurrently trigger quickstats fetch and repo listing (<1-2s target)
     fetchQuickStats(username, githubToken);
     fetchUserRepos(username, githubToken);
-
-    try {
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/scan`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          username,
-          github_token: githubToken || null,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `Server returned status ${response.status}`);
-      }
-
-      const initialReport = await response.json();
-      setCurrentScanId(initialReport.scan_id);
-      pollScanStatus(initialReport.scan_id);
-    } catch (err) {
-      console.error(err);
-      setScanState('error');
-      setErrorMessage(err.message || 'Failed to establish connection with scanning servers.');
-    }
   };
 
-  const pollScanStatus = (scanId, singleRepoName = null) => {
+  const pollSingleRepoScanStatus = (scanId, repoName) => {
+    let stepCount = 0;
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
@@ -417,51 +396,39 @@ export default function App() {
         }
 
         const report = await response.json();
-
-        if (singleRepoName) {
-          if (report.status === 'completed') {
-            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'completed' }));
-          } else if (report.status === 'failed') {
-            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'failed' }));
-          } else if (report.status === 'timed_out') {
-            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'timed_out' }));
-          }
-        } else if (report.repositories && report.repositories.length > 0) {
-          setRepoStatuses((prev) => {
-            const updated = { ...prev };
-            report.repositories.forEach((r) => {
-              updated[r.name] = report.status === 'completed' ? 'completed' : 'running';
-            });
-            return updated;
-          });
-        }
         
+        stepCount = Math.min(stepCount + 1, loadingMessages.length - 1);
+        setLoadingStep(stepCount);
+
         if (report.status === 'completed') {
           clearInterval(pollInterval);
           setScanReport(report);
           setScanState('completed');
+          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'completed' }));
           fetchScanHistory();
-        } else if (report.status === 'failed') {
+        } else if (report.status === 'failed' || report.status === 'timed_out') {
           clearInterval(pollInterval);
           setScanState('error');
-          setErrorMessage('Repository scan background job failed. Please verify your username is correct and try again.');
+          setErrorMessage(`Audit for repository "${repoName}" ${report.status === 'timed_out' ? 'timed out' : 'failed'}. Please try auditing again.`);
+          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
         }
       } catch (err) {
-        console.error("Polling error:", err);
+        console.error("Polling error for repo scan:", err);
       }
     }, 2000);
 
-    // Timeout after 4 minutes
+    // Safety timeout per single repo scan (90 seconds max)
     setTimeout(() => {
       clearInterval(pollInterval);
       setScanState((currentState) => {
         if (currentState === 'loading') {
-          setErrorMessage('Scan process timed out. The profile may have too many files to process.');
+          setErrorMessage(`Audit for repository "${repoName}" timed out after 90 seconds. Please try again.`);
+          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'timed_out' }));
           return 'error';
         }
         return currentState;
       });
-    }, 240000);
+    }, 90000);
   };
 
   const handleSelectPastScan = async (scanId) => {
@@ -974,34 +941,50 @@ export default function App() {
                 </div>
               )}
 
+              {/* VIEW: IDLE / REPOS LOADED */}
+              {scanState === 'idle' && (
+                <div className="space-y-8">
+                  <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
+                  
+                  {userRepos && userRepos.length > 0 ? (
+                    <RepoGrid 
+                      repositories={userRepos} 
+                      repoStatuses={repoStatuses} 
+                      isLoading={userReposLoading}
+                      onAnalyzeRepo={handleStartSingleRepoScan}
+                    />
+                  ) : (
+                    <div className="border border-dashed border-zinc-800 p-16 rounded-3xl text-center space-y-3 font-sans">
+                      <div className="flex justify-center">
+                        <Search className="w-10 h-10 text-zinc-600" />
+                      </div>
+                      <h4 className="font-bold text-base text-zinc-300">Ready for scan analysis</h4>
+                      <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                        Enter a public GitHub username in the scanner on the left or select a sample target to audit.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* VIEW: LOADING REPO SCAN */}
               {scanState === 'loading' && (
-                <div className="space-y-6">
-                  {/* Instant Profile QuickStats Card */}
+                <div className="space-y-8">
                   <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
 
-                  {/* Public Repositories Grid View */}
-                  <RepoGrid 
-                    repositories={userRepos} 
-                    repoStatuses={repoStatuses} 
-                    isLoading={userReposLoading}
-                    onAnalyzeRepo={handleStartSingleRepoScan}
-                  />
-
-                  <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
-                      <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-                        <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
-                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <div className="border border-zinc-800 bg-zinc-950 p-8 sm:p-10 rounded-3xl flex flex-col justify-start space-y-6 shadow-2xl font-sans">
+                    <div className="flex items-center space-x-4 border-b border-zinc-900 pb-5">
+                      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                        <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/40 animate-spin" style={{ animationDuration: '4s' }}></div>
+                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
-                        <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
+                        <h3 className="text-lg font-bold text-white">Repository Health Audit in Progress</h3>
+                        <p className="text-xs text-zinc-400 font-mono">Running live static analysis &amp; secret interception pipeline</p>
                       </div>
                     </div>
 
-                    {/* Progressive steps checklist */}
-                    <div className="space-y-3.5 text-left max-w-lg">
+                    <div className="space-y-4 text-left max-w-xl font-mono text-xs">
                       {loadingMessages.map((msg, idx) => {
                         const isCompleted = idx < loadingStep;
                         const isActive = idx === loadingStep;
@@ -1011,38 +994,37 @@ export default function App() {
                           <div 
                             key={idx} 
                             className={`flex items-center space-x-3 transition-all duration-300 ${
-                              isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
+                              isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-bold' : 'text-zinc-700')
                             }`}
                           >
                             {isCompleted && (
-                              <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
+                              <span className="w-5 h-5 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-xs text-emerald-400 shrink-0 font-bold">
                                 ✓
                               </span>
                             )}
                             {isActive && (
-                              <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
+                              <span className="relative flex h-2.5 w-2.5 shrink-0 ml-1 mr-1">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                               </span>
                             )}
                             {isPending && (
-                              <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
                             )}
-                            <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
+                            <span className="text-xs font-mono">{msg}</span>
                           </div>
                         );
                       })}
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5 pt-2 max-w-lg">
-                      <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
+                    <div className="space-y-2 pt-2 max-w-xl">
+                      <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
                         <div 
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
+                          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 transition-all duration-700 ease-out"
                           style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
                         ></div>
                       </div>
-                      <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
+                      <div className="flex justify-between text-xs text-zinc-500 font-mono">
                         <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
                         <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
                       </div>
@@ -1051,8 +1033,22 @@ export default function App() {
                 </div>
               )}
 
+              {/* VIEW: COMPLETED AUDIT REPORT */}
               {scanState === 'completed' && scanReport && (
-                <div className="space-y-6">
+                <div className="space-y-8 animate-fade-in font-sans">
+                  {/* Top Navigation Bar back to Repositories list */}
+                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800">
+                    <button
+                      onClick={handleReset}
+                      className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white rounded-xl text-xs font-bold font-sans transition flex items-center space-x-2 border border-zinc-700"
+                    >
+                      <span>← Back to Repository List</span>
+                    </button>
+                    <span className="text-xs text-emerald-400 font-mono font-bold">
+                      Audit Complete • Verified Real Data
+                    </span>
+                  </div>
+
                   <ReportDashboard 
                     report={scanReport} 
                     onReset={handleReset} 
@@ -1062,6 +1058,13 @@ export default function App() {
                     quickstatsLoading={quickstatsLoading}
                   />
 
+                  <RepoBreakdown 
+                    repositories={scanReport.repositories} 
+                    findings={scanReport.findings}
+                    token={token}
+                    scanId={currentScanId || scanReport?.scan_id}
+                  />
+
                   {/* Public Repositories Grid View */}
                   <RepoGrid 
                     repositories={userRepos.length > 0 ? userRepos : scanReport.repositories} 
@@ -1069,33 +1072,40 @@ export default function App() {
                     isLoading={userReposLoading}
                     onAnalyzeRepo={handleStartSingleRepoScan}
                   />
-
-                  <RepoBreakdown 
-                    repositories={scanReport.repositories} 
-                    findings={scanReport.findings}
-                    token={token}
-                    scanId={currentScanId || scanReport?.scan_id}
-                  />
                 </div>
               )}
 
+              {/* VIEW: ERROR / INTERRUPTED */}
               {scanState === 'error' && (
-                <div className="border border-zinc-900 bg-zinc-950 p-10 rounded-2xl text-center space-y-6">
-                  <div className="w-12 h-12 rounded-xl bg-red-950/40 border border-red-900/60 flex items-center justify-center mx-auto">
-                    <AlertTriangle className="w-6 h-6 text-red-400" />
+                <div className="space-y-8 font-sans">
+                  <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
+
+                  <div className="border border-red-900/60 bg-zinc-950 p-8 sm:p-10 rounded-3xl text-center space-y-6 shadow-2xl">
+                    <div className="w-14 h-14 rounded-2xl bg-red-950/60 border border-red-800/80 flex items-center justify-center mx-auto text-red-400">
+                      <AlertTriangle className="w-7 h-7 text-red-400" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-extrabold text-white">Audit Interrupted</h3>
+                      <p className="text-sm text-zinc-400 leading-relaxed max-w-md mx-auto">
+                        {errorMessage}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleReset}
+                      className="py-3 px-8 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-black transition shadow-lg"
+                    >
+                      Return to Repositories
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-white font-mono">Audit Interrupted</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed max-w-md mx-auto">
-                      {errorMessage}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleReset}
-                    className="py-2.5 px-6 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-bold transition border border-white"
-                  >
-                    Close & Reset
-                  </button>
+
+                  {userRepos && userRepos.length > 0 && (
+                    <RepoGrid 
+                      repositories={userRepos} 
+                      repoStatuses={repoStatuses} 
+                      isLoading={userReposLoading}
+                      onAnalyzeRepo={handleStartSingleRepoScan}
+                    />
+                  )}
                 </div>
               )}
 

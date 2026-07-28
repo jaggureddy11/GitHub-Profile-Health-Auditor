@@ -64,23 +64,23 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       </div>
 
 
-      {/* HERO SECTION - DEVELOPER-GRADE ELEGANCE */}
-      <section className="text-center space-y-9 max-w-4xl mx-auto pt-2 sm:pt-4 relative z-10 animate-fade-in">
+      {/* HERO SECTION - WORLD-CLASS DEVELOPER SECURITY STUDIO */}
+      <section className="text-center space-y-10 max-w-5xl mx-auto pt-4 sm:pt-6 relative z-10 animate-fade-in">
         
         {/* Version Badge */}
-        <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 bg-zinc-900/90 border border-zinc-800 rounded-full text-xs font-mono text-zinc-300 shadow-lg backdrop-blur-md hover:border-zinc-700 transition duration-200 cursor-default">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-          <span className="font-semibold text-zinc-200 tracking-wider text-[11px] uppercase">SECURITY ENGINE (BETA)</span>
+        <div className="inline-flex items-center space-x-2.5 px-4 py-2 bg-zinc-900/90 border border-zinc-800 rounded-full text-xs font-mono text-zinc-300 shadow-xl backdrop-blur-md hover:border-emerald-500/40 transition duration-300 cursor-default">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+          <span className="font-bold text-zinc-200 tracking-wider text-[11px] uppercase">SECURITY ENGINE (BETA)</span>
           <span className="text-zinc-700 font-bold">•</span>
-          <span className="text-zinc-400 font-medium flex items-center space-x-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="text-zinc-300 font-semibold flex items-center space-x-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Zero-Secret Retention</span>
           </span>
         </div>
 
         {/* High-Impact Headline */}
-        <div className="space-y-4 relative">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] font-sans">
+        <div className="space-y-5 relative">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.08] font-sans">
             Uncover Leaked Secrets. <br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
               Elevate Profile Security.
@@ -88,8 +88,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1">
-            Automated static analysis across public GitHub repositories. Intercept committed API credentials, fix Git hygiene debt, and generate 1-click patches.
+          <p className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1">
+            Automated static analysis across public GitHub repositories. Intercept committed API credentials, fix Git hygiene debt, and generate 1-click auto-fix patches.
           </p>
         </div>
 
@@ -97,11 +97,11 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         <div className="pt-2 max-w-2xl mx-auto space-y-4">
           <form 
             onSubmit={handleQuickSubmit} 
-            className="bg-zinc-950/90 p-2 rounded-2xl border border-zinc-800 shadow-2xl focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all duration-200 flex flex-col sm:flex-row items-center gap-2"
+            className="bg-zinc-950/90 p-2.5 rounded-3xl border border-zinc-800 shadow-2xl focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all duration-300 flex flex-col sm:flex-row items-center gap-2.5 backdrop-blur-xl"
           >
-            <div className="relative w-full flex items-center pl-3">
-              <Search className="w-4 h-4 text-emerald-400 shrink-0 mr-2" />
-              <span className="text-zinc-500 font-mono text-xs font-semibold select-none shrink-0 pr-1">
+            <div className="relative w-full flex items-center pl-4">
+              <Search className="w-5 h-5 text-emerald-400 shrink-0 mr-2.5" />
+              <span className="text-zinc-500 font-mono text-xs sm:text-sm font-bold select-none shrink-0 pr-1">
                 github.com/
               </span>
               <input
@@ -109,21 +109,21 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                 placeholder="username (e.g. octocat)"
                 value={quickUsername}
                 onChange={(e) => setQuickUsername(e.target.value)}
-                className="w-full py-3 bg-transparent text-white placeholder-zinc-600 focus:outline-none font-mono text-xs text-left"
+                className="w-full py-3.5 bg-transparent text-white placeholder-zinc-500 focus:outline-none font-mono text-xs sm:text-sm text-left font-semibold"
               />
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto shrink-0 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-xl shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2"
+              className="w-full sm:w-auto shrink-0 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 hover:scale-[1.02] active:scale-98 flex items-center justify-center space-x-2.5"
             >
               <span>Audit Profile</span>
-              <ArrowRight className="w-3.5 h-3.5 text-black" />
+              <ArrowRight className="w-4 h-4 text-black shrink-0" />
             </button>
           </form>
 
           {/* Quick Target Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1 font-mono text-xs text-zinc-500">
-            <span className="text-[11px] text-zinc-400 font-bold">Featured profiles:</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 font-mono text-xs text-zinc-400">
+            <span className="text-xs text-zinc-400 font-bold">Featured profiles:</span>
             {['torvalds', 'yyx990803', 'gaearon', 'sundarpichai', 'sindresorhus', 'octocat'].map((sampleUser) => (
               <button
                 key={sampleUser}
@@ -133,7 +133,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   if (onStartQuickScan) onStartQuickScan(sampleUser);
                   else onStartRegister();
                 }}
-                className="px-2.5 py-1 bg-zinc-900 hover:bg-emerald-950/60 text-zinc-300 hover:text-emerald-300 rounded-lg border border-zinc-800 hover:border-emerald-700/60 text-[11px] font-semibold transition duration-150 flex items-center space-x-1"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-emerald-950/80 text-zinc-300 hover:text-emerald-300 rounded-xl border border-zinc-800 hover:border-emerald-700/60 text-xs font-bold transition duration-200 flex items-center space-x-1 shadow-sm active:scale-95"
               >
                 <span>@{sampleUser}</span>
               </button>
@@ -141,18 +141,18 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </div>
 
           {/* Trust Highlights */}
-          <div className="pt-3 flex flex-wrap items-center justify-center gap-6 text-xs font-mono text-zinc-400">
-            <span className="flex items-center space-x-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-zinc-400">
+            <span className="flex items-center space-x-2 font-semibold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Instant 10s Audit</span>
             </span>
-            <span className="flex items-center space-x-1.5">
-              <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="flex items-center space-x-2 font-semibold">
+              <EyeOff className="w-4 h-4 text-emerald-400" />
               <span>In-Memory Redaction</span>
             </span>
             <button 
               onClick={onGitHubOAuth}
-              className="text-zinc-400 hover:text-white underline font-semibold transition duration-200 flex items-center space-x-1"
+              className="text-zinc-400 hover:text-emerald-400 underline font-bold transition duration-200 flex items-center space-x-1"
             >
               <span>Log in with GitHub</span>
             </button>
@@ -161,22 +161,22 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       </section>
 
       {/* METRICS TRUST BANNER */}
-      <section className="max-w-5xl mx-auto border-y border-zinc-900 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center font-mono animate-slide-up-1">
-        <div className="space-y-1">
-          <span className="text-3xl font-extrabold text-white block">100%</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider block">In-Memory Secret Redaction</span>
+      <section className="max-w-5xl mx-auto border border-zinc-850 bg-zinc-950/60 rounded-3xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center font-mono shadow-2xl animate-slide-up-1 backdrop-blur-xl">
+        <div className="space-y-1.5">
+          <span className="text-3xl sm:text-4xl font-black text-white block">100%</span>
+          <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">In-Memory Redaction</span>
         </div>
-        <div className="space-y-1">
-          <span className="text-3xl font-extrabold text-emerald-400 block">&lt; 10s</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider block">Average Scan Runtime</span>
+        <div className="space-y-1.5">
+          <span className="text-3xl sm:text-4xl font-black text-emerald-400 block">&lt; 10s</span>
+          <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Average Scan Runtime</span>
         </div>
-        <div className="space-y-1">
-          <span className="text-3xl font-extrabold text-white block">3 Engines</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider block">TruffleHog • Semgrep • Hygiene</span>
+        <div className="space-y-1.5">
+          <span className="text-3xl sm:text-4xl font-black text-white block">3 Engines</span>
+          <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">TruffleHog • Semgrep • Hygiene</span>
         </div>
-        <div className="space-y-1">
-          <span className="text-3xl font-extrabold text-cyan-400 block">0</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider block">Credentials Stored</span>
+        <div className="space-y-1.5">
+          <span className="text-3xl sm:text-4xl font-black text-cyan-400 block">0</span>
+          <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Credentials Stored</span>
         </div>
       </section>
 

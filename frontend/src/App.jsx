@@ -529,46 +529,52 @@ export default function App() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-white/20 font-sans">
       
-      {/* Global Header */}
-      <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-6 py-3.5 sm:py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer" onClick={() => setView(token ? 'dashboard' : 'landing')}>
+      {/* Global Header / Navbar */}
+      <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 py-4">
+        <div className="max-w-[1536px] mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => setView(token ? 'dashboard' : 'landing')}>
             <img 
               src="/logo.png" 
               alt="GitHub Profile Auditor" 
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover border border-zinc-800 bg-black shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
             />
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <span className="font-bold text-xs sm:text-base tracking-tight text-white font-mono truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none">
+            <div className="flex items-center space-x-3">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-white font-sans">
                 GitHub Profile Auditor
               </span>
-              <span className="hidden sm:inline px-2 py-0.5 text-[9px] font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider font-mono">
+              <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider">
                 Beta
               </span>
             </div>
           </div>
 
-          <nav className="flex items-center space-x-2 sm:space-x-4 text-xs font-semibold shrink-0">
+          <nav className="flex items-center space-x-4 sm:space-x-6 text-sm font-semibold shrink-0">
+            <button 
+              onClick={() => setView(token ? 'dashboard' : 'landing')}
+              className={`hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-white font-bold' : 'text-zinc-400'}`}
+            >
+              Dashboard
+            </button>
             <button 
               onClick={() => setView('privacy')}
-              className={`hover:text-white transition text-xs sm:text-sm ${view === 'privacy' ? 'text-white' : 'text-zinc-400'}`}
+              className={`hover:text-white transition text-sm ${view === 'privacy' ? 'text-white font-bold' : 'text-zinc-400'}`}
             >
-              Privacy
+              Privacy &amp; Security
             </button>
             {token ? (
-              <>
-                <span className="text-zinc-650 hidden md:inline font-mono">| {user?.email}</span>
+              <div className="flex items-center space-x-3 pl-2 border-l border-zinc-850">
+                <span className="text-xs text-zinc-400 font-mono hidden md:inline">{user?.email}</span>
                 <button 
                   onClick={handleLogout}
-                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 rounded border border-zinc-850 transition font-mono text-[11px] sm:text-xs"
+                  className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl border border-zinc-800 transition font-mono text-xs font-bold"
                 >
                   Logout
                 </button>
-              </>
+              </div>
             ) : (
               <button 
                 onClick={() => { setView('auth'); setAuthMode('login'); }}
-                className="px-3 py-1.5 bg-white text-black hover:bg-zinc-200 rounded font-semibold transition text-xs"
+                className="px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold transition text-xs shadow-md"
               >
                 Sign In
               </button>
@@ -577,8 +583,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-6 sm:py-10 flex-grow flex flex-col justify-start">
+      {/* Main Container - Widened layout for full visibility */}
+      <main className="max-w-[1536px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-8 flex-grow flex flex-col justify-start">
         
         {/* VIEW: LANDING */}
         {view === 'landing' && (
@@ -885,24 +891,24 @@ export default function App() {
 
         {/* VIEW: DASHBOARD (AUTHENTICATED) */}
         {view === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Left Sidebar: ScanForm & Scan History */}
-            <div className="lg:col-span-1 space-y-6">
+            {/* Left Sidebar: ScanForm & Scan History (3 cols) */}
+            <div className="lg:col-span-3 space-y-6">
               
               {/* Scan Form Panel */}
-              <div className="border border-zinc-900 bg-zinc-950 p-6 rounded-2xl space-y-4">
-                <h3 className="font-bold text-sm text-white font-mono flex items-center">
+              <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-3xl space-y-4 shadow-xl font-sans">
+                <h3 className="font-bold text-sm text-white font-sans flex items-center">
                   <Zap className="w-4 h-4 mr-2 text-emerald-400" /> New Repository Scan
                 </h3>
                 <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
               </div>
 
               {/* Scan History list */}
-              <div className="border border-zinc-900 bg-zinc-950 p-6 rounded-2xl space-y-4">
-                <h3 className="font-bold text-sm text-white font-mono flex items-center justify-between">
-                  <span className="flex items-center space-x-1.5"><FolderOpen className="w-4 h-4 text-zinc-400" /><span>Scan History</span></span>
-                  <span className="text-[10px] text-zinc-550">({scanHistory.length} total)</span>
+              <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-3xl space-y-4 shadow-xl font-sans">
+                <h3 className="font-bold text-sm text-white font-sans flex items-center justify-between">
+                  <span className="flex items-center space-x-2"><FolderOpen className="w-4 h-4 text-zinc-400" /><span>Scan History</span></span>
+                  <span className="text-xs text-zinc-500 font-mono">({scanHistory.length} total)</span>
                 </h3>
                 
                 {scanHistory.length > 0 ? (
@@ -911,24 +917,24 @@ export default function App() {
                       <div 
                         key={pastScan.scan_id}
                         onClick={() => scanState !== 'loading' && handleSelectPastScan(pastScan.scan_id)}
-                        className={`p-3 rounded-lg border text-left cursor-pointer transition select-none flex items-center justify-between ${
+                        className={`p-3 rounded-xl border text-left cursor-pointer transition select-none flex items-center justify-between ${
                           currentScanId === pastScan.scan_id 
-                            ? 'bg-zinc-900 border-zinc-750' 
-                            : 'bg-black border-zinc-900 hover:border-zinc-800'
+                            ? 'bg-zinc-900 border-zinc-700' 
+                            : 'bg-black border-zinc-850 hover:border-zinc-700'
                         } ${scanState === 'loading' ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         <div className="space-y-1 min-w-0">
                           <p className="font-bold text-xs text-white truncate font-mono">@{pastScan.username}</p>
-                          <p className="text-[9px] text-zinc-550 font-mono">
+                          <p className="text-[10px] text-zinc-500 font-mono">
                             {new Date(pastScan.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         
                         <div className="flex items-center space-x-2 shrink-0">
-                          <span className={`px-2 py-0.5 text-[8px] font-bold rounded-full uppercase border ${
+                          <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full uppercase border font-mono ${
                             pastScan.status === 'completed' 
-                              ? 'bg-zinc-950 text-green-400 border-green-950' 
-                              : (pastScan.status === 'failed' ? 'bg-red-950/20 text-red-400 border-red-950' : 'bg-zinc-900 text-zinc-400 border-zinc-800')
+                              ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80' 
+                              : (pastScan.status === 'failed' ? 'bg-red-950/40 text-red-400 border-red-900' : 'bg-zinc-900 text-zinc-400 border-zinc-800')
                           }`}>
                             {pastScan.status}
                           </span>
@@ -937,24 +943,24 @@ export default function App() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-xs text-zinc-650 py-6 font-mono">No past repository scans recorded.</p>
+                  <p className="text-center text-xs text-zinc-500 py-6 font-sans">No past repository scans recorded.</p>
                 )}
               </div>
 
               {/* Data Deletion under dashboard */}
-              <div className="p-4 border border-zinc-950 rounded-xl text-center">
+              <div className="p-3 text-center">
                 <button
                   onClick={() => setView('privacy')}
-                  className="text-[10px] text-zinc-650 hover:text-zinc-500 font-bold uppercase tracking-wider font-mono hover:underline"
+                  className="text-xs text-zinc-500 hover:text-zinc-300 font-medium tracking-wide transition hover:underline"
                 >
-                  Manage Account & Data Retention
+                  Manage Account &amp; Data Retention
                 </button>
               </div>
 
             </div>
 
-            {/* Right Main Panel: Scan Output / State */}
-            <div className="lg:col-span-2 space-y-6">
+            {/* Right Main Panel: Scan Output / State (9 cols) */}
+            <div className="lg:col-span-9 space-y-8">
               
               {scanState === 'idle' && (
                 <div className="border border-dashed border-zinc-800 p-20 rounded-2xl text-center space-y-3">

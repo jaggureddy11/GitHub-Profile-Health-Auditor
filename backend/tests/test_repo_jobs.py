@@ -168,3 +168,77 @@ def test_partial_aggregate_report_progressive():
     assert "Scanned 2 of 3 repositories" in data["summary"]["summary_text"]
 
     db.close()
+
+def test_repo_scan_timeout_enforcement_duration_exceeded():
+    import time
+    from scanners.orchestrator import run_single_repo_scan_job
+    db = SessionLocal()
+
+    parent_id = str(uuid.uuid4())
+    parent_scan = models.Scan(
+        id=parent_id,
+        username="durationuser",
+        scan_type="group",
+        status="running"
+    )
+    db.add(parent_scan)
+
+    child1_id = str(uuid.uuid4())
+    child2_id = str(uuid.uuid4())
+
+    child1 = models.Scan(
+        id=child1_id,
+        username="durationuser",
+        parent_scan_id=parent_id,
+        scan_type="single_repo",
+        repo_name="fast-repo",
+        repo_url="https://github.com/durationuser/fast-repo",
+        status="queued"
+    )
+    child2 = models.Scan(
+        id=child2_id,
+        username="durationuser",
+        parent_scan_id=parent_id,
+        scan_type="single_repo",
+        repo_name="slow-repo",
+        repo_url="https://github.com/durationuser/slow-repo",
+        status="queued"
+    )
+    db.add(child1)
+    db.add(child2)
+    db.commit()
+
+    # Mock hygiene to simulate slow execution on slow-repo
+    def mock_hygiene(path, name):
+        if "slow-repo" in name:
+            time.sleep(1.2)  # Exceeds REPO_SCAN_TIMEOUT_SECONDS=1
+        return [{"repo_name": name, "type": "structural", "file_path": "README.md", "line_number": None, "rule_id": "MISSING_LICENSE", "severity": "low", "description": "No license", "verification_status": None}]
+
+    with patch.dict("os.environ", {"REPO_SCAN_TIMEOUT_SECONDS": "1"}):
+        with patch("scanners.orchestrator.clone_repo", return_value=True), \
+             patch("scanners.orchestrator.scan_hygiene", side_effect=mock_hygiene), \
+             patch("scanners.orchestrator.scan_secrets", return_value=[]), \
+             patch("scanners.orchestrator.scan_smells", return_value=[]), \
+             patch("scanners.orchestrator.synthesize_report", return_value=(90, '{"overall_score": 90}')):
+
+            # Execute fast-repo job
+            run_single_repo_scan_job(child1_id, "durationuser", "fast-repo", "https://github.com/durationuser/fast-repo")
+            # Execute slow-repo job
+            run_single_repo_scan_job(child2_id, "durationuser", "slow-repo", "https://github.com/durationuser/slow-repo")
+
+            db.refresh(child1)
+            db.refresh(child2)
+
+            # Assert fast-repo completed successfully
+            assert child1.status == "completed"
+
+            # Assert slow-repo timed out explicitly and captured timeout error message
+            assert child2.status == "timed_out"
+            assert "Task exceeded maximum timeout value (1 seconds)" in child2.error_message
+
+            # Assert parent group scan completed and aggregated findings from fast-repo
+            db.refresh(parent_scan)
+            assert parent_scan.status == "completed"
+            assert parent_scan.overall_score == 90
+
+    db.close()

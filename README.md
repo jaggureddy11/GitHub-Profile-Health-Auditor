@@ -1,8 +1,21 @@
 # GitHub Profile Health Auditor
 
-A production-quality tool that scans public GitHub repositories for security leaks, structural neglect, and code quality issues, producing a synthesized AI health report and overall profile score.
+A privacy-first, production-grade security and static analysis scanner for public GitHub profiles. It aggregates developer repository metadata, evaluates codebases for credential leaks, structural neglect, and configuration smells, and produces a synthesized AI report card with auto-fix patches and embeddable badges.
 
-## Architecture Overview
+---
+
+## ⚡ Hybrid Performance Architecture
+
+The application implements a decoupled, multi-layered processing architecture designed to match competitor initial loading speeds while delivering deep security telemetry:
+
+1. **Instant Overview Layer (<2s)**: Fret-free, unauthenticated endpoint (`GET /api/profile/{username}/quickstats`) that collects profile metadata, followers, star/fork aggregates, top language distributions, and active history via REST API without cloning. Cached for 15 minutes in Redis.
+2. **Progressive Scan Pipeline**: Concurrently submits the target username to the background queue worker. The frontend immediately displays the metadata card and updates a live checklist for:
+   - *Stage 1*: Repository Discovery & Cap Checks (Truncated to top 10 most active repositories).
+   - *Stage 2*: Git Hygiene Audits (Flags missing README, LICENSE, `.gitignore`, and committed configs).
+   - *Stage 3*: TruffleHog Commit Log Scanning (Runs across full git history).
+   - *Stage 4*: Semgrep Code Smell Static Analysis.
+   - *Stage 5*: AI Report Synthesis.
+3. **Decoupled Verification Badge**: Public score indexing is strictly opt-in. Unverified usernames render a default `Unverified` SVG. Score publication is gated behind proof-of-ownership (OAuth integration or server-issued 15-minute challenge tokens placed in the user's GitHub bio).
 
 ```
                         ┌────────────────────────────────────────┐
@@ -49,96 +62,76 @@ A production-quality tool that scans public GitHub repositories for security lea
           Hugging Face API (AI Synthesis)
 ```
 
-## Features
+---
 
-- **P0 - Repo Enumeration**: Calls the GitHub REST API to list all public, non-fork repositories for a given username.
-- **P0 - Structural Hygiene Scan**: Automatically checks for the presence of `README.md`, `LICENSE`, and `.gitignore`, and flags committed `.env`, `node_modules/`, or `__pycache__/` files.
-- **P0 - Secret Leak Scanning (TruffleHog)**: Clones repositories and executes TruffleHog in filesystem mode to find credentials and verify them. **Absolute secret redaction** ensures that raw secrets are never logged, stored in the DB, or returned in API payloads.
-- **P0 - AI Synthesis Layer**: Aggregates all findings and calls a Hugging Face open-source LLM (default `Qwen2.5-Coder-32B-Instruct`) to score the profile (0-100), rank the top 5 resume-damaging issues, and provide recruiter-focused justifications. Uses robust JSON-repair and deterministic local fallbacks.
-- **P1 - Code Smell Scan (Semgrep)**: Runs Semgrep auto-rules inside the repositories to check for config issues and common bugs.
-- **P1 - Auto-Fix Generator**: Instantly generates downloadable unified `.patch` files to fix structural issues (MIT LICENSE, standard `.gitignore`, README skeletons) that can be applied with `git apply`.
-- **P2 - Async Queue & Progress**: Backend worker pool powered by Redis Queue (RQ) handles long-running multi-repo scans in parallel. Frontend displays active progress steps and polls status.
-- **Instant Profile Layer (Matching Competitor UX)**: Concurrently calls `GET /api/profile/{username}/quickstats` returning user metadata (avatar, bio, followers, stars, forks, top languages, last active date) in <2s while starting the deep static analysis scan in the background. The frontend renders the quickstats card immediately and streams deep scan checklist updates below it. Includes a 15-minute cache (`quickstats:{username}`) and independent rate limits.
+## 🔒 Security Hardening & Abuse Prevention
 
+- **Absolute Secret Redaction**: Discovered credentials (AWS, Slack, Stripe, database keys) are processed inside local worker scopes and immediately replaced with `[REDACTED]` prior to DB persistence or API serialization.
+- **Session-Scoped Isolation**: Anonymous scans are mapped to cryptographically signed HttpOnly session cookies (`scan_session_id`). Scan findings are private to the session and cannot be queried by username.
+- **Universal Per-IP Rate Limiting**: Limiters (`RATE_LIMIT_SCANS_PER_IP_24H`, default: 5 scans/IP/24h) apply universally to all users. Custom GitHub tokens are used solely for GitHub REST API calls and cannot bypass compute rate limits.
+- **Honeypot Bot Protection**: A hidden honeypot field (`website_url`) catches automated scrapers, rejecting requests immediately with `400 Bad Request`.
+- **Resource Constraints**: Scans are bounded by `MAX_REPOS_PER_SCAN` (capped at 10 repos) and a hard execution timeout (`SCAN_JOB_TIMEOUT_SECONDS` = 180s) to protect CPU and memory usage.
 
 ---
 
-## Installation & Running Locally
+## 🚀 Installation & Running Locally
 
 ### Prerequisites
+- **Python 3.11+**
+- **Node.js & npm**
+- **Redis Server** (e.g. `redis-server`)
+- **TruffleHog CLI** (must be on executable PATH)
+- **Semgrep CLI** (installed via pip or package manager)
 
-Ensure you have the following installed on your machine:
-- Python 3.11+
-- Node.js & npm
-- Redis (running locally, e.g. `redis-server`)
-- TruffleHog (binary must be available at `/usr/local/bin/trufflehog`)
-- Semgrep (installed via pip or available at `/Library/Frameworks/Python.framework/Versions/3.13/bin/semgrep`)
-
-### 1. Environment Configuration
-
-Copy the `.env.example` file to `.env` in the root folder and configure the keys:
+### 1. Configuration Setup
+Create a `.env` file in the root folder based on `.env.example`:
 ```bash
 cp .env.example .env
 ```
-- `GITHUB_TOKEN`: A personal access token to lift rate limits during scans.
-- `HF_API_TOKEN`: A Hugging Face token to run the AI synthesis model.
-- `REDIS_URL`: Redis connection URL (default `redis://localhost:6379/0`).
+Key parameters:
+- `GITHUB_TOKEN`: Classic/OAuth GitHub token to raise public API extraction limits.
+- `HF_API_TOKEN`: Hugging Face token for AI synthesis (`meta-llama/Llama-3.3-70B-Instruct`).
+- `REDIS_URL`: RQ worker connection (default: `redis://localhost:6379/0`).
 
----
-
-### 2. Running the Backend & Worker
-
-Navigate to the `backend` directory, install requirements, and run the FastAPI server:
+### 2. Run Backend & Background Worker
+Install Python dependencies and start the API server:
 ```bash
 cd backend
 pip3 install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-In a separate terminal tab, run the background job worker:
+In a separate terminal tab, run the background worker:
 ```bash
 cd backend
 python3 worker.py
 ```
 
----
-
-### 3. Running the Frontend
-
-Navigate to the `frontend` directory, install dependencies, and run the dev server:
+### 3. Run Frontend SPA
+Install frontend node modules and start the Vite development server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open your browser and navigate to the local URL (e.g. `http://localhost:5173`).
-
 ---
 
-## Testing
+## 🧪 Testing
 
-To run the complete Python test suite covering GitHub client, structural hygiene checks, TruffleHog scanning, Semgrep parsing, AI synthesis, and fix generators:
+To run the complete automated test suite covering database isolation, secret redaction, rate limiting, and the caching/quickstats API:
 
 ```bash
 cd backend
 python3 -m pytest -v
 ```
-All 45 tests will execute, verifying database migrations, absolute secret redaction, rate limits, multi-tenant isolation, quickstats API, 15-minute caching, and API error states.
+
+```text
+============================= 45 passed in 37.47s ==============================
+```
 
 ---
 
-## Known Limitations & Architecture Tradeoffs
+## 📄 License & Governance
 
-1. **In-Memory Rate Limiting Fallback**: Rate limiting relies on Redis. If Redis is offline during a scan, rate limiting degrades gracefully to allow execution rather than blocking scans entirely.
-2. **Synchronous Subprocess Scanners**: TruffleHog and Semgrep are executed via `subprocess.run` with 30-second timeouts per repository inside background worker tasks.
-3. **Unpinned Direct Dependencies**: `requirements.txt` targets latest versions for local development compatibility (e.g. Python 3.13 bcrypt/FastAPI changes). Production deployments should pin exact SHAs/versions.
-
----
-
-## Data Retention & Privacy Policy
-
-1. **Anonymous Scan Reports**: Scan reports are strictly session-scoped using HttpOnly `scan_session_id` tokens. Scan reports are **never** indexable or queryable by GitHub username.
-2. **IP Rate Limit Retention**: Requesters' IP addresses are stored temporarily in Redis / memory for rolling 24-hour rate limiting (`RATE_LIMIT_SCANS_PER_IP_24H`). IP keys automatically expire after 24 hours.
-3. **In-Memory Credential Redaction**: TruffleHog secrets and code snippets are redacted in memory before database persistence. Raw secret tokens are never written to disk or logs.
-
+Distributed under the **MIT License**. Check out [LICENSE](LICENSE) and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.

@@ -979,8 +979,6 @@ export default function App() {
                     repoStatuses={repoStatuses} 
                     isLoading={userReposLoading}
                     onAnalyzeRepo={handleStartSingleRepoScan}
-                    onAnalyzeAll={() => handleStartScan(activeUsername)}
-                    isAnalyzingAll={scanState === 'loading'}
                   />
 
                   <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
@@ -1064,8 +1062,6 @@ export default function App() {
                     repoStatuses={repoStatuses} 
                     isLoading={userReposLoading}
                     onAnalyzeRepo={handleStartSingleRepoScan}
-                    onAnalyzeAll={() => handleStartScan(activeUsername)}
-                    isAnalyzingAll={false}
                   />
 
                   <RepoBreakdown 

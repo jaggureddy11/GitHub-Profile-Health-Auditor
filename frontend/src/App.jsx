@@ -30,6 +30,10 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
+
+  // Batch scan progress state
+  const [isBatchScanning, setIsBatchScanning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   
   // Auth Form Fields
   const [email, setEmail] = useState('');
@@ -51,21 +55,70 @@ export default function App() {
     "Finalizing Health Score calculation..."
   ];
 
-
-  // Handle GitHub OAuth callback parameters
+  // Rehydrate state on initial mount from URL or localStorage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const errorParam = params.get('error');
-    if (code) {
-      window.history.replaceState({}, document.title, '/');
-      handleGitHubCallback(code);
-    } else if (errorParam) {
-      window.history.replaceState({}, document.title, '/');
-      setAuthError(`GitHub OAuth login declined or failed: ${errorParam}`);
-      setView('auth');
+    const urlUser = params.get('user');
+    const savedUser = urlUser || localStorage.getItem('auditor_username');
+
+    if (savedUser) {
+      setActiveUsername(savedUser);
+      setView('dashboard');
+      
+      const savedQuickstats = localStorage.getItem('auditor_quickstats');
+      if (savedQuickstats) {
+        try { setQuickstats(JSON.parse(savedQuickstats)); } catch (e) {}
+      }
+      
+      const savedUserRepos = localStorage.getItem('auditor_user_repos');
+      if (savedUserRepos) {
+        try { setUserRepos(JSON.parse(savedUserRepos)); } catch (e) {}
+      }
+      
+      const savedRepoStatuses = localStorage.getItem('auditor_repo_statuses');
+      if (savedRepoStatuses) {
+        try { setRepoStatuses(JSON.parse(savedRepoStatuses)); } catch (e) {}
+      }
+
+      const savedScanReport = localStorage.getItem('auditor_scan_report');
+      if (savedScanReport) {
+        try {
+          const report = JSON.parse(savedScanReport);
+          setScanReport(report);
+          setScanState('completed');
+        } catch (e) {}
+      } else {
+        fetchQuickStats(savedUser, null);
+        fetchUserRepos(savedUser, null);
+      }
     }
   }, []);
+
+  // Save session state to localStorage and sync URL
+  useEffect(() => {
+    if (activeUsername) {
+      localStorage.setItem('auditor_username', activeUsername);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('user') !== activeUsername) {
+        url.searchParams.set('user', activeUsername);
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
+    }
+    if (quickstats) {
+      localStorage.setItem('auditor_quickstats', JSON.stringify(quickstats));
+    }
+    if (userRepos && userRepos.length > 0) {
+      localStorage.setItem('auditor_user_repos', JSON.stringify(userRepos));
+    }
+    if (repoStatuses && Object.keys(repoStatuses).length > 0) {
+      localStorage.setItem('auditor_repo_statuses', JSON.stringify(repoStatuses));
+    }
+    if (scanReport) {
+      localStorage.setItem('auditor_scan_report', JSON.stringify(scanReport));
+    } else {
+      localStorage.removeItem('auditor_scan_report');
+    }
+  }, [activeUsername, quickstats, userRepos, repoStatuses, scanReport]);
 
   const handleGitHubOAuth = async () => {
     try {
@@ -173,9 +226,12 @@ export default function App() {
       localStorage.removeItem('token');
       setUser(null);
       setScanHistory([]);
-      setView((prevView) => prevView === 'dashboard' ? 'landing' : prevView);
+      const savedUser = localStorage.getItem('auditor_username');
+      if (!savedUser && !activeUsername) {
+        setView((prevView) => prevView === 'dashboard' ? 'landing' : prevView);
+      }
     }
-  }, [token, fetchUserProfile, fetchScanHistory]);
+  }, [token, fetchUserProfile, fetchScanHistory, activeUsername]);
 
   // Handle GitHub OAuth callback parameters
   useEffect(() => {
@@ -375,6 +431,7 @@ export default function App() {
 
   const handleStartScan = async (username, githubToken) => {
     setActiveUsername(username);
+    setView('dashboard');
     setScanState('idle');
     setErrorMessage('');
     setScanReport(null);
@@ -429,6 +486,77 @@ export default function App() {
         return currentState;
       });
     }, 90000);
+  };
+
+  const pollScanJobToCompletion = (scanId) => {
+    return new Promise((resolve) => {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const report = await res.json();
+            if (report.status === 'completed' || report.status === 'failed' || report.status === 'timed_out') {
+              clearInterval(interval);
+              resolve(report);
+            }
+          }
+        } catch (err) {
+          console.warn("Poll scan job error:", err);
+        }
+      }, 2000);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        resolve(null);
+      }, 90000);
+    });
+  };
+
+  const handleAuditAllRepos = async (repos) => {
+    if (!repos || repos.length === 0) return;
+    const targetUsername = activeUsername || repos[0]?.owner?.login || 'octocat';
+    
+    setIsBatchScanning(true);
+    setBatchProgress({ current: 0, total: repos.length });
+    setScanState('idle');
+    setErrorMessage('');
+
+    for (let i = 0; i < repos.length; i++) {
+      const repo = repos[i];
+      const repoName = repo.name;
+      setBatchProgress({ current: i + 1, total: repos.length });
+      setRepoStatuses((prev) => ({ ...prev, [repoName]: 'running' }));
+      
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: targetUsername,
+            repo_name: repoName
+          })
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const report = await pollScanJobToCompletion(data.scan_id);
+          if (report && report.status === 'completed') {
+            setRepoStatuses((prev) => ({ ...prev, [repoName]: 'completed' }));
+          } else {
+            setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
+          }
+        } else {
+          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
+        }
+      } catch (err) {
+        console.error(`Batch audit error for ${repoName}:`, err);
+        setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
+      }
+    }
+
+    setIsBatchScanning(false);
   };
 
   const handleSelectPastScan = async (scanId) => {
@@ -952,6 +1080,9 @@ export default function App() {
                       repoStatuses={repoStatuses} 
                       isLoading={userReposLoading}
                       onAnalyzeRepo={handleStartSingleRepoScan}
+                      onAuditAll={handleAuditAllRepos}
+                      isBatchScanning={isBatchScanning}
+                      batchProgress={batchProgress}
                     />
                   ) : (
                     <div className="border border-dashed border-zinc-800 p-16 rounded-3xl text-center space-y-3 font-sans">
@@ -1071,6 +1202,9 @@ export default function App() {
                     repoStatuses={repoStatuses} 
                     isLoading={userReposLoading}
                     onAnalyzeRepo={handleStartSingleRepoScan}
+                    onAuditAll={handleAuditAllRepos}
+                    isBatchScanning={isBatchScanning}
+                    batchProgress={batchProgress}
                   />
                 </div>
               )}
@@ -1104,6 +1238,9 @@ export default function App() {
                       repoStatuses={repoStatuses} 
                       isLoading={userReposLoading}
                       onAnalyzeRepo={handleStartSingleRepoScan}
+                      onAuditAll={handleAuditAllRepos}
+                      isBatchScanning={isBatchScanning}
+                      batchProgress={batchProgress}
                     />
                   )}
                 </div>

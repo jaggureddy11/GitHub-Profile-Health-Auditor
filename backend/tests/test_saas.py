@@ -119,14 +119,15 @@ def test_rate_limiting():
     mock_redis = MagicMock()
     mock_redis.get.return_value = b"5" # rate limit hits at >= 5
 
-    with patch("main.redis_conn", mock_redis):
-        response = client.post(
-            "/api/scan",
-            json={"username": "tenant-a-gh"},
-            headers={"Authorization": f"Bearer {token_a}"}
-        )
-        assert response.status_code == 429
-        assert "rate limit" in response.json()["detail"].lower()
+    with patch("main.RATE_LIMIT_SCANS_PER_IP_24H", 5):
+        with patch("main.redis_conn", mock_redis):
+            response = client.post(
+                "/api/scan",
+                json={"username": "tenant-a-gh"},
+                headers={"Authorization": f"Bearer {token_a}"}
+            )
+            assert response.status_code == 429
+            assert "rate limit" in response.json()["detail"].lower()
 
 def test_demo_github_gating():
     # 1. Enabled demo auth (default in dev)

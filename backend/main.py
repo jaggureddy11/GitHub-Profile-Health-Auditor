@@ -250,8 +250,8 @@ class InMemoryRateLimiter:
 
 in_memory_limiter = InMemoryRateLimiter()
 
-RATE_LIMIT_SCANS_PER_IP_24H = int(os.getenv("RATE_LIMIT_SCANS_PER_IP_24H", "5"))
-RATE_LIMIT_QUICKSTATS_PER_IP_24H = int(os.getenv("RATE_LIMIT_QUICKSTATS_PER_IP_24H", "30"))
+RATE_LIMIT_SCANS_PER_IP_24H = int(os.getenv("RATE_LIMIT_SCANS_PER_IP_24H", "100"))
+RATE_LIMIT_QUICKSTATS_PER_IP_24H = int(os.getenv("RATE_LIMIT_QUICKSTATS_PER_IP_24H", "500"))
 
 import json
 _quickstats_memory_cache = {}

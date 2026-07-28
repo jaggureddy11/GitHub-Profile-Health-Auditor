@@ -231,14 +231,18 @@ html.light ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
 }
 
-html.light .bg-black {
+html.light .bg-black,
+html.light .bg-zinc-950 {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-html.light .bg-zinc-950 {
-  background-color: #ffffff !important;
+html.light .bg-black\/90,
+html.light .bg-black\/80,
+html.light .bg-black\/70 {
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 html.light .bg-zinc-900 {
@@ -266,7 +270,8 @@ html.light .text-zinc-500 {
   color: #475569 !important;
 }
 
-html.light .text-zinc-300 {
+html.light .text-zinc-300,
+html.light .text-zinc-200 {
   color: #334155 !important;
 }
 
@@ -283,6 +288,14 @@ html.light textarea {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
+}
+
+html.light .bg-emerald-950\/40,
+html.light .bg-emerald-950\/50,
+html.light .bg-emerald-950\/80 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
 }
 
 /* Print export optimization rules */

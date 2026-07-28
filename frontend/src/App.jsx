@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Sun, Moon } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
@@ -13,6 +13,9 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(null);
   
+  // Theme state: 'dark' or 'light'
+  const [theme, setTheme] = useState(localStorage.getItem('auditor_theme') || 'dark');
+
   // Navigation & view states: 'landing', 'auth', 'dashboard', 'privacy'
   const [view, setView] = useState('landing');
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
@@ -119,6 +122,20 @@ export default function App() {
       localStorage.removeItem('auditor_scan_report');
     }
   }, [activeUsername, quickstats, userRepos, repoStatuses, scanReport]);
+
+  // Sync theme with HTML root class and localStorage
+  useEffect(() => {
+    localStorage.setItem('auditor_theme', theme);
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const handleGitHubOAuth = async () => {
     try {
@@ -653,6 +670,25 @@ export default function App() {
               className={`hover:text-white transition text-sm ${view === 'privacy' ? 'text-white font-bold' : 'text-zinc-400'}`}
             >
               Privacy &amp; Security
+            </button>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition flex items-center gap-2 text-xs font-bold font-mono active:scale-95"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="hidden sm:inline">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span className="hidden sm:inline">Dark Mode</span>
+                </>
+              )}
             </button>
             {token ? (
               <div className="flex items-center space-x-3 pl-2 border-l border-zinc-850">

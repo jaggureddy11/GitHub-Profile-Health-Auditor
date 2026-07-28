@@ -47,14 +47,43 @@ class ScanResponse(BaseModel):
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 
+class RepoScanRequest(BaseModel):
+    username: str
+    repo_name: str
+    repo_url: Optional[str] = None
+    github_token: Optional[str] = None
+    parent_scan_id: Optional[str] = None
+    website_url: Optional[str] = None # Honeypot anti-bot field
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Username cannot be empty")
+        if "@" in v:
+            raise ValueError("Username cannot be an email address")
+        return v
+
+class GroupProgress(BaseModel):
+    total_repos: int = 0
+    queued_count: int = 0
+    running_count: int = 0
+    completed_count: int = 0
+    failed_count: int = 0
+    timed_out_count: int = 0
+
 class FullReportResponse(BaseModel):
     scan_id: str = Field(validation_alias="id")
     username: str
     status: str
+    is_partial: bool = False
     overall_score: Optional[int] = None
     summary: Optional[Dict[str, Any]] = None # Synthesized JSON
-    repositories: List[RepositorySchema]
-    findings: List[FindingSchema]
+    repositories: List[RepositorySchema] = []
+    findings: List[FindingSchema] = []
+    group_progress: Optional[GroupProgress] = None
+    child_scan_ids: List[str] = []
     created_at: datetime
     completed_at: Optional[datetime] = None
 
@@ -142,5 +171,21 @@ class QuickStatsResponse(BaseModel):
     top_languages: List[QuickStatsLanguage] = []
     account_created_at: Optional[str] = None
     last_active_at: Optional[str] = None
+
+class RepoItem(BaseModel):
+    name: str
+    description: Optional[str] = None
+    language: Optional[str] = None
+    stargazers_count: int = 0
+    forks_count: int = 0
+    pushed_at: Optional[str] = None
+    html_url: str
+    default_branch: str = "main"
+
+class RepoListResponse(BaseModel):
+    username: str
+    total_repos: int
+    capped: bool
+    repositories: List[RepoItem]
 
 

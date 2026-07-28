@@ -167,3 +167,87 @@ async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dic
         "account_created_at": profile.get("created_at"),
         "last_active_at": last_active_at
     }
+
+async def get_user_repositories(
+    username: str,
+    token: Optional[str] = None,
+    max_repos: int = 10
+) -> Dict[str, Any]:
+    """
+    Fetches public, non-fork repositories for a given GitHub username via REST API only.
+    No git cloning or static analysis. Returns formatted repo list capped at max_repos.
+    """
+    username = username.strip().lstrip("@")
+    if not username:
+        raise ValueError("Username cannot be empty")
+    if "@" in username:
+        raise ValueError("Username cannot be an email address")
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
+        if token.startswith("ghp_") or token.startswith("gho_") or token.startswith("github_pat_"):
+            headers["Authorization"] = f"token {token}"
+        else:
+            headers["Authorization"] = f"Bearer {token}"
+
+    repos = []
+    page = 1
+    per_page = 100
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        while True:
+            url = f"https://api.github.com/users/{username}/repos?sort=pushed&direction=desc&per_page={per_page}&page={page}"
+            try:
+                response = await client.get(url, headers=headers)
+            except httpx.RequestError as exc:
+                raise GitHubAPIError(f"HTTP request failed: {exc}")
+
+            if response.status_code in (403, 429):
+                rate_limit_remaining = response.headers.get("X-RateLimit-Remaining")
+                if rate_limit_remaining == "0":
+                    reset_timestamp = response.headers.get("X-RateLimit-Reset")
+                    reset_time = None
+                    if reset_timestamp:
+                        try:
+                            reset_time = datetime.fromtimestamp(int(reset_timestamp))
+                        except (ValueError, TypeError):
+                            pass
+                    raise GitHubRateLimitError(
+                        "GitHub API rate limit exceeded. Please try again shortly.",
+                        reset_time=reset_time
+                    )
+
+            if response.status_code != 200:
+                raise GitHubAPIError(f"GitHub API returned status {response.status_code}: {response.text}")
+
+            page_data = response.json()
+            if not page_data or not isinstance(page_data, list):
+                break
+
+            for repo in page_data:
+                if not repo.get("fork", False) and not repo.get("private", False):
+                    repos.append({
+                        "name": repo["name"],
+                        "description": repo.get("description"),
+                        "language": repo.get("language"),
+                        "stargazers_count": repo.get("stargazers_count", 0),
+                        "forks_count": repo.get("forks_count", 0),
+                        "pushed_at": repo.get("pushed_at"),
+                        "html_url": repo.get("html_url", f"https://github.com/{username}/{repo['name']}"),
+                        "default_branch": repo.get("default_branch", "main")
+                    })
+
+            if len(page_data) < per_page:
+                break
+            page += 1
+
+    capped = len(repos) > max_repos
+    return {
+        "username": username,
+        "total_repos": len(repos),
+        "capped": capped,
+        "repositories": repos[:max_repos]
+    }

@@ -123,16 +123,15 @@ def test_quickstats_independent_ip_rate_limiting():
         return MockHttpResponse(200, mock_profile)
 
     with patch("httpx.AsyncClient.get", side_effect=mock_get):
-        with patch("main.RATE_LIMIT_QUICKSTATS_PER_IP_24H", 3):
-            # Clean in-memory rate limiter state
-            in_memory_limiter._requests.pop("quickstats:198.51.100.99", None)
-            
-            # Make 3 requests (up to limit) with unique usernames to bypass cache
-            for i in range(3):
-                res = client.get(f"/api/profile/user{i}/quickstats", headers=headers)
-                assert res.status_code == 200, f"Request {i+1} failed"
+        with patch("main.redis_conn", None):
+            with patch("main.RATE_LIMIT_QUICKSTATS_PER_IP_24H", 3):
+                in_memory_limiter._requests.pop("quickstats:198.51.100.99", None)
+                # Make 3 requests (up to limit) with unique usernames to bypass cache
+                for i in range(3):
+                    res = client.get(f"/api/profile/user{i}/quickstats", headers=headers)
+                    assert res.status_code == 200, f"Request {i+1} failed"
 
-            # 4th request must fail with 429 Rate Limit
-            res_exceeded = client.get("/api/profile/user99/quickstats", headers=headers)
-            assert res_exceeded.status_code == 429
-            assert "quickstats rate limit reached" in res_exceeded.json()["detail"].lower()
+                # 4th request must fail with 429 Rate Limit
+                res_exceeded = client.get("/api/profile/user99/quickstats", headers=headers)
+                assert res_exceeded.status_code == 429
+                assert "quickstats rate limit reached" in res_exceeded.json()["detail"].lower()

@@ -22,7 +22,12 @@ class Scan(Base):
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     session_id = Column(String, index=True, nullable=True)
     username = Column(String, index=True, nullable=False)
-    status = Column(String, default="pending", nullable=False) # pending, running, completed, failed
+    parent_scan_id = Column(String, ForeignKey("scans.id", ondelete="CASCADE"), nullable=True)
+    scan_type = Column(String, default="group", nullable=False) # group or single_repo
+    repo_name = Column(String, nullable=True)
+    repo_url = Column(String, nullable=True)
+    error_message = Column(String, nullable=True)
+    status = Column(String, default="pending", nullable=False) # pending, queued, running, completed, failed, timed_out
     overall_score = Column(Integer, nullable=True)
     summary = Column(String, nullable=True) # JSON/text containing the synthesized AI report
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

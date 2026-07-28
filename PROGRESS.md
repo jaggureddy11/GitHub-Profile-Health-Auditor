@@ -154,3 +154,13 @@ This log tracks the build process and testing outcomes for each phase.
   - Wrote test suite `test_quickstats.py` verifying metrics aggregation, scanner isolation, 15-minute cache hits, and per-IP rate limiting. All 45 backend tests passing 100% (37.47s runtime).
   - Verified production Vite frontend build: compiled cleanly in 1.92s with 0 errors.
 
+## Rework Phase 8 — Repo Grid View & Independent Per-Repo Async Scanning
+- Status: Completed
+- Completed features:
+  - Phase 1 (Lightweight Repo Listing Endpoint): Added `GET /api/profile/{username}/repos` returning public non-fork repository metadata (stars, forks, language, last-updated) in <2s with 15-minute caching and zero scanner invocation. Verified via `test_repo_listing.py`.
+  - Phase 2 (Per-Repo Job Decomposition): Added `POST /api/repo-scan` and refactored `POST /api/scan` to fan out into $N$ independent, separately-timed background jobs (`run_single_repo_scan_job`) with isolated 60-90s per-repo timeouts. Verified via `test_repo_jobs.py`.
+  - Phase 3 (Progressive Aggregation): Implemented group scan progress calculation (`GroupProgress`) and dynamic report synthesis, serving `is_partial: true` reports while child jobs are running and finalizing upon group completion. Verified via `test_repo_jobs.py`.
+  - Phase 4 (Frontend Repo Grid View): Built `RepoCard.jsx` and `RepoGrid.jsx` rendering interactive repository cards with individual status spinners (`queued` -> `running` -> `completed` / `timed_out`) and "Analyze All" bulk action.
+  - Phase 5 (Rate Limiting & Guardrails): Applied shared per-IP compute budget to single-repo scans (`POST /api/repo-scan`). Verified via `test_repo_rate_limit.py`.
+  - Full test suite: **53 passed** out of 53 tests (100% pass rate in 42.24s). Vite build verified clean.
+

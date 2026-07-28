@@ -69,3 +69,7 @@ This document records the architectural and design decisions made during the dev
 - **Decision**: Implemented `GET /api/profile/{username}/quickstats` returning aggregated profile metadata (followers, stars, forks, top languages, active dates) in <2s with 15-minute caching and independent per-IP rate limiting (`RATE_LIMIT_QUICKSTATS_PER_IP_24H`).
 - **Rationale**: Competitor tools provide fast superficial metadata viewing. Our deep scan (TruffleHog/Semgrep/AI synthesis) is valuable and inherently slower. Adding a fast front layer matches competitor initial load times while allowing the deep security scan to stream progress and merge on the same page.
 
+## Per-Repo Job Decomposition & Shared Per-IP Budgeting
+- **Decision**: Decomposed monolithic profile scan jobs into $N$ independent, separately-timed per-repo worker tasks (`run_single_repo_scan_job`). Single-repo scans (`POST /api/repo-scan`) and bulk profile scans (`POST /api/scan`) share the same underlying per-IP compute budget (`RATE_LIMIT_SCANS_PER_IP_24H`).
+- **Rationale**: Sequential multi-repo scanning in a single job causes one slow or large repo (e.g. `linux`) to invalidate or time out the entire profile scan. Fanning out into independent per-repo jobs ensures a single failing or slow repo times out independently without affecting sibling repo scans. Sharing the per-IP compute rate limiter budget prevents users from bypassing daily scan quotas by triggering single-repo scans individually.
+

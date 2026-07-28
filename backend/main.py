@@ -26,7 +26,8 @@ from rq import Queue
 from database import engine, Base, get_db
 import models
 import schemas
-from scanners.github_client import list_public_repositories, get_user_quickstats, GitHubRateLimitError, GitHubAPIError
+from scanners.github_client import list_public_repositories, get_user_quickstats, get_user_repositories, GitHubRateLimitError, GitHubAPIError
+from scanners.orchestrator import run_scan_job, run_single_repo_scan_job
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -45,6 +46,19 @@ try:
                 conn.execute(text("ALTER TABLE scans ADD COLUMN session_id VARCHAR"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scans_session_id ON scans (session_id)"))
                 conn.commit()
+
+            col_names = [c["name"] for c in columns]
+            if "parent_scan_id" not in col_names:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN parent_scan_id VARCHAR"))
+            if "scan_type" not in col_names:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN scan_type VARCHAR DEFAULT 'group'"))
+            if "repo_name" not in col_names:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN repo_name VARCHAR"))
+            if "repo_url" not in col_names:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN repo_url VARCHAR"))
+            if "error_message" not in col_names:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN error_message VARCHAR"))
+            conn.commit()
 
             if user_id_col and not user_id_col.get("nullable", True):
                 conn.execute(text("PRAGMA foreign_keys=OFF;"))
@@ -273,6 +287,40 @@ def set_cached_quickstats(username: str, data: dict):
     
     with _quickstats_cache_lock:
         _quickstats_memory_cache[cache_key] = (data, time.time())
+
+_repos_memory_cache = {}
+_repos_cache_lock = Lock()
+
+def get_cached_repos(username: str) -> Optional[dict]:
+    cache_key = f"repos_list:{username.lower()}"
+    if redis_conn:
+        try:
+            cached_data = redis_conn.get(cache_key)
+            if cached_data:
+                return json.loads(cached_data)
+        except Exception:
+            pass
+    
+    with _repos_cache_lock:
+        if cache_key in _repos_memory_cache:
+            entry, ts = _repos_memory_cache[cache_key]
+            if time.time() - ts < 900:  # 15 minutes TTL
+                return entry
+            else:
+                del _repos_memory_cache[cache_key]
+    return None
+
+def set_cached_repos(username: str, data: dict):
+    cache_key = f"repos_list:{username.lower()}"
+    if redis_conn:
+        try:
+            redis_conn.set(cache_key, json.dumps(data), ex=900)
+            return
+        except Exception:
+            pass
+    
+    with _repos_cache_lock:
+        _repos_memory_cache[cache_key] = (data, time.time())
 
 def check_quickstats_ip_rate_limit(request: Request):
     forwarded_for = request.headers.get("x-forwarded-for")
@@ -650,6 +698,120 @@ async def get_profile_quickstats(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch quickstats: {str(e)}")
 
+@app.get("/api/profile/{username}/repos", response_model=schemas.RepoListResponse)
+async def get_profile_repositories(
+    username: str,
+    request: Request,
+    github_token: Optional[str] = None
+):
+    """
+    Lightweight, fast endpoint (<2s) returning GitHub repositories list with metadata (stars, forks, language).
+    Does NOT clone repos, run static analysis (TruffleHog/Semgrep), or call AI synthesis.
+    """
+    clean_username = username.strip()
+    if "github.com/" in clean_username:
+        clean_username = clean_username.split("github.com/")[1].split("/")[0]
+    clean_username = clean_username.lstrip("@").strip()
+
+    if not clean_username:
+        raise HTTPException(status_code=400, detail="Username cannot be empty")
+
+    # 1. Check 15-minute cache
+    cached = get_cached_repos(clean_username)
+    if cached:
+        return cached
+
+    # 2. Check per-IP rate limit
+    check_quickstats_ip_rate_limit(request)
+
+    token_to_use = github_token or os.getenv("GITHUB_TOKEN")
+    max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
+    try:
+        repos_data = await get_user_repositories(clean_username, token=token_to_use, max_repos=max_repos_cap)
+        set_cached_repos(clean_username, repos_data)
+        return repos_data
+    except GitHubAPIError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except GitHubRateLimitError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch repositories: {str(e)}")
+
+@app.post("/api/repo-scan", response_model=schemas.FullReportResponse)
+async def start_single_repo_scan(
+    request: schemas.RepoScanRequest,
+    req_obj: Request,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
+):
+    if request.website_url and request.website_url.strip():
+        raise HTTPException(status_code=400, detail="Automated bot submission rejected via honeypot.")
+
+    # Apply per-IP rate limit for single-repo scans
+    check_ip_rate_limit(req_obj, scan_req=request)
+
+    token = request.github_token or (current_user.github_oauth_token if current_user else None) or os.getenv("GITHUB_TOKEN")
+    repo_url = request.repo_url or f"https://github.com/{request.username}/{request.repo_name}"
+
+    scan_id = str(uuid.uuid4())
+    db_scan = models.Scan(
+        id=scan_id,
+        user_id=current_user.id if current_user else None,
+        session_id=session_id,
+        username=request.username,
+        parent_scan_id=request.parent_scan_id,
+        scan_type="single_repo",
+        repo_name=request.repo_name,
+        repo_url=repo_url,
+        status="queued",
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(db_scan)
+    db.commit()
+
+    db_repo = models.Repository(
+        scan_id=scan_id,
+        name=request.repo_name,
+        url=repo_url,
+        default_branch="main"
+    )
+    db.add(db_repo)
+    db.commit()
+
+    enqueued = False
+    if scan_queue:
+        try:
+            from rq import Worker
+            workers = Worker.all(connection=scan_queue.connection)
+            if workers:
+                scan_queue.enqueue(
+                    "scanners.orchestrator.run_single_repo_scan_job",
+                    scan_id=scan_id,
+                    username=request.username,
+                    repo_name=request.repo_name,
+                    repo_url=repo_url,
+                    token=token
+                )
+                enqueued = True
+        except Exception as e:
+            print(f"Warning: Failed to enqueue repo scan job to Redis queue: {e}")
+
+    if not enqueued:
+        background_tasks.add_task(run_single_repo_scan_job, scan_id, request.username, request.repo_name, repo_url, token)
+
+    db.refresh(db_scan)
+    return schemas.FullReportResponse(
+        scan_id=db_scan.id,
+        username=db_scan.username,
+        status=db_scan.status,
+        is_partial=False,
+        repositories=[schemas.RepositorySchema(name=request.repo_name, url=repo_url, default_branch="main")],
+        findings=[],
+        created_at=db_scan.created_at
+    )
+
 @app.post("/api/scan", response_model=schemas.FullReportResponse)
 async def start_scan(
     request: schemas.ScanRequest,
@@ -663,46 +825,39 @@ async def start_scan(
         raise HTTPException(status_code=400, detail="Automated bot submission rejected via honeypot.")
 
     check_ip_rate_limit(req_obj, scan_req=request)
-    # Prefer request token, then user's github oauth token, then global GITHUB_TOKEN
     token = request.github_token or (current_user.github_oauth_token if current_user else None) or os.getenv("GITHUB_TOKEN")
     
-    # 2. List public repositories
+    # 1. List public repositories
     try:
         repos = await list_public_repositories(request.username, token=token)
     except GitHubRateLimitError as e:
-        raise HTTPException(
-            status_code=403,
-            detail=f"GitHub API rate limit exceeded: {str(e)}"
-        )
+        raise HTTPException(status_code=403, detail=f"GitHub API rate limit exceeded: {str(e)}")
     except GitHubAPIError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"GitHub API error: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"GitHub API error: {str(e)}")
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"An unexpected error occurred: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-    # 3. Create scan record scoped to user/session
-    scan_id = str(uuid.uuid4())
-    db_scan = models.Scan(
-        id=scan_id,
+    # 2. Create parent group scan record
+    parent_scan_id = str(uuid.uuid4())
+    parent_scan = models.Scan(
+        id=parent_scan_id,
         user_id=current_user.id if current_user else None,
         session_id=session_id,
         username=request.username,
-        status="pending",
+        scan_type="group",
+        status="running",
         created_at=datetime.now(timezone.utc)
     )
-    db.add(db_scan)
+    db.add(parent_scan)
     db.commit()
 
-    # 4. Save repositories to the database
+    # 3. Create repositories and child scans for each repo
     db_repos = []
+    child_scan_ids = []
+
     for r in repos:
         db_repo = models.Repository(
-            scan_id=scan_id,
+            scan_id=parent_scan_id,
             name=r["name"],
             url=r["url"],
             last_commit=r["last_commit"],
@@ -710,37 +865,75 @@ async def start_scan(
         )
         db.add(db_repo)
         db_repos.append(db_repo)
+
+        child_id = str(uuid.uuid4())
+        child_scan = models.Scan(
+            id=child_id,
+            user_id=current_user.id if current_user else None,
+            session_id=session_id,
+            username=request.username,
+            parent_scan_id=parent_scan_id,
+            scan_type="single_repo",
+            repo_name=r["name"],
+            repo_url=r["url"],
+            status="queued",
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(child_scan)
+        child_scan_ids.append(child_id)
+
+        # Enqueue each repo job independently
+        enqueued = False
+        if scan_queue:
+            try:
+                from rq import Worker
+                workers = Worker.all(connection=scan_queue.connection)
+                if workers:
+                    scan_queue.enqueue(
+                        "scanners.orchestrator.run_single_repo_scan_job",
+                        scan_id=child_id,
+                        username=request.username,
+                        repo_name=r["name"],
+                        repo_url=r["url"],
+                        token=token
+                    )
+                    enqueued = True
+            except Exception as e:
+                print(f"Warning: Failed to enqueue child scan to Redis queue: {e}")
+
+        if not enqueued:
+            background_tasks.add_task(run_single_repo_scan_job, child_id, request.username, r["name"], r["url"], token)
+
     db.commit()
+    db.refresh(parent_scan)
 
-    # 5. Queue background scan job (prefer Redis queue, fallback to BackgroundTasks)
-    from scanners.orchestrator import run_scan_job
-    enqueued = False
-    if scan_queue:
-        try:
-            from rq import Worker
-            workers = Worker.all(connection=scan_queue.connection)
-            if workers:
-                scan_queue.enqueue(
-                    "scanners.orchestrator.run_scan_job",
-                    scan_id=scan_id,
-                    username=request.username,
-                    token=token
-                )
-                db_scan.status = "queued"
-                db.commit()
-                enqueued = True
-        except Exception as e:
-            print(f"Warning: Failed to enqueue job to Redis queue: {e}")
+    progress = schemas.GroupProgress(
+        total_repos=len(repos),
+        queued_count=len(repos),
+        running_count=0,
+        completed_count=0,
+        failed_count=0,
+        timed_out_count=0
+    )
 
-    if not enqueued:
-        print(f"[Scan {scan_id}] Executing scan via FastAPI BackgroundTasks fallback")
-        db_scan.status = "pending"
-        db.commit()
-        background_tasks.add_task(run_scan_job, scan_id, request.username, token)
-
-    # Reload from database to populate relationships
-    db.refresh(db_scan)
-    return db_scan
+    return schemas.FullReportResponse(
+        scan_id=parent_scan.id,
+        username=parent_scan.username,
+        status="running",
+        is_partial=True,
+        repositories=[
+            schemas.RepositorySchema(
+                name=r.name,
+                url=r.url,
+                last_commit=r.last_commit,
+                default_branch=r.default_branch
+            ) for r in db_repos
+        ],
+        findings=[],
+        group_progress=progress,
+        child_scan_ids=child_scan_ids,
+        created_at=parent_scan.created_at
+    )
 
 @app.get("/api/scans", response_model=List[schemas.ScanResponse])
 def get_user_scan_history(
@@ -750,7 +943,7 @@ def get_user_scan_history(
 ):
     if current_user:
         scans = db.query(models.Scan).filter(
-            or_(models.Scan.user_id == current_user.id, models.Scan.session_id == session_id)
+            models.Scan.user_id == current_user.id
         ).order_by(models.Scan.created_at.desc()).all()
     else:
         scans = db.query(models.Scan).filter(
@@ -767,7 +960,69 @@ def get_scan_report(
 ):
     db_scan = verify_scan_access(scan_id, db, current_user, session_id)
     
-    # Safely load the JSON summary if present
+    group_progress = None
+    is_partial = False
+    all_findings = []
+    all_repos = list(db_scan.repositories)
+
+    if db_scan.scan_type == "group":
+        child_scans = db.query(models.Scan).filter(models.Scan.parent_scan_id == db_scan.id).all()
+        total_count = len(child_scans)
+        queued_c = sum(1 for c in child_scans if c.status == "queued")
+        running_c = sum(1 for c in child_scans if c.status == "running")
+        completed_c = sum(1 for c in child_scans if c.status == "completed")
+        failed_c = sum(1 for c in child_scans if c.status == "failed")
+        timed_out_c = sum(1 for c in child_scans if c.status == "timed_out")
+
+        group_progress = schemas.GroupProgress(
+            total_repos=total_count,
+            queued_count=queued_c,
+            running_count=running_c,
+            completed_count=completed_c,
+            failed_count=failed_c,
+            timed_out_count=timed_out_c
+        )
+
+        all_findings = list(db_scan.findings)
+        finished_c = completed_c + failed_c + timed_out_c
+
+        if total_count > 0 and finished_c < total_count:
+            is_partial = True
+            if not db_scan.overall_score:
+                partial_score = max(0, 100 - (len(all_findings) * 5))
+                summary_data = {
+                    "is_partial": True,
+                    "scanned_repos": finished_c,
+                    "total_repos": total_count,
+                    "findings_count": len(all_findings),
+                    "summary_text": f"Scanned {finished_c} of {total_count} repositories. Audit in progress..."
+                }
+                return schemas.FullReportResponse(
+                    scan_id=db_scan.id,
+                    username=db_scan.username,
+                    status="running",
+                    is_partial=True,
+                    overall_score=partial_score,
+                    summary=summary_data,
+                    repositories=[
+                        schemas.RepositorySchema(
+                            name=r.name, url=r.url, last_commit=r.last_commit, default_branch=r.default_branch
+                        ) for r in all_repos
+                    ],
+                    findings=[
+                        schemas.FindingSchema(
+                            repo_name=f.repo_name, type=f.type, file_path=f.file_path, line_number=f.line_number,
+                            rule_id=f.rule_id, severity=f.severity, description=f.description,
+                            verification_status=f.verification_status, code_snippet=f.code_snippet
+                        ) for f in all_findings
+                    ],
+                    group_progress=group_progress,
+                    child_scan_ids=[c.id for c in child_scans],
+                    created_at=db_scan.created_at
+                )
+    else:
+        all_findings = list(db_scan.findings)
+
     import json
     summary_data = None
     if db_scan.summary:
@@ -776,11 +1031,16 @@ def get_scan_report(
         except json.JSONDecodeError:
             summary_data = {"error": "Failed to parse AI summary", "raw": db_scan.summary}
 
-    # Return report structure
+    child_scan_ids = []
+    if db_scan.scan_type == "group":
+        child_scans = db.query(models.Scan).filter(models.Scan.parent_scan_id == db_scan.id).all()
+        child_scan_ids = [c.id for c in child_scans]
+
     return schemas.FullReportResponse(
         scan_id=db_scan.id,
         username=db_scan.username,
         status=db_scan.status,
+        is_partial=is_partial,
         overall_score=db_scan.overall_score,
         summary=summary_data,
         repositories=[
@@ -789,7 +1049,7 @@ def get_scan_report(
                 url=r.url,
                 last_commit=r.last_commit,
                 default_branch=r.default_branch
-            ) for r in db_scan.repositories
+            ) for r in all_repos
         ],
         findings=[
             schemas.FindingSchema(
@@ -802,8 +1062,10 @@ def get_scan_report(
                 description=f.description,
                 verification_status=f.verification_status,
                 code_snippet=f.code_snippet
-            ) for f in db_scan.findings
+            ) for f in all_findings
         ],
+        group_progress=group_progress,
+        child_scan_ids=child_scan_ids,
         created_at=db_scan.created_at,
         completed_at=db_scan.completed_at
     )

@@ -115,7 +115,7 @@ def test_api_scan_endpoint_success():
                 assert data["username"] == "test-user"
                 assert len(data["repositories"]) == 1
                 assert data["repositories"][0]["name"] == "repo1"
-                assert data["status"] == "pending"
+                assert data["status"] in ("running", "queued", "pending", "completed")
                 assert "scan_id" in data
     finally:
         app.dependency_overrides.pop(check_ip_rate_limit, None)

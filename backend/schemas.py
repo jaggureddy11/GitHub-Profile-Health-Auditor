@@ -5,6 +5,7 @@ from datetime import datetime
 class ScanRequest(BaseModel):
     username: str
     github_token: Optional[str] = None
+    website_url: Optional[str] = None # Honeypot anti-bot field (must remain empty for legitimate users)
 
     @field_validator("username")
     @classmethod
@@ -94,5 +95,52 @@ class CopilotMessageSchema(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+class BadgeChallengeRequest(BaseModel):
+    username: str
+
+class BadgeChallengeResponse(BaseModel):
+    username: str
+    verification_token: str
+    instructions: str
+
+class BadgeVerifyRequest(BaseModel):
+    username: str
+    verification_token: str
+    method: str = "bio_token"
+
+class BadgeVerifyResponse(BaseModel):
+    username: str
+    overall_score: int
+    revocation_token: str
+    badge_svg_url: str
+    is_active: bool
+
+class LeaderboardEntry(BaseModel):
+    username: str
+    overall_score: int
+    verified_at: datetime
+    badge_svg_url: str
+
+    model_config = {"from_attributes": True}
+
+class QuickStatsLanguage(BaseModel):
+    name: str
+    count: int
+    percentage: float
+
+class QuickStatsResponse(BaseModel):
+    username: str
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    bio: Optional[str] = None
+    followers: int = 0
+    following: int = 0
+    public_repos: int = 0
+    total_stars: int = 0
+    total_forks: int = 0
+    top_languages: List[QuickStatsLanguage] = []
+    account_created_at: Optional[str] = None
+    last_active_at: Optional[str] = None
 
 

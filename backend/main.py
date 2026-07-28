@@ -6,7 +6,8 @@ import uuid
 import bcrypt
 import jwt
 import httpx
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from dotenv import load_dotenv
 
@@ -14,9 +15,10 @@ from dotenv import load_dotenv
 dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(dotenv_path=dotenv_path, override=True)
 
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Response
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Response, Cookie, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 import redis
 from rq import Queue
@@ -24,10 +26,63 @@ from rq import Queue
 from database import engine, Base, get_db
 import models
 import schemas
-from scanners.github_client import list_public_repositories, GitHubRateLimitError, GitHubAPIError
+from scanners.github_client import list_public_repositories, get_user_quickstats, GitHubRateLimitError, GitHubAPIError
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Auto-migration for new session_id columns & nullable user_id in SQLite
+try:
+    with engine.connect() as conn:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        if "scans" in inspector.get_table_names():
+            columns = inspector.get_columns("scans")
+            user_id_col = next((c for c in columns if c["name"] == "user_id"), None)
+            session_id_col = next((c for c in columns if c["name"] == "session_id"), None)
+            
+            if not session_id_col:
+                conn.execute(text("ALTER TABLE scans ADD COLUMN session_id VARCHAR"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scans_session_id ON scans (session_id)"))
+                conn.commit()
+
+            if user_id_col and not user_id_col.get("nullable", True):
+                conn.execute(text("PRAGMA foreign_keys=OFF;"))
+                conn.execute(text("""
+                    CREATE TABLE scans_new (
+                        id VARCHAR NOT NULL PRIMARY KEY,
+                        user_id VARCHAR,
+                        session_id VARCHAR,
+                        username VARCHAR NOT NULL,
+                        status VARCHAR NOT NULL,
+                        overall_score INTEGER,
+                        summary VARCHAR,
+                        created_at DATETIME NOT NULL,
+                        completed_at DATETIME,
+                        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                    );
+                """))
+                conn.execute(text("""
+                    INSERT INTO scans_new (id, user_id, session_id, username, status, overall_score, summary, created_at, completed_at)
+                    SELECT id, user_id, session_id, username, status, overall_score, summary, created_at, completed_at FROM scans;
+                """))
+                conn.execute(text("DROP TABLE scans;"))
+                conn.execute(text("ALTER TABLE scans_new RENAME TO scans;"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scans_id ON scans (id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scans_username ON scans (username);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scans_session_id ON scans (session_id);"))
+                conn.execute(text("PRAGMA foreign_keys=ON;"))
+                conn.commit()
+
+        if "copilot_messages" in inspector.get_table_names():
+            columns = inspector.get_columns("copilot_messages")
+            session_id_col = next((c for c in columns if c["name"] == "session_id"), None)
+            if not session_id_col:
+                conn.execute(text("ALTER TABLE copilot_messages ADD COLUMN session_id VARCHAR"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_copilot_messages_session_id ON copilot_messages (session_id)"))
+                conn.commit()
+except Exception as e:
+    print(f"Database migration notice: {e}")
 
 app = FastAPI(
     title="GitHub Profile Health Auditor API",
@@ -57,7 +112,12 @@ except Exception as e:
     scan_queue = None
 
 # JWT Config
-JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-key-change-in-prod-for-saas-audit-tool")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    if os.getenv("ENVIRONMENT", "development").lower() in ("prod", "production"):
+        raise RuntimeError("CRITICAL SECURITY ERROR: JWT_SECRET environment variable must be explicitly set in production!")
+    JWT_SECRET = "dev-only-secret-key-change-in-production-12345"
+
 JWT_ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
@@ -73,8 +133,13 @@ def verify_password(password: str, hashed_password: str) -> bool:
     except Exception:
         return False
 
-def create_access_token(data: dict) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(hours=24)
+    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
@@ -85,6 +150,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user_id: str = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid authentication token")
     
@@ -93,28 +160,204 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
-# Redis-based Rate Limiter (5 scans per hour)
-def check_rate_limit(user: models.User = Depends(get_current_user)):
-    if not redis_conn:
-        return
+def get_optional_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[models.User]:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id:
+            return db.query(models.User).filter(models.User.id == user_id).first()
+    except Exception:
+        pass
+    return None
+
+def get_session_id(
+    request: Request,
+    response: Response,
+    scan_session_id: Optional[str] = Cookie(None),
+    x_session_id: Optional[str] = Header(None)
+) -> str:
+    session_id = scan_session_id or x_session_id
+    if not session_id:
+        session_id = f"sess_{uuid.uuid4().hex}"
+        response.set_cookie(
+            key="scan_session_id",
+            value=session_id,
+            httponly=True,
+            samesite="lax",
+            max_age=86400 * 30
+        )
+    return session_id
+
+def verify_scan_access(
+    scan_id: str,
+    db: Session,
+    current_user: Optional[models.User],
+    session_id: str
+) -> models.Scan:
+    scan = db.query(models.Scan).filter(models.Scan.id == scan_id).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found or access denied")
     
-    user_id = user.id
-    current_hour = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H")
-    rate_limit_key = f"rate_limit:{user_id}:{current_hour}"
+    allowed = False
+    if current_user and scan.user_id == current_user.id:
+        allowed = True
+    elif scan.session_id and scan.session_id == session_id:
+        allowed = True
     
-    current_count = redis_conn.get(rate_limit_key)
-    if current_count:
-        count = int(current_count)
-        if count >= 5:
-            import time
-            seconds_remaining = 3600 - (int(time.time()) % 3600)
+    if not allowed:
+        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    
+    return scan
+
+import collections
+from threading import Lock
+
+class InMemoryRateLimiter:
+    def __init__(self):
+        self._lock = Lock()
+        self._requests = collections.defaultdict(list)
+
+    def is_rate_limited(self, ip: str, max_requests: int, window_seconds: int = 86400) -> tuple[bool, int]:
+        now = time.time()
+        with self._lock:
+            timestamps = self._requests[ip]
+            valid_timestamps = [t for t in timestamps if now - t < window_seconds]
+            self._requests[ip] = valid_timestamps
+            
+            if len(valid_timestamps) >= max_requests:
+                oldest = valid_timestamps[0]
+                retry_after = int(window_seconds - (now - oldest))
+                return True, max(1, retry_after)
+            
+            valid_timestamps.append(now)
+            return False, 0
+
+in_memory_limiter = InMemoryRateLimiter()
+
+RATE_LIMIT_SCANS_PER_IP_24H = int(os.getenv("RATE_LIMIT_SCANS_PER_IP_24H", "5"))
+RATE_LIMIT_QUICKSTATS_PER_IP_24H = int(os.getenv("RATE_LIMIT_QUICKSTATS_PER_IP_24H", "30"))
+
+import json
+_quickstats_memory_cache = {}
+_quickstats_cache_lock = Lock()
+
+def get_cached_quickstats(username: str) -> Optional[dict]:
+    cache_key = f"quickstats:{username.lower()}"
+    if redis_conn:
+        try:
+            cached_data = redis_conn.get(cache_key)
+            if cached_data:
+                return json.loads(cached_data)
+        except Exception:
+            pass
+    
+    with _quickstats_cache_lock:
+        if cache_key in _quickstats_memory_cache:
+            entry, ts = _quickstats_memory_cache[cache_key]
+            if time.time() - ts < 900:  # 15 minutes TTL
+                return entry
+            else:
+                del _quickstats_memory_cache[cache_key]
+    return None
+
+def set_cached_quickstats(username: str, data: dict):
+    cache_key = f"quickstats:{username.lower()}"
+    if redis_conn:
+        try:
+            redis_conn.set(cache_key, json.dumps(data), ex=900)
+            return
+        except Exception:
+            pass
+    
+    with _quickstats_cache_lock:
+        _quickstats_memory_cache[cache_key] = (data, time.time())
+
+def check_quickstats_ip_rate_limit(request: Request):
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    elif request.client:
+        client_ip = request.client.host
+    else:
+        client_ip = "127.0.0.1"
+
+    max_reqs = RATE_LIMIT_QUICKSTATS_PER_IP_24H
+    window_secs = 86400
+
+    redis_used = False
+    if redis_conn:
+        try:
+            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            rate_limit_key = f"rate_limit:quickstats:ip:{client_ip}:{today_str}"
+            current_count = redis_conn.get(rate_limit_key)
+            if current_count:
+                count = int(current_count)
+                if count >= max_reqs:
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Per-IP quickstats rate limit reached ({max_reqs} requests / 24h). Please try again later."
+                    )
+                redis_conn.incr(rate_limit_key)
+            else:
+                redis_conn.set(rate_limit_key, 1, ex=window_secs)
+            redis_used = True
+        except HTTPException:
+            raise
+        except Exception:
+            redis_used = False
+
+    if not redis_used:
+        is_limited, _ = in_memory_limiter.is_rate_limited(f"quickstats:{client_ip}", max_requests=max_reqs, window_seconds=window_secs)
+        if is_limited:
             raise HTTPException(
                 status_code=429,
-                detail=f"Rate limit exceeded. You can perform up to 5 scans per hour. Try again in {seconds_remaining // 60} minutes."
+                detail=f"Per-IP quickstats rate limit reached ({max_reqs} requests / 24h). Please try again later."
             )
-        redis_conn.incr(rate_limit_key)
+
+def check_ip_rate_limit(request: Request, scan_req: Optional[schemas.ScanRequest] = None):
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        client_ip = forwarded_for.split(",")[0].strip()
+    elif request.client:
+        client_ip = request.client.host
     else:
-        redis_conn.set(rate_limit_key, 1, ex=3600)
+        client_ip = "127.0.0.1"
+
+    max_scans = RATE_LIMIT_SCANS_PER_IP_24H
+    window_secs = 86400
+
+    redis_used = False
+    if redis_conn:
+        try:
+            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            rate_limit_key = f"rate_limit:ip:{client_ip}:{today_str}"
+            current_count = redis_conn.get(rate_limit_key)
+            if current_count:
+                count = int(current_count)
+                if count >= max_scans:
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Per-IP scan rate limit reached ({max_scans} scans / 24h). Please try again later."
+                    )
+                redis_conn.incr(rate_limit_key)
+            else:
+                redis_conn.set(rate_limit_key, 1, ex=window_secs)
+            redis_used = True
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"[RateLimiter] Redis connection error ({e}), falling back to in-memory limiter.")
+            redis_used = False
+
+    if not redis_used:
+        is_limited, _ = in_memory_limiter.is_rate_limited(client_ip, max_requests=max_scans, window_seconds=window_secs)
+        if is_limited:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Per-IP scan rate limit reached ({max_scans} scans / 24h). Please try again later."
+            )
 
 # Health Check
 @app.get("/health")
@@ -174,6 +417,14 @@ def get_github_oauth_url():
 
 @app.post("/api/auth/demo-github")
 def demo_github_login(payload: dict, db: Session = Depends(get_db)):
+    enable_demo = os.getenv("ENABLE_DEMO_LOGIN", "false").lower() in ("true", "1", "yes")
+    env = os.getenv("ENVIRONMENT", "production").lower()
+    if not enable_demo or env not in ("dev", "development"):
+        raise HTTPException(
+            status_code=403,
+            detail="Demo login endpoint is disabled in this environment for security. Use standard login or GitHub OAuth."
+        )
+
     username = payload.get("username", "octocat").strip().lstrip("@")
     if not username:
         username = "octocat"
@@ -360,17 +611,60 @@ async def public_scan(request: schemas.ScanRequest):
     return basic_report
 
 # Authenticated Full Scan Endpoints (Multi-tenant)
+@app.get("/api/profile/{username}/quickstats", response_model=schemas.QuickStatsResponse)
+async def get_profile_quickstats(
+    username: str,
+    request: Request,
+    github_token: Optional[str] = None
+):
+    """
+    Lightweight, fast endpoint (<2s) returning GitHub profile statistics (avatar, bio, followers, stars, top languages).
+    Does NOT clone repos, run static analysis (TruffleHog/Semgrep), or call AI synthesis.
+    """
+    clean_username = username.strip()
+    if "github.com/" in clean_username:
+        clean_username = clean_username.split("github.com/")[1].split("/")[0]
+    clean_username = clean_username.lstrip("@").strip()
+
+    if not clean_username:
+        raise HTTPException(status_code=400, detail="Username cannot be empty")
+
+    # 1. Check 15-minute cache
+    cached = get_cached_quickstats(clean_username)
+    if cached:
+        return cached
+
+    # 2. Check independent per-IP quickstats rate limit
+    check_quickstats_ip_rate_limit(request)
+
+    token_to_use = github_token or os.getenv("GITHUB_TOKEN")
+    try:
+        stats = await get_user_quickstats(clean_username, token=token_to_use)
+        # Store in 15-minute cache
+        set_cached_quickstats(clean_username, stats)
+        return stats
+    except GitHubAPIError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except GitHubRateLimitError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch quickstats: {str(e)}")
+
 @app.post("/api/scan", response_model=schemas.FullReportResponse)
 async def start_scan(
-
     request: schemas.ScanRequest,
+    req_obj: Request,
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-    _ = Depends(check_rate_limit)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
+    if request.website_url and request.website_url.strip():
+        raise HTTPException(status_code=400, detail="Automated bot submission rejected via honeypot.")
+
+    check_ip_rate_limit(req_obj, scan_req=request)
     # Prefer request token, then user's github oauth token, then global GITHUB_TOKEN
-    token = request.github_token or current_user.github_oauth_token or os.getenv("GITHUB_TOKEN")
+    token = request.github_token or (current_user.github_oauth_token if current_user else None) or os.getenv("GITHUB_TOKEN")
     
     # 2. List public repositories
     try:
@@ -391,11 +685,12 @@ async def start_scan(
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
-    # 3. Create scan record scoped to user
+    # 3. Create scan record scoped to user/session
     scan_id = str(uuid.uuid4())
     db_scan = models.Scan(
         id=scan_id,
-        user_id=current_user.id,
+        user_id=current_user.id if current_user else None,
+        session_id=session_id,
         username=request.username,
         status="pending",
         created_at=datetime.now(timezone.utc)
@@ -450,24 +745,27 @@ async def start_scan(
 @app.get("/api/scans", response_model=List[schemas.ScanResponse])
 def get_user_scan_history(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    scans = db.query(models.Scan).filter(models.Scan.user_id == current_user.id).order_by(models.Scan.created_at.desc()).all()
+    if current_user:
+        scans = db.query(models.Scan).filter(
+            or_(models.Scan.user_id == current_user.id, models.Scan.session_id == session_id)
+        ).order_by(models.Scan.created_at.desc()).all()
+    else:
+        scans = db.query(models.Scan).filter(
+            models.Scan.session_id == session_id
+        ).order_by(models.Scan.created_at.desc()).all()
     return scans
 
 @app.get("/api/scan/{scan_id}", response_model=schemas.FullReportResponse)
 def get_scan_report(
     scan_id: str, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    # Enforce multi-tenancy: scan must belong to the logged-in user
-    db_scan = db.query(models.Scan).filter(
-        models.Scan.id == scan_id, 
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not db_scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    db_scan = verify_scan_access(scan_id, db, current_user, session_id)
     
     # Safely load the JSON summary if present
     import json
@@ -510,33 +808,203 @@ def get_scan_report(
         completed_at=db_scan.completed_at
     )
 
-@app.get("/api/badge/{username}.svg")
-@app.get("/api/badge/{username}")
-def get_user_health_badge(username: str, db: Session = Depends(get_db)):
+@app.post("/api/badge/challenge", response_model=schemas.BadgeChallengeResponse)
+def create_badge_challenge(payload: schemas.BadgeChallengeRequest, db: Session = Depends(get_db)):
+    username = payload.username.strip().lstrip("@")
+    if not username:
+        raise HTTPException(status_code=400, detail="Username cannot be empty")
+    token = f"health-auditor-verify-{uuid.uuid4().hex[:16]}"
+    
+    # Store server-issued challenge record in DB
+    challenge = models.BadgeChallenge(
+        username=username,
+        verification_token=token,
+        created_at=datetime.now(timezone.utc),
+        is_used=False
+    )
+    db.add(challenge)
+    db.commit()
+
+    instructions = f"Add the verification token '{token}' to your GitHub bio or a public Gist, then click 'Verify Badge'."
+    return schemas.BadgeChallengeResponse(
+        username=username,
+        verification_token=token,
+        instructions=instructions
+    )
+
+@app.post("/api/badge/verify", response_model=schemas.BadgeVerifyResponse)
+async def verify_and_activate_badge(
+    payload: schemas.BadgeVerifyRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user)
+):
+    username = payload.username.strip().lstrip("@")
+    method = payload.method.lower()
+
+    if method == "oauth":
+        if not current_user or not current_user.github_username or current_user.github_username.lower() != username.lower():
+            raise HTTPException(
+                status_code=403,
+                detail="GitHub OAuth username mismatch or user not logged in with matching GitHub account."
+            )
+    else:
+        from sqlalchemy import func
+        # 1. Lookup server-issued challenge record for this specific username and token
+        challenge = db.query(models.BadgeChallenge).filter(
+            func.lower(models.BadgeChallenge.username) == username.lower(),
+            models.BadgeChallenge.verification_token == payload.verification_token,
+            models.BadgeChallenge.is_used == False
+        ).first()
+
+        if not challenge:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid or unissued verification challenge token. Call /api/badge/challenge first to request a server-issued token."
+            )
+
+        # 2. Enforce 15-minute server-side expiration
+        now = datetime.now(timezone.utc)
+        created_at = challenge.created_at
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        if (now - created_at).total_seconds() > 900: # 15 minutes
+            raise HTTPException(
+                status_code=400,
+                detail="Verification challenge token has expired (tokens expire 15 minutes after issuance). Generate a new challenge and try again."
+            )
+
+        # 3. Check bio content via GitHub REST API
+        url = f"https://api.github.com/users/{username}"
+        headers = {"Accept": "application/vnd.github+json", "User-Agent": "GitHub-Profile-Health-Auditor"}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(url, headers=headers)
+            if res.status_code != 200:
+                raise HTTPException(status_code=400, detail=f"Failed to fetch GitHub profile for @{username}.")
+            profile_data = res.json()
+            bio = profile_data.get("bio") or ""
+            if payload.verification_token not in bio:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Verification token '{payload.verification_token}' was not found in @{username}'s GitHub bio."
+                )
+
     from sqlalchemy import func
-    db.expire_all()
     scans = db.query(models.Scan).filter(
         func.lower(models.Scan.username) == username.lower(),
         models.Scan.status == "completed"
     ).all()
+    if not scans:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No completed scan report found for @{username}. Please run a scan first before publishing a public badge."
+        )
+    latest_scan = scans[-1]
+    score = latest_scan.overall_score if latest_scan.overall_score is not None else 100
 
-    scan = None
-    if scans:
-        scan = scans[-1]
+    badge = db.query(models.PublicBadge).filter(
+        func.lower(models.PublicBadge.username) == username.lower()
+    ).first()
 
-    score = scan.overall_score if (scan and scan.overall_score is not None) else "N/A"
-    
-    if score == "N/A":
-        color = "#6e7681"
-        score_str = "N/A"
-    elif score >= 90:
-        color = "#238636"
-        score_str = f"{score}%"
-    elif score >= 70:
-        color = "#d29922"
-        score_str = f"{score}%"
+    rev_token = badge.revocation_token if badge else uuid.uuid4().hex
+    if not badge:
+        badge = models.PublicBadge(
+            username=username,
+            overall_score=score,
+            verified_at=datetime.now(timezone.utc),
+            verification_method=method,
+            verification_token=payload.verification_token,
+            revocation_token=rev_token,
+            is_active=True
+        )
+        db.add(badge)
     else:
-        color = "#da3633"
+        badge.overall_score = score
+        badge.is_active = True
+        badge.verified_at = datetime.now(timezone.utc)
+        badge.verification_method = method
+        badge.verification_token = payload.verification_token
+
+    if method != "oauth" and challenge:
+        challenge.is_used = True
+
+    db.commit()
+    db.refresh(badge)
+
+    badge_url = f"/api/badge/{username}.svg"
+    return schemas.BadgeVerifyResponse(
+        username=badge.username,
+        overall_score=badge.overall_score,
+        revocation_token=badge.revocation_token,
+        badge_svg_url=badge_url,
+        is_active=badge.is_active
+    )
+
+@app.post("/api/badge/{username}/deactivate")
+def deactivate_public_badge(
+    username: str,
+    revocation_token: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user)
+):
+    from sqlalchemy import func
+    badge = db.query(models.PublicBadge).filter(
+        func.lower(models.PublicBadge.username) == username.lower()
+    ).first()
+    if not badge or not badge.is_active:
+        raise HTTPException(status_code=404, detail="Active public badge not found for this username.")
+
+    allowed = False
+    if revocation_token and revocation_token == badge.revocation_token:
+        allowed = True
+    elif current_user and current_user.github_username and current_user.github_username.lower() == username.lower():
+        allowed = True
+
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Invalid revocation token or unauthorized owner.")
+
+    badge.is_active = False
+    db.commit()
+    return {"status": "ok", "message": f"Public badge for @{username} has been deactivated."}
+
+@app.get("/api/leaderboard", response_model=List[schemas.LeaderboardEntry])
+def get_public_leaderboard(db: Session = Depends(get_db)):
+    badges = db.query(models.PublicBadge).filter(
+        models.PublicBadge.is_active == True
+    ).order_by(models.PublicBadge.overall_score.desc(), models.PublicBadge.verified_at.desc()).all()
+
+    entries = []
+    for b in badges:
+        entries.append(schemas.LeaderboardEntry(
+            username=b.username,
+            overall_score=b.overall_score,
+            verified_at=b.verified_at,
+            badge_svg_url=f"/api/badge/{b.username}.svg"
+        ))
+    return entries
+
+@app.get("/api/badge/{username}.svg")
+@app.get("/api/badge/{username}")
+def get_user_health_badge(username: str, db: Session = Depends(get_db)):
+    if username.endswith(".svg"):
+        username = username[:-4]
+    from sqlalchemy import func
+    db.expire_all()
+    badge = db.query(models.PublicBadge).filter(
+        func.lower(models.PublicBadge.username) == username.lower(),
+        models.PublicBadge.is_active == True
+    ).first()
+
+    if not badge:
+        color = "#6e7681"
+        score_str = "Unverified"
+    else:
+        score = badge.overall_score
+        if score >= 90:
+            color = "#238636"
+        elif score >= 70:
+            color = "#d29922"
+        else:
+            color = "#da3633"
         score_str = f"{score}%"
 
     svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="180" height="20" role="img" aria-label="Profile Health: {score_str}">
@@ -568,17 +1036,13 @@ def export_scan_report(
     scan_id: str,
     format: str = "markdown",
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    db_scan = db.query(models.Scan).filter(
-        models.Scan.id == scan_id,
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not db_scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    db_scan = verify_scan_access(scan_id, db, current_user, session_id)
 
     if format.lower() == "json":
-        report_data = get_scan_report(scan_id, db, current_user)
+        report_data = get_scan_report(scan_id, db, current_user, session_id)
         import json
         dump_func = getattr(report_data, "model_dump", None) or getattr(report_data, "dict")
         return Response(
@@ -639,14 +1103,10 @@ def export_scan_report(
 def generate_ai_profile_readme(
     scan_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    scan = db.query(models.Scan).filter(
-        models.Scan.id == scan_id,
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    scan = verify_scan_access(scan_id, db, current_user, session_id)
 
     username = scan.username
     score = scan.overall_score
@@ -708,15 +1168,11 @@ const developer = {{
 def generate_fix_patch(
     request: schemas.FixRequest, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    # 1. Verify scan exists and belongs to current user
-    scan = db.query(models.Scan).filter(
-        models.Scan.id == request.scan_id,
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    # 1. Verify scan exists and belongs to current session/user
+    scan = verify_scan_access(request.scan_id, db, current_user, session_id)
         
     # 2. Check if a corresponding finding exists
     finding = db.query(models.Finding).filter(
@@ -839,19 +1295,21 @@ MIT License. See LICENSE for details.
 def get_copilot_chat_history(
     scan_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    scan = db.query(models.Scan).filter(
-        models.Scan.id == scan_id,
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    scan = verify_scan_access(scan_id, db, current_user, session_id)
 
-    messages = db.query(models.CopilotMessage).filter(
-        models.CopilotMessage.scan_id == scan_id,
-        models.CopilotMessage.user_id == current_user.id
-    ).order_by(models.CopilotMessage.id.asc()).all()
+    if current_user:
+        messages = db.query(models.CopilotMessage).filter(
+            models.CopilotMessage.scan_id == scan_id,
+            or_(models.CopilotMessage.user_id == current_user.id, models.CopilotMessage.session_id == session_id)
+        ).order_by(models.CopilotMessage.id.asc()).all()
+    else:
+        messages = db.query(models.CopilotMessage).filter(
+            models.CopilotMessage.scan_id == scan_id,
+            models.CopilotMessage.session_id == session_id
+        ).order_by(models.CopilotMessage.id.asc()).all()
 
     return messages
 
@@ -860,14 +1318,10 @@ async def post_copilot_chat(
     scan_id: str,
     payload: schemas.CopilotChatRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user),
+    session_id: str = Depends(get_session_id)
 ):
-    scan = db.query(models.Scan).filter(
-        models.Scan.id == scan_id,
-        models.Scan.user_id == current_user.id
-    ).first()
-    if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found or access denied")
+    scan = verify_scan_access(scan_id, db, current_user, session_id)
 
     user_msg_text = payload.message.strip()
     if not user_msg_text:
@@ -875,7 +1329,8 @@ async def post_copilot_chat(
 
     user_msg = models.CopilotMessage(
         scan_id=scan_id,
-        user_id=current_user.id,
+        user_id=current_user.id if current_user else None,
+        session_id=session_id,
         role="user",
         content=user_msg_text,
         created_at=datetime.now(timezone.utc)
@@ -926,7 +1381,8 @@ Provide a concise, expert, and actionable answer. Explain any security risks or 
 
     assistant_msg = models.CopilotMessage(
         scan_id=scan_id,
-        user_id=current_user.id,
+        user_id=current_user.id if current_user else None,
+        session_id=session_id,
         role="assistant",
         content=reply_text,
         created_at=datetime.now(timezone.utc)
@@ -934,10 +1390,16 @@ Provide a concise, expert, and actionable answer. Explain any security risks or 
     db.add(assistant_msg)
     db.commit()
 
-    messages = db.query(models.CopilotMessage).filter(
-        models.CopilotMessage.scan_id == scan_id,
-        models.CopilotMessage.user_id == current_user.id
-    ).order_by(models.CopilotMessage.id.asc()).all()
+    if current_user:
+        messages = db.query(models.CopilotMessage).filter(
+            models.CopilotMessage.scan_id == scan_id,
+            or_(models.CopilotMessage.user_id == current_user.id, models.CopilotMessage.session_id == session_id)
+        ).order_by(models.CopilotMessage.id.asc()).all()
+    else:
+        messages = db.query(models.CopilotMessage).filter(
+            models.CopilotMessage.scan_id == scan_id,
+            models.CopilotMessage.session_id == session_id
+        ).order_by(models.CopilotMessage.id.asc()).all()
 
     return messages
 

@@ -123,8 +123,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Quick Target Chips */}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 font-mono text-xs text-zinc-500">
-            <span className="text-[11px] text-zinc-500">Try sample:</span>
-            {['octocat', 'torvalds', 'gaearon', 'sindresorhus'].map((sampleUser) => (
+            <span className="text-[11px] text-zinc-400 font-bold">Featured profiles:</span>
+            {['torvalds', 'yyx990803', 'gaearon', 'sundarpichai', 'sindresorhus', 'octocat'].map((sampleUser) => (
               <button
                 key={sampleUser}
                 type="button"
@@ -133,9 +133,9 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   if (onStartQuickScan) onStartQuickScan(sampleUser);
                   else onStartRegister();
                 }}
-                className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white rounded-lg border border-zinc-800 text-[11px] transition duration-150"
+                className="px-2.5 py-1 bg-zinc-900 hover:bg-emerald-950/60 text-zinc-300 hover:text-emerald-300 rounded-lg border border-zinc-800 hover:border-emerald-700/60 text-[11px] font-semibold transition duration-150 flex items-center space-x-1"
               >
-                @{sampleUser}
+                <span>@{sampleUser}</span>
               </button>
             ))}
           </div>

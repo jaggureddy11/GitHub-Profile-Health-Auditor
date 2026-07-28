@@ -1,4 +1,5 @@
 import os
+import time
 import shutil
 import tempfile
 import subprocess
@@ -31,7 +32,7 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
     Clones a public GitHub repository to a destination path with 30s timeout.
     """
     url = repo_url
-    if token:
+    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
         if url.startswith("https://github.com/"):
             url = url.replace("https://github.com/", f"https://{token}@github.com/")
 
@@ -93,18 +94,27 @@ def run_scan_job(scan_id: str, username: str, token: str = None):
         scan.status = "running"
         db.commit()
 
-        # 2. Retrieve the repositories (Cap to top 15 most active repos for performance)
+        # 2. Retrieve the repositories (Cap to MAX_REPOS_PER_SCAN for performance and cost control)
         repositories = db.query(models.Repository).filter(models.Repository.scan_id == scan_id).all()
-        if len(repositories) > 15:
-            print(f"[Scan {scan_id}] Profile has {len(repositories)} repositories. Capping scan to top 15 most active for performance.")
-            repositories = repositories[:15]
+        max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
+        scan_job_timeout = int(os.getenv("SCAN_JOB_TIMEOUT_SECONDS", "180"))
+        start_time = time.time()
+
+        if len(repositories) > max_repos_cap:
+            print(f"[Scan {scan_id}] Profile has {len(repositories)} repositories. Capping scan to top {max_repos_cap} for cost and compute control.")
+            repositories = repositories[:max_repos_cap]
 
         print(f"[Scan {scan_id}] Scanning {len(repositories)} repositories")
 
         all_findings = []
 
-        # 3. Scan each repository
+        # 3. Scan each repository with hard job timeout check
         for repo in repositories:
+            elapsed = time.time() - start_time
+            if elapsed > scan_job_timeout:
+                print(f"[Scan {scan_id}] Hard scan job timeout of {scan_job_timeout}s reached after {int(elapsed)}s. Truncating remaining repos and synthesizing current findings.")
+                break
+
             print(f"[Scan {scan_id}] Scanning repository: {repo.name}")
             with tempfile.TemporaryDirectory() as tmp_dir:
                 if clone_repo(repo.url, tmp_dir, token):
@@ -116,7 +126,7 @@ def run_scan_job(scan_id: str, username: str, token: str = None):
                     secret_findings = scan_secrets(tmp_dir, repo.name)
                     all_findings.extend(secret_findings)
 
-                    # Run Semgrep code smell scanner (implemented in Phase 4)
+                    # Run Semgrep code smell scanner
                     smell_findings = scan_smells(tmp_dir, repo.name)
                     all_findings.extend(smell_findings)
 

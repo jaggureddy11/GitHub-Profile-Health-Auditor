@@ -19,7 +19,8 @@ class Scan(Base):
     __tablename__ = "scans"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    session_id = Column(String, index=True, nullable=True)
     username = Column(String, index=True, nullable=False)
     status = Column(String, default="pending", nullable=False) # pending, running, completed, failed
     overall_score = Column(Integer, nullable=True)
@@ -65,8 +66,30 @@ class CopilotMessage(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     scan_id = Column(String, ForeignKey("scans.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    session_id = Column(String, index=True, nullable=True)
     role = Column(String, nullable=False) # user or assistant
     content = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+class PublicBadge(Base):
+    __tablename__ = "public_badges"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    overall_score = Column(Integer, nullable=False)
+    verified_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    verification_method = Column(String, nullable=False) # oauth or bio_token
+    verification_token = Column(String, nullable=True)
+    revocation_token = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+class BadgeChallenge(Base):
+    __tablename__ = "badge_challenges"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String, index=True, nullable=False)
+    verification_token = Column(String, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    is_used = Column(Boolean, default=False, nullable=False)
 

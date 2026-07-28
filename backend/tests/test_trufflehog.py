@@ -134,7 +134,7 @@ def test_run_scan_job_integration():
         original_run = sp.run
         def mock_subprocess_run(args, **kwargs):
             if len(args) > 0 and "trufflehog" in args[0]:
-                repo_path = args[3]
+                repo_path = next((arg for arg in args[2:] if not arg.startswith("-") and os.path.exists(arg)), args[-1])
                 mock_res = MagicMock()
                 mock_res.stdout = (
                     '{"DetectorName": "Slack", "Raw": "xoxb-1234567890-abcdef", "Verified": false, '

@@ -93,11 +93,15 @@ def scan_secrets(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
     try:
         # Run trufflehog filesystem scan outputting JSON with 30s timeout
         result = subprocess.run(
-            [trufflehog_path, "filesystem", "--json", repo_path],
+            [
+                trufflehog_path, "filesystem", "--no-update", "--json",
+                "--exclude-paths", "node_modules,dist,build,venv,.git",
+                repo_path
+            ],
             capture_output=True,
             text=True,
             check=False,
-            timeout=30
+            timeout=15
         )
     except subprocess.TimeoutExpired:
         print(f"Warning: TruffleHog scan timed out for repository {repo_path} after 30s.")

@@ -30,8 +30,8 @@ async def list_public_repositories(
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28"
     }
-    if token:
-        if token.startswith("ghp_") or token.startswith("gho_"):
+    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
+        if token.startswith("ghp_") or token.startswith("gho_") or token.startswith("github_pat_"):
             headers["Authorization"] = f"token {token}"
         else:
             headers["Authorization"] = f"Bearer {token}"
@@ -88,3 +88,82 @@ async def list_public_repositories(
             page += 1
 
     return repos
+
+async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Fetches lightweight user profile and repository metadata from GitHub REST API
+    without cloning repositories or running static analysis. Response target: <2s.
+    """
+    username = username.strip().lstrip("@")
+    if not username:
+        raise ValueError("Username cannot be empty")
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "GitHub-Profile-Health-Auditor"
+    }
+    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
+        if token.startswith("ghp_") or token.startswith("gho_") or token.startswith("github_pat_"):
+            headers["Authorization"] = f"token {token}"
+        else:
+            headers["Authorization"] = f"Bearer {token}"
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        # 1. Fetch user profile
+        user_res = await client.get(f"https://api.github.com/users/{username}", headers=headers)
+        if user_res.status_code == 404:
+            raise GitHubAPIError(f"GitHub user @{username} not found.")
+        if user_res.status_code in (403, 429) and user_res.headers.get("X-RateLimit-Remaining") == "0":
+            raise GitHubRateLimitError("GitHub API rate limit exceeded.")
+        if user_res.status_code != 200:
+            raise GitHubAPIError(f"GitHub API returned status {user_res.status_code}: {user_res.text}")
+
+        profile = user_res.json()
+
+        # 2. Fetch public repos (100 per page)
+        repos_res = await client.get(f"https://api.github.com/users/{username}/repos?per_page=100&type=public&sort=pushed", headers=headers)
+        repos_data = repos_res.json() if repos_res.status_code == 200 else []
+
+    total_stars = 0
+    total_forks = 0
+    lang_counts: Dict[str, int] = {}
+    last_active_at = None
+
+    if isinstance(repos_data, list):
+        for repo in repos_data:
+            if not isinstance(repo, dict):
+                continue
+            total_stars += repo.get("stargazers_count", 0)
+            total_forks += repo.get("forks_count", 0)
+
+            lang = repo.get("language")
+            if lang and isinstance(lang, str):
+                lang_counts[lang] = lang_counts.get(lang, 0) + 1
+
+            pushed_at = repo.get("pushed_at")
+            if pushed_at and (last_active_at is None or pushed_at > last_active_at):
+                last_active_at = pushed_at
+
+    total_lang_repos = sum(lang_counts.values())
+    sorted_langs = sorted(lang_counts.items(), key=lambda x: x[1], reverse=True)
+
+    top_languages = []
+    for l_name, count in sorted_langs[:5]:
+        pct = round((count / total_lang_repos * 100), 1) if total_lang_repos > 0 else 0.0
+        top_languages.append({"name": l_name, "count": count, "percentage": pct})
+
+    return {
+        "username": profile.get("login", username),
+        "name": profile.get("name"),
+        "avatar_url": profile.get("avatar_url"),
+        "bio": profile.get("bio"),
+        "followers": profile.get("followers", 0),
+        "following": profile.get("following", 0),
+        "public_repos": profile.get("public_repos", 0),
+        "total_stars": total_stars,
+        "total_forks": total_forks,
+        "top_languages": top_languages,
+        "account_created_at": profile.get("created_at"),
+        "last_active_at": last_active_at
+    }

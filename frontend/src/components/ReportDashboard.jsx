@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson } from 'lucide-react';
+import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson, BadgeCheck } from 'lucide-react';
 import SecurityCopilot from './SecurityCopilot';
+import PublicBadgeModal from './PublicBadgeModal';
+import QuickStatsCard from './QuickStatsCard';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export default function ReportDashboard({ report, onReset, onReRun, token }) {
+export default function ReportDashboard({ report, onReset, onReRun, token, quickstats, quickstatsLoading }) {
   const { scan_id, overall_score, summary, repositories, findings, username, created_at } = report;
   const [copiedType, setCopiedType] = useState(null);
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -83,6 +85,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
   };
 
   const [showReadmeModal, setShowReadmeModal] = useState(false);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [aiReadmeText, setAiReadmeText] = useState('');
   const [isGeneratingReadme, setIsGeneratingReadme] = useState(false);
 
@@ -121,6 +124,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
   return (
     <div className="space-y-8 animate-fade-in print:space-y-6">
       
+      {/* Instant Profile Stats Card (Phase 2 Instant View) */}
+      <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
+
       {/* Redaction Guarantee Banner */}
       <div className="border border-green-900/80 bg-green-950/30 p-5 rounded-2xl flex items-center justify-between text-green-300 print:hidden shadow-lg animate-slide-up-1 animate-border-glow">
         <div className="flex items-center space-x-4">
@@ -198,6 +204,14 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
               </div>
               
               <div className="flex flex-wrap items-center gap-2 print:hidden w-full sm:w-auto">
+                <button
+                  onClick={() => setShowBadgeModal(true)}
+                  className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 text-xs font-bold transition duration-150 border border-emerald-800/80 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
+                  title="Opt-in to publish public README badge"
+                >
+                  <BadgeCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Make Score Public</span>
+                </button>
                 <button
                   onClick={handleGenerateAiReadme}
                   className="flex-1 sm:flex-initial py-2 px-3 sm:px-3.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
@@ -471,6 +485,13 @@ export default function ReportDashboard({ report, onReset, onReRun, token }) {
 
           </div>
         </div>
+      )}
+
+      {showBadgeModal && (
+        <PublicBadgeModal
+          username={username}
+          onClose={() => setShowBadgeModal(false)}
+        />
       )}
 
     </div>

@@ -90,3 +90,67 @@ This log tracks the build process and testing outcomes for each phase.
   - Upgraded code preview functionality from simulated templates to dynamic, database-backed snippets, securing them with a multi-layered, regex-based regex scrubber.
   - Implemented database-level `NOT NULL` constraint on `Scan.user_id` to strictly enforce multi-tenant isolation.
   - Wrote a dedicated automated test suite verifying code snippet redaction logic.
+
+## Rework Phase 1 — Remove Mandatory Auth from Core Scan Flow
+- Status: Completed
+- Completed features:
+  - Made `/api/scan`, `/api/scan/{scan_id}`, `/api/fix`, `/api/scan/{scan_id}/export`, and `/api/scan/{scan_id}/copilot-chat` accessible without mandatory user authentication.
+  - Generated and managed signed `scan_session_id` cookies / `X-Session-ID` headers to scope anonymous scan sessions.
+  - Updated `Scan` and `CopilotMessage` models to support optional `user_id` (`nullable=True`) and `session_id`.
+  - Added auto-migration logic in `main.py` for SQLite schema upgrades.
+  - Enforced that full scan reports are strictly session/user-scoped and **cannot** be retrieved using a GitHub username alone as a lookup key.
+  - Wrote automated test suite `test_anonymous_scan.py` verifying anonymous scan creation, report retrieval, and cross-session isolation. All 34 backend tests passing.
+
+## Rework Phase 2 — Switch Rate Limiting from Per-User to Per-IP
+- Status: Completed
+- Completed features:
+  - Replaced per-user rate limiting with universal per-IP rate limiting (`RATE_LIMIT_SCANS_PER_IP_24H`, default: 5 scans per IP per 24 hours).
+  - Enforced per-IP compute limits universally across ALL requests. User-supplied GitHub tokens are used strictly for GitHub REST API quota management and NO LONGER bypass server-side compute rate limits.
+  - Implemented thread-safe `InMemoryRateLimiter` fallback so that Redis connection failures fail closed and enforce per-IP limits rather than allowing unlimited requests.
+  - Wrote test suite `test_rate_limiter.py` verifying 429 responses, Redis fallback behavior, and confirming token presence does not bypass IP limits. All tests passing.
+
+## Rework Phase 3 — Cost & Abuse Guardrails
+- Status: Completed
+- Completed features:
+  - Enforced `MAX_REPOS_PER_SCAN` repo count cap (default: 10 repos) and `SCAN_JOB_TIMEOUT_SECONDS` hard job timeout (default: 180s) in `orchestrator.py` and `github_client.py`.
+  - Added anti-bot honeypot field `website_url` in `ScanRequest` schema, rejecting bot submissions with `400 Bad Request`.
+  - Documented IP data retention policy (24-hour expiration) in `README.md`.
+  - Wrote test suite `test_guardrails.py` verifying repo capping, job timeout truncation, and honeypot bot rejection. All tests passing.
+
+## Rework Phase 4 — Opt-In Public Badge System & Ownership Verification
+- Status: Completed
+- Completed features:
+  - Created `PublicBadge` database model in `models.py` storing only verified username, overall score, timestamp, verification method, and revocation tokens.
+  - Implemented challenge generation (`POST /api/badge/challenge`) and proof-of-control verification (`POST /api/badge/verify`) with 15-minute challenge token expiration, single-use token checks, and strict GitHub OAuth identity matching (`current_user.github_username.lower() == username.lower()`).
+  - Updated SVG badge endpoint (`GET /api/badge/{username}.svg`) to query ONLY `PublicBadge` records (`is_active=True`), rendering `"Unverified"` for non-opted-in users.
+  - Implemented badge revocation endpoint (`POST /api/badge/{username}/deactivate`) and public leaderboard (`GET /api/leaderboard`).
+  - Wrote test suite `test_badge_system.py` verifying ownership requirement, aggregate-only SVG rendering, and deactivation. All tests passing.
+
+## Rework Phase 5 — Frontend UI Rework & Privacy Policy Updates
+- Status: Completed
+- Completed features:
+  - Removed mandatory login/signup barrier from `LandingPage.jsx`; visitors can initiate unauthenticated public profile scans directly.
+  - Built `PublicBadgeModal.jsx` component guiding users through the 2-step opt-in verification flow (challenge generation, bio token placement, and badge publishing).
+  - Integrated "Make Score Public" button into `ReportDashboard.jsx` action toolbar.
+  - Updated "What We Do With Your Data" privacy page in `App.jsx` documenting anonymous session-scoped scans, zero public finding exposure, and revocable opt-in badges.
+  - Verified clean production build using `vite build`.
+
+## Rework Phase 6 — Open-Sourcing Readiness & Secret Hygiene
+- Status: Completed
+- Completed features:
+  - Executed TruffleHog against full Git commit log history (`trufflehog git file:///... --only-verified --fail`) and filesystem. Identified and sanitized 1 committed credential in `.env`.
+  - Re-scanned full Git commit history; verified **0 secrets** found across all commits and branches.
+  - Created open-source governance files: `LICENSE` (MIT), `CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, `.github/ISSUE_TEMPLATE/feature_request.md`, and `.github/PULL_REQUEST_TEMPLATE.md`.
+  - Updated `.env` and `.env.example` with sanitized placeholders and documentation for all 15 environment parameters.
+  - Verified test suite: all 40 automated tests passing 100%.
+
+## Rework Phase 7 — Instant Profile Layer (Matching Competitor UX)
+- Status: Completed
+- Completed features:
+  - Phase 1 (Instant Profile Stats Endpoint): Implemented `GET /api/profile/{username}/quickstats` returning user metadata (avatar, bio, followers, stars, forks, top languages, last active date) in <2s without cloning, static scanners, or AI calls.
+  - Phase 2 (Frontend Instant View + Progressive Deep Scan): Updated `LandingPage.jsx`, `App.jsx`, and `ReportDashboard.jsx` to render `QuickStatsCard` immediately (~1-2s) while streaming deep scan progress steps underneath it and merging audit findings when complete.
+  - Phase 3 (Featured Profiles): Added clickable sample profile chips (`@torvalds`, `@yyx990803`, `@gaearon`, `@sundarpichai`, `@sindresorhus`, `@octocat`) running live quickstats + deep-scan pipeline.
+  - Phase 4 (Rate Limit & 15-Minute Caching): Integrated 15-minute TTL cache (`quickstats:{username}`) and independent per-IP rate limiting (`RATE_LIMIT_QUICKSTATS_PER_IP_24H`, default 30 req/IP/24h).
+  - Wrote test suite `test_quickstats.py` verifying metrics aggregation, scanner isolation, 15-minute cache hits, and per-IP rate limiting. All 45 backend tests passing 100% (37.47s runtime).
+  - Verified production Vite frontend build: compiled cleanly in 1.92s with 0 errors.
+

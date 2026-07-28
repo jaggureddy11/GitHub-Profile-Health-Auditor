@@ -60,35 +60,36 @@ def test_user_registration_and_login():
     })
     assert login_fail.status_code == 400
 
-def test_protected_endpoints_rejection():
-    # Try calling /api/scan without authentication header
-    response = client.post("/api/scan", json={"username": "some-user"})
-    assert response.status_code == 401
-
-    # Try calling /api/scans without authentication
-    response2 = client.get("/api/scans")
-    assert response2.status_code == 401
+def test_anonymous_scan_flow_allowed():
+    # Verify /api/scan is now accessible anonymously without Bearer token
+    with patch("main.list_public_repositories", return_value=[]):
+        with patch("main.scan_queue", None):
+            response = client.post("/api/scan", json={"username": "some-user"})
+            assert response.status_code == 200
 
 def test_multi_tenancy_isolation():
+    client_a = TestClient(app)
+    client_b = TestClient(app)
+
     # Register User A and User B
-    client.post("/api/auth/register", json={
+    client_a.post("/api/auth/register", json={
         "email": "tenant-a@example.com",
         "password": "password123"
     })
-    client.post("/api/auth/register", json={
+    client_b.post("/api/auth/register", json={
         "email": "tenant-b@example.com",
         "password": "password123"
     })
 
     # Log in both users
-    token_a = client.post("/api/auth/login", json={"email": "tenant-a@example.com", "password": "password123"}).json()["access_token"]
-    token_b = client.post("/api/auth/login", json={"email": "tenant-b@example.com", "password": "password123"}).json()["access_token"]
+    token_a = client_a.post("/api/auth/login", json={"email": "tenant-a@example.com", "password": "password123"}).json()["access_token"]
+    token_b = client_b.post("/api/auth/login", json={"email": "tenant-b@example.com", "password": "password123"}).json()["access_token"]
 
     # Mock github client call inside start_scan
     with patch("main.list_public_repositories", return_value=[]) as mock_list:
         with patch("main.scan_queue", None):
             # User A starts a scan
-            response_a = client.post(
+            response_a = client_a.post(
                 "/api/scan", 
                 json={"username": "tenant-a-gh"},
                 headers={"Authorization": f"Bearer {token_a}"}
@@ -96,15 +97,15 @@ def test_multi_tenancy_isolation():
             assert response_a.status_code == 200
             scan_id_a = response_a.json()["scan_id"]
 
-            # User B attempts to access User A's scan (should fail with 404/403)
-            response_b_access = client.get(
+            # User B attempts to access User A's scan (should fail with 404 access denied)
+            response_b_access = client_b.get(
                 f"/api/scan/{scan_id_a}",
                 headers={"Authorization": f"Bearer {token_b}"}
             )
             assert response_b_access.status_code == 404
 
             # User A accesses their own scan (should succeed)
-            response_a_access = client.get(
+            response_a_access = client_a.get(
                 f"/api/scan/{scan_id_a}",
                 headers={"Authorization": f"Bearer {token_a}"}
             )
@@ -125,4 +126,35 @@ def test_rate_limiting():
             headers={"Authorization": f"Bearer {token_a}"}
         )
         assert response.status_code == 429
-        assert "Rate limit exceeded" in response.json()["detail"]
+        assert "rate limit" in response.json()["detail"].lower()
+
+def test_demo_github_gating():
+    # 1. Enabled demo auth (default in dev)
+    with patch.dict("os.environ", {"ENABLE_DEMO_LOGIN": "true", "ENVIRONMENT": "development"}):
+        res = client.post("/api/auth/demo-github", json={"username": "octocat"})
+        assert res.status_code == 200
+        assert "access_token" in res.json()
+
+    # 2. Disabled demo auth in production
+    with patch.dict("os.environ", {"ENABLE_DEMO_LOGIN": "false", "ENVIRONMENT": "production"}):
+        res_prod = client.post("/api/auth/demo-github", json={"username": "octocat"})
+        assert res_prod.status_code == 403
+        assert "disabled in this environment" in res_prod.json()["detail"]
+
+def test_jwt_expiration():
+    from datetime import timedelta
+    from main import create_access_token
+
+    # Generate an expired access token (-5 seconds)
+    expired_token = create_access_token(
+        data={"sub": "some-user-id"},
+        expires_delta=timedelta(seconds=-5)
+    )
+
+    response = client.get(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {expired_token}"}
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token has expired"
+

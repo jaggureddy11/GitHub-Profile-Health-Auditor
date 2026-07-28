@@ -4,6 +4,7 @@ import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
 import LandingPage from './components/LandingPage';
+import QuickStatsCard from './components/QuickStatsCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -19,6 +20,8 @@ export default function App() {
   const [scanState, setScanState] = useState('idle'); // 'idle', 'loading', 'completed', 'error'
   const [scanReport, setScanReport] = useState(null);
   const [publicScanReport, setPublicScanReport] = useState(null); // zero-auth quick scan result
+  const [quickstats, setQuickstats] = useState(null);
+  const [quickstatsLoading, setQuickstatsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
@@ -290,19 +293,44 @@ export default function App() {
     }
   };
 
+  const fetchQuickStats = async (username, githubToken) => {
+    setQuickstatsLoading(true);
+    setQuickstats(null);
+    try {
+      let url = `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/quickstats`;
+      if (githubToken) {
+        url += `?github_token=${encodeURIComponent(githubToken)}`;
+      }
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setQuickstats(data);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch quickstats:", err);
+    } finally {
+      setQuickstatsLoading(false);
+    }
+  };
+
   const handleStartScan = async (username, githubToken) => {
     setScanState('loading');
     setErrorMessage('');
     setLoadingStep(0);
     setScanReport(null);
 
+    // Concurrently trigger quickstats fetch (<2s target) alongside deep scan submission
+    fetchQuickStats(username, githubToken);
+
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/scan`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify({
           username,
           github_token: githubToken || null,
@@ -486,13 +514,8 @@ export default function App() {
             onStartRegister={() => { setView('auth'); setAuthMode('register'); }}
             onGitHubOAuth={handleGitHubOAuth}
             onStartQuickScan={(username) => {
-              if (token) {
-                setView('dashboard');
-                handleStartScan(username, '');
-              } else {
-                handleStartQuickScan(username);
-                setView('public-scan');
-              }
+              setView('dashboard');
+              handleStartScan(username, '');
             }}
           />
         )}
@@ -673,9 +696,12 @@ export default function App() {
               </section>
 
               <section className="space-y-2">
-                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">3. Data Retention & Deletion</h3>
+                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">3. Anonymous Privacy & Opt-In Public Badges</h3>
                 <p>
-                  Scan results are saved to your multi-tenant account. You have full ownership of your data. Clicking "Delete Account" immediately deletes your user profile and cascades an absolute database wipe of all repositories, findings, and history linked to your ID.
+                  All scans are anonymous and session-scoped by default using HttpOnly session cookies. Scan findings are private to your session and are never queryable or exposed publicly by username.
+                </p>
+                <p className="pt-1">
+                  Public score badges are strictly optional and require explicit proof-of-ownership (such as adding a challenge token to your GitHub bio or logging in with GitHub OAuth). You can deactivate or revoke your public badge at any time using your revocation access token.
                 </p>
               </section>
             </div>
@@ -871,64 +897,69 @@ export default function App() {
               )}
 
               {scanState === 'loading' && (
-                <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
-                  {/* Header */}
-                  <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
-                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
-                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div className="text-left">
-                      <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
-                      <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
-                    </div>
-                  </div>
+                <div className="space-y-6">
+                  {/* Instant Profile QuickStats Card (Renders immediately in ~1-2s while deep scan finishes) */}
+                  <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
 
-                  {/* Progressive steps checklist */}
-                  <div className="space-y-3.5 text-left max-w-lg">
-                    {loadingMessages.map((msg, idx) => {
-                      const isCompleted = idx < loadingStep;
-                      const isActive = idx === loadingStep;
-                      const isPending = idx > loadingStep;
+                  <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+                      <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                        <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
+                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
+                        <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
+                      </div>
+                    </div>
 
-                      return (
+                    {/* Progressive steps checklist */}
+                    <div className="space-y-3.5 text-left max-w-lg">
+                      {loadingMessages.map((msg, idx) => {
+                        const isCompleted = idx < loadingStep;
+                        const isActive = idx === loadingStep;
+                        const isPending = idx > loadingStep;
+
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`flex items-center space-x-3 transition-all duration-300 ${
+                              isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
+                            }`}
+                          >
+                            {isCompleted && (
+                              <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
+                                ✓
+                              </span>
+                            )}
+                            {isActive && (
+                              <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                            )}
+                            {isPending && (
+                              <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
+                            )}
+                            <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1.5 pt-2 max-w-lg">
+                      <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
                         <div 
-                          key={idx} 
-                          className={`flex items-center space-x-3 transition-all duration-300 ${
-                            isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
-                          }`}
-                        >
-                          {isCompleted && (
-                            <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
-                              ✓
-                            </span>
-                          )}
-                          {isActive && (
-                            <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                          )}
-                          {isPending && (
-                            <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
-                          )}
-                          <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="space-y-1.5 pt-2">
-                    <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
-                      <div 
-                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
-                        style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
-                      <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
-                      <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
+                          style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
+                        <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
+                        <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -941,6 +972,8 @@ export default function App() {
                     onReset={handleReset} 
                     onReRun={(username) => handleStartScan(username, '')}
                     token={token}
+                    quickstats={quickstats}
+                    quickstatsLoading={quickstatsLoading}
                   />
                   <RepoBreakdown 
                     repositories={scanReport.repositories} 

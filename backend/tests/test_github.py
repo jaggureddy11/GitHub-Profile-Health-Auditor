@@ -103,8 +103,8 @@ def test_api_scan_endpoint_success():
     
     async_mock = AsyncMock(return_value=mock_repos)
     
-    from main import check_rate_limit
-    app.dependency_overrides[check_rate_limit] = lambda: None
+    from main import check_ip_rate_limit
+    app.dependency_overrides[check_ip_rate_limit] = lambda req_obj, scan_req=None: None
     try:
         with patch("main.list_public_repositories", async_mock):
             with patch("main.scan_queue", None):
@@ -118,7 +118,7 @@ def test_api_scan_endpoint_success():
                 assert data["status"] == "pending"
                 assert "scan_id" in data
     finally:
-        app.dependency_overrides.pop(check_rate_limit, None)
+        app.dependency_overrides.pop(check_ip_rate_limit, None)
 
 def test_username_validation_scan_request():
     """
@@ -163,7 +163,7 @@ async def test_list_public_repositories_token_types():
         called_headers_2 = mock_get.call_args[1]["headers"]
         assert called_headers_2["Authorization"] == "token gho_oauthToken123"
 
-        # 3. Fine-grained PAT (github_pat_) should use 'Bearer <token>'
+        # 3. Fine-grained PAT (github_pat_) should use 'token <token>'
         await list_public_repositories("test-user", token="github_pat_fineGrained123")
         called_headers_3 = mock_get.call_args[1]["headers"]
-        assert called_headers_3["Authorization"] == "Bearer github_pat_fineGrained123"
+        assert called_headers_3["Authorization"] == "token github_pat_fineGrained123"

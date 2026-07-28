@@ -85,7 +85,7 @@ def test_e2e_register_and_dashboard():
             assert "New Repository Scan" in page.content()
 
             # Verify navigation to Data Privacy page works
-            page.click("text=Data Privacy")
+            page.click("button:has-text('Privacy')")
             page.wait_for_selector("text=What We Do With Your Data", timeout=5000)
             assert "Scanning Pipeline Security" in page.content()
 

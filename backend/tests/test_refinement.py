@@ -26,18 +26,28 @@ def test_health_badge_svg_completed_scan():
 
     db = SessionLocal()
     scan_id = str(uuid.uuid4())
+    unique_user = f"badge_user_{uuid.uuid4().hex[:6]}"
     scan = models.Scan(
         id=scan_id,
         user_id=user_id,
-        username="testbadgeuser",
+        username=unique_user,
         status="completed",
         overall_score=95,
         created_at=datetime.now(timezone.utc)
     )
     db.add(scan)
+    badge = models.PublicBadge(
+        username=unique_user,
+        overall_score=95,
+        verified_at=datetime.now(timezone.utc),
+        verification_method="bio_token",
+        revocation_token="testrevtoken",
+        is_active=True
+    )
+    db.add(badge)
     db.commit()
 
-    response = get_user_health_badge("testbadgeuser", db)
+    response = get_user_health_badge(unique_user, db)
     db.close()
 
     assert response.status_code == 200

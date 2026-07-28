@@ -465,27 +465,25 @@ export default function App() {
           fetchScanHistory();
         } else if (report.status === 'failed' || report.status === 'timed_out') {
           clearInterval(pollInterval);
-          setScanState('error');
-          setErrorMessage(`Audit for repository "${repoName}" ${report.status === 'timed_out' ? 'timed out' : 'failed'}. Please try auditing again.`);
-          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
+          setRepoStatuses((prev) => ({ ...prev, [repoName]: report.status }));
+          setScanState((currentState) => (currentState === 'loading' ? 'idle' : currentState));
         }
       } catch (err) {
         console.error("Polling error for repo scan:", err);
       }
     }, 2000);
 
-    // Safety timeout per single repo scan (90 seconds max)
+    // Safety timeout per single repo scan (180 seconds max)
     setTimeout(() => {
       clearInterval(pollInterval);
-      setScanState((currentState) => {
-        if (currentState === 'loading') {
-          setErrorMessage(`Audit for repository "${repoName}" timed out after 90 seconds. Please try again.`);
-          setRepoStatuses((prev) => ({ ...prev, [repoName]: 'timed_out' }));
-          return 'error';
+      setRepoStatuses((prev) => {
+        if (prev[repoName] === 'running' || prev[repoName] === 'queued') {
+          return { ...prev, [repoName]: 'timed_out' };
         }
-        return currentState;
+        return prev;
       });
-    }, 90000);
+      setScanState((currentState) => (currentState === 'loading' ? 'idle' : currentState));
+    }, 180000);
   };
 
   const pollScanJobToCompletion = (scanId) => {

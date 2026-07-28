@@ -672,24 +672,36 @@ export default function App() {
               Privacy &amp; Security
             </button>
 
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white transition flex items-center gap-2 text-xs font-bold font-mono active:scale-95"
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span className="hidden sm:inline">Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="hidden sm:inline">Dark Mode</span>
-                </>
-              )}
-            </button>
+            {/* Interactive Theme Switch (ON / OFF Slider) */}
+            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 p-1.5 px-3 rounded-2xl text-xs font-mono font-bold shadow-sm">
+              <span className="text-zinc-400 text-[11px] hidden sm:inline">Theme</span>
+              <button
+                onClick={toggleTheme}
+                role="switch"
+                aria-checked={theme === 'dark'}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-300 p-0.5 flex items-center cursor-pointer ${
+                  theme === 'dark' ? 'bg-emerald-950 border border-emerald-700' : 'bg-amber-100 border border-amber-300'
+                }`}
+                title={`Dark Mode ${theme === 'dark' ? 'ON' : 'OFF'} (Click to toggle)`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full shadow-md flex items-center justify-center transition-transform duration-300 transform ${
+                    theme === 'dark'
+                      ? 'translate-x-5 bg-emerald-400 text-black'
+                      : 'translate-x-0 bg-amber-500 text-white'
+                  }`}
+                >
+                  {theme === 'dark' ? (
+                    <Moon className="w-2.5 h-2.5 fill-black text-black" />
+                  ) : (
+                    <Sun className="w-2.5 h-2.5 fill-white text-white" />
+                  )}
+                </div>
+              </button>
+              <span className={`text-[11px] font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-amber-600'}`}>
+                {theme === 'dark' ? 'Dark ON' : 'Light'}
+              </span>
+            </div>
             {token ? (
               <div className="flex items-center space-x-3 pl-2 border-l border-zinc-850">
                 <span className="text-xs text-zinc-400 font-mono hidden md:inline">{user?.email}</span>

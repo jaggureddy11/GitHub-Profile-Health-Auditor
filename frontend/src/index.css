@@ -224,6 +224,17 @@ html.light, html.light body {
   color: #0f172a !important;
 }
 
+html.light header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light footer {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
 html.light ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }

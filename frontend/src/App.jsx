@@ -5,6 +5,7 @@ import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
 import LandingPage from './components/LandingPage';
 import QuickStatsCard from './components/QuickStatsCard';
+import RepoGrid from './components/RepoGrid';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -22,6 +23,10 @@ export default function App() {
   const [publicScanReport, setPublicScanReport] = useState(null); // zero-auth quick scan result
   const [quickstats, setQuickstats] = useState(null);
   const [quickstatsLoading, setQuickstatsLoading] = useState(false);
+  const [userRepos, setUserRepos] = useState([]);
+  const [userReposLoading, setUserReposLoading] = useState(false);
+  const [repoStatuses, setRepoStatuses] = useState({});
+  const [activeUsername, setActiveUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
@@ -313,14 +318,63 @@ export default function App() {
     }
   };
 
+  const fetchUserRepos = async (username, githubToken) => {
+    setUserReposLoading(true);
+    setUserRepos([]);
+    setRepoStatuses({});
+    try {
+      let url = `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/repos`;
+      if (githubToken) {
+        url += `?github_token=${encodeURIComponent(githubToken)}`;
+      }
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setUserRepos(data.repositories || []);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch user repos:", err);
+    } finally {
+      setUserReposLoading(false);
+    }
+  };
+
+  const handleStartSingleRepoScan = async (repo) => {
+    const repoName = repo.name;
+    const targetUsername = activeUsername || repo.owner?.login || 'octocat';
+    setRepoStatuses((prev) => ({ ...prev, [repoName]: 'queued' }));
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: targetUsername,
+          repo_name: repoName,
+        })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Repo scan request failed');
+      }
+      const data = await res.json();
+      setRepoStatuses((prev) => ({ ...prev, [repoName]: 'running' }));
+      pollScanStatus(data.scan_id, repoName);
+    } catch (err) {
+      console.error(`Single repo scan error for ${repoName}:`, err);
+      setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
+    }
+  };
+
   const handleStartScan = async (username, githubToken) => {
+    setActiveUsername(username);
     setScanState('loading');
     setErrorMessage('');
     setLoadingStep(0);
     setScanReport(null);
 
-    // Concurrently trigger quickstats fetch (<2s target) alongside deep scan submission
+    // Concurrently trigger quickstats fetch and repo listing (<2s target)
     fetchQuickStats(username, githubToken);
+    fetchUserRepos(username, githubToken);
 
     try {
       const headers = { 'Content-Type': 'application/json' };
@@ -352,7 +406,7 @@ export default function App() {
     }
   };
 
-  const pollScanStatus = (scanId) => {
+  const pollScanStatus = (scanId, singleRepoName = null) => {
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
@@ -363,6 +417,24 @@ export default function App() {
         }
 
         const report = await response.json();
+
+        if (singleRepoName) {
+          if (report.status === 'completed') {
+            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'completed' }));
+          } else if (report.status === 'failed') {
+            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'failed' }));
+          } else if (report.status === 'timed_out') {
+            setRepoStatuses((prev) => ({ ...prev, [singleRepoName]: 'timed_out' }));
+          }
+        } else if (report.repositories && report.repositories.length > 0) {
+          setRepoStatuses((prev) => {
+            const updated = { ...prev };
+            report.repositories.forEach((r) => {
+              updated[r.name] = report.status === 'completed' ? 'completed' : 'running';
+            });
+            return updated;
+          });
+        }
         
         if (report.status === 'completed') {
           clearInterval(pollInterval);
@@ -898,8 +970,18 @@ export default function App() {
 
               {scanState === 'loading' && (
                 <div className="space-y-6">
-                  {/* Instant Profile QuickStats Card (Renders immediately in ~1-2s while deep scan finishes) */}
+                  {/* Instant Profile QuickStats Card */}
                   <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
+
+                  {/* Public Repositories Grid View */}
+                  <RepoGrid 
+                    repositories={userRepos} 
+                    repoStatuses={repoStatuses} 
+                    isLoading={userReposLoading}
+                    onAnalyzeRepo={handleStartSingleRepoScan}
+                    onAnalyzeAll={() => handleStartScan(activeUsername)}
+                    isAnalyzingAll={scanState === 'loading'}
+                  />
 
                   <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6">
                     {/* Header */}
@@ -975,6 +1057,17 @@ export default function App() {
                     quickstats={quickstats}
                     quickstatsLoading={quickstatsLoading}
                   />
+
+                  {/* Public Repositories Grid View */}
+                  <RepoGrid 
+                    repositories={userRepos.length > 0 ? userRepos : scanReport.repositories} 
+                    repoStatuses={repoStatuses} 
+                    isLoading={userReposLoading}
+                    onAnalyzeRepo={handleStartSingleRepoScan}
+                    onAnalyzeAll={() => handleStartScan(activeUsername)}
+                    isAnalyzingAll={false}
+                  />
+
                   <RepoBreakdown 
                     repositories={scanReport.repositories} 
                     findings={scanReport.findings}

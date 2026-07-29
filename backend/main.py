@@ -507,12 +507,15 @@ GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "dummy_client_id")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "dummy_client_secret")
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:3000/auth/github/callback")
 
+from urllib.parse import quote
+
 @app.get("/api/auth/github/url")
 def get_github_oauth_url():
+    encoded_redirect_uri = quote(GITHUB_REDIRECT_URI, safe="")
     url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}"
-        f"&redirect_uri={GITHUB_REDIRECT_URI}"
+        f"&redirect_uri={encoded_redirect_uri}"
         f"&scope=read:user,public_repo"
     )
     return {"url": url}

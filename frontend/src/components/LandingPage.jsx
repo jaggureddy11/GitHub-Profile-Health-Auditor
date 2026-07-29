@@ -838,7 +838,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       </section>
 
       {/* RICH MODERN DEVELOPER FOOTER */}
-      <footer className="mt-16 border-t border-zinc-200 dark:border-zinc-850 pt-14 pb-10 bg-slate-50 dark:bg-black/90 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+      <footer className="mt-16 border-t border-zinc-850 pt-14 pb-10 bg-black font-mono text-xs text-zinc-400">
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-10">
           
           {/* Brand & Developer Bio (5 cols) */}
@@ -847,16 +847,16 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               <img 
                 src="/logo.png" 
                 alt="GitHub Profile Auditor Logo" 
-                className="w-8 h-8 rounded-xl object-cover border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shrink-0 shadow-sm" 
+                className="w-8 h-8 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0" 
               />
-              <span className="font-extrabold text-zinc-900 dark:text-white text-base tracking-tight font-sans">
+              <span className="font-extrabold text-white text-base tracking-tight font-sans">
                 GitHub Profile Auditor
               </span>
               <span className="px-2.5 py-0.5 text-[10px] bg-emerald-950/80 text-emerald-400 font-mono font-bold rounded-full border border-emerald-800/80 uppercase tracking-wider">
                 BETA
               </span>
             </div>
-            <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed max-w-sm font-sans">
+            <p className="text-zinc-400 text-xs leading-relaxed max-w-sm font-sans">
               Automated multi-engine static analysis for public GitHub profiles. Intercept committed credentials, clean repository hygiene debt, and boost your recruiter hiring rank.
             </p>
             
@@ -866,25 +866,25 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                 href="https://www.linkedin.com/in/jaggureddy/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-zinc-300 hover:text-white transition flex items-center space-x-2 text-[11px] font-bold"
               >
-                <LinkedinIcon className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <LinkedinIcon className="w-3.5 h-3.5 text-cyan-400" />
                 <span>LinkedIn</span>
               </a>
               <a
                 href="https://github.com/jaggureddy11"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-zinc-300 hover:text-white transition flex items-center space-x-2 text-[11px] font-bold"
               >
-                <GithubIcon className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+                <GithubIcon className="w-3.5 h-3.5 text-zinc-300" />
                 <span>GitHub</span>
               </a>
               <a
                 href="mailto:jaggureddy2004@gmail.com"
-                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-zinc-300 hover:text-white transition flex items-center space-x-2 text-[11px] font-bold"
               >
-                <Mail className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Mail className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Email</span>
               </a>
             </div>
@@ -892,26 +892,26 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Engine Features (3 cols) */}
           <div className="md:col-span-3 space-y-3">
-            <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider">Analysis Engines</h4>
-            <ul className="space-y-2 text-zinc-600 dark:text-zinc-400 text-[11px]">
-              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Analysis Engines</h4>
+            <ul className="space-y-2 text-zinc-400 text-[11px]">
+              <li className="flex items-center space-x-1.5 hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
                 <span>TruffleHog Redaction</span>
               </li>
-              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
-                <CheckCircle2 className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
+              <li className="flex items-center space-x-1.5 hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" />
                 <span>Semgrep AST Hygiene</span>
               </li>
-              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
-                <CheckCircle2 className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
+              <li className="flex items-center space-x-1.5 hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-purple-400 shrink-0" />
                 <span>AI Recruiter Score</span>
               </li>
-              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
-                <CheckCircle2 className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+              <li className="flex items-center space-x-1.5 hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" />
                 <span>Unified .patch Fixes</span>
               </li>
-              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <li className="flex items-center space-x-1.5 hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
                 <span>README Health Shield</span>
               </li>
             </ul>
@@ -919,19 +919,19 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Security & System Info (4 cols) */}
           <div className="md:col-span-4 space-y-3">
-            <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider">Security Architecture</h4>
-            <div className="p-3.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-2xl space-y-2 shadow-sm">
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Security Architecture</h4>
+            <div className="p-3.5 bg-zinc-950 border border-zinc-850 rounded-2xl space-y-2">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Clone RAM Wiping:</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% In-Memory</span>
+                <span className="text-zinc-400 font-semibold">Clone RAM Wiping:</span>
+                <span className="text-emerald-400 font-bold">100% In-Memory</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Stored Credentials:</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">0 Secrets Saved</span>
+                <span className="text-zinc-400 font-semibold">Stored Credentials:</span>
+                <span className="text-emerald-400 font-bold">0 Secrets Saved</span>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Scanner Queue:</span>
-                <span className="text-cyan-600 dark:text-cyan-400 font-bold">Redis Ephemeral</span>
+                <span className="text-zinc-400 font-semibold">Scanner Queue:</span>
+                <span className="text-cyan-400 font-bold">Redis Ephemeral</span>
               </div>
             </div>
             <p className="text-[10px] text-zinc-500 leading-relaxed font-sans">
@@ -942,12 +942,12 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         </div>
 
         {/* Sub-Footer Copyright Bar */}
-        <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
+        <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
           <p>© {new Date().getFullYear()} R Jagadishwar R (jaggureddy11). All rights reserved.</p>
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-zinc-700 dark:text-zinc-400 font-bold">All Engines Operational</span>
+              <span className="text-zinc-400 font-bold">All Engines Operational</span>
             </span>
           </div>
         </div>

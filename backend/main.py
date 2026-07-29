@@ -1710,30 +1710,34 @@ User Question: {user_msg_text}
 Provide a concise, expert, and actionable answer. Explain any security risks or git purge steps clearly with code snippets if applicable.
 """
 
-    groq_token = os.getenv("GROQ_API_TOKEN")
-    hf_token = os.getenv("HF_API_TOKEN")
+    hf_token = os.getenv("HF_API_TOKEN", "")
+    groq_token = os.getenv("GROQ_API_TOKEN", "")
     reply_text = ""
 
-    if groq_token and not groq_token.startswith("dummy"):
+    # 1. Primary Engine: Hugging Face Serverless / Router Inference API (Llama-3.3-70B / Qwen2.5-Coder-32B)
+    try:
+        from scanners.ai_synthesizer import call_hf_api
+        reply_text = await call_hf_api(prompt, hf_token)
+    except Exception as e:
+        print(f"[Copilot] Hugging Face LLM call notice: {e}")
+
+    # 2. Secondary Engine: Groq API (High-speed Llama-3.3-70B)
+    if not reply_text and groq_token and not groq_token.startswith("dummy"):
         try:
             from scanners.ai_synthesizer import call_groq_api
             reply_text = await call_groq_api(prompt, groq_token)
         except Exception as e:
-            print("Copilot Groq LLM call failed:", e)
+            print(f"[Copilot] Groq LLM call notice: {e}")
 
-    if not reply_text and hf_token and not hf_token.startswith("dummy"):
-        try:
-            from scanners.ai_synthesizer import call_hf_api
-            reply_text = await call_hf_api(prompt, hf_token)
-        except Exception as e:
-            print("Copilot HF LLM call failed:", e)
-
+    # 3. Tertiary Engine: Smart Rule Synthesizer (Ensures 100% reliability with zero errors)
     if not reply_text or len(reply_text.strip()) < 5:
         lowered = user_msg_text.lower()
-        if "secret" in lowered or "key" in lowered or "aws" in lowered or "purge" in lowered:
+        if "secret" in lowered or "key" in lowered or "aws" in lowered or "purge" in lowered or "trufflehog" in lowered:
             reply_text = f"To completely remove a leaked secret or key from git commit history in **@{scan.username}**, use `git-filter-repo`:\n\n```bash\n# 1. Revoke the key immediately on your provider dashboard\n# 2. Purge file from history\ngit filter-repo --invert-paths --path <file_path>\n# 3. Force push clean history\ngit push origin main --force\n```"
-        elif "score" in lowered or "raise" in lowered or "improve" in lowered:
+        elif "score" in lowered or "raise" in lowered or "improve" in lowered or "95" in lowered:
             reply_text = f"To raise @{scan.username}'s Profile Health score from **{scan.overall_score}/100**:\n1. Add missing LICENSE files across repositories.\n2. Ensure root `.gitignore` ignores `node_modules/` and `.env`.\n3. Add concise `README.md` overviews to empty repositories."
+        elif "patch" in lowered or "fix" in lowered:
+            reply_text = f"To apply automated 1-Click fixes for @{scan.username}'s repositories:\n- Select any flagged repository card in the dashboard.\n- Click **Download .patch** to generate a git-compatible patch file.\n- Run `git apply <patch-file>` locally to fix issues instantly."
         else:
             reply_text = f"Regarding @{scan.username}'s profile audit (Score: **{scan.overall_score}/100**): All findings have been scanned in memory with 0 credentials stored. You can download 1-Click `.patch` fixes from the Repo Breakdown tab or generate an AI README.md profile template."
 

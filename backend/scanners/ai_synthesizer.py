@@ -93,26 +93,50 @@ async def call_groq_api(prompt: str, token: str) -> str:
 
 async def call_hf_api(prompt: str, token: str) -> str:
     """
-    Makes HTTP request to Hugging Face Inference API.
+    Makes HTTP request to Hugging Face Serverless / Router Inference API.
+    Supports Llama-3.3-70B and Qwen2.5-Coder-32B free open models.
     """
-    url = f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
+    headers = {"Content-Type": "application/json"}
+    if token and token.strip() and not token.startswith("dummy"):
+        headers["Authorization"] = f"Bearer {token.strip()}"
+
+    # 1. Try HF Serverless Router Chat Completions API
+    router_url = "https://router.huggingface.co/hf-inference/v1/chat/completions"
+    router_payload = {
+        "model": HF_MODEL_ID,
+        "messages": [
+            {"role": "system", "content": "You are a senior Application Security and Code Hygiene auditor. Return clear, concise, actionable advice with code snippets when appropriate."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.1,
+        "max_tokens": 1500
     }
+    
+    async with httpx.AsyncClient(timeout=25.0, trust_env=False) as client:
+        try:
+            res = await client.post(router_url, headers=headers, json=router_payload)
+            if res.status_code == 200:
+                data = res.json()
+                if "choices" in data and len(data["choices"]) > 0:
+                    return data["choices"][0]["message"]["content"]
+        except Exception as err:
+            print(f"HF Router Chat API notice ({err}), falling back to direct endpoint...")
+
+    # 2. Fallback to direct model inference endpoint
+    url = f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}"
     payload = {
         "inputs": prompt,
         "parameters": {
-            "max_new_tokens": 1500,
+            "max_new_tokens": 1200,
             "temperature": 0.1,
             "return_full_text": False
         }
     }
     
-    async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
+    async with httpx.AsyncClient(timeout=25.0, trust_env=False) as client:
         response = await client.post(url, headers=headers, json=payload)
         if response.status_code != 200:
-            raise Exception(f"Hugging Face API returned status {response.status_code}: {response.text}")
+            raise Exception(f"Hugging Face API status {response.status_code}: {response.text}")
             
         data = response.json()
         if isinstance(data, list) and len(data) > 0:

@@ -11,6 +11,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
   const { scan_id, overall_score, summary, repositories, findings, username, created_at } = report;
   const [copiedType, setCopiedType] = useState(null);
   const [animatedScore, setAnimatedScore] = useState(0);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
 
   // Smooth Score Counter Animation on Mount/Change
   useEffect(() => {
@@ -356,8 +357,33 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           </div>
         </div>
       )}
+      
+      {/* Floating IDE Copilot Trigger Button */}
+      <button
+        onClick={() => setIsCopilotOpen(true)}
+        className="fixed bottom-6 right-6 z-40 bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 border border-black/20 transition transform hover:scale-105 active:scale-95 group font-sans"
+      >
+        <div className="w-6 h-6 rounded-lg bg-black/10 flex items-center justify-center">
+          <Bot className="w-4 h-4 text-black group-hover:rotate-12 transition" />
+        </div>
+        <span className="text-xs font-bold tracking-tight">IDE Copilot AI</span>
+        <span className="flex h-2 w-2 relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
+        </span>
+      </button>
 
-      {/* Prioritized AI Recommendations & AI Copilot Section */}
+      {/* Slide-out IDE Sidebar Copilot Component */}
+      <SecurityCopilot 
+        scanId={scan_id} 
+        token={token} 
+        username={username} 
+        score={overall_score} 
+        isOpen={isCopilotOpen} 
+        onClose={() => setIsCopilotOpen(false)} 
+      />
+
+      {/* Prioritized AI Recommendations & AI Copilot Banner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up-3">
         
         {/* AI Prioritized Insights */}
@@ -406,22 +432,46 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           )}
         </div>
 
-        {/* AI Security Copilot Interactive Assistant */}
-        {token ? (
-          <SecurityCopilot scanId={scan_id} token={token} username={username} score={overall_score} />
-        ) : (
-          <div className="border border-zinc-850 bg-zinc-950 p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center text-center space-y-4 font-mono">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-emerald-400">
-              <Bot className="w-6 h-6 text-emerald-400" />
+        {/* IDE Copilot Assistant Launcher Card */}
+        <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl shadow-xl flex flex-col justify-between space-y-6 hover:border-zinc-700 transition-all duration-300">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center">
+                  <span>IDE Security Copilot</span>
+                  <span className="ml-2 px-2 py-0.5 text-[9px] bg-emerald-950 text-emerald-300 rounded border border-emerald-800 uppercase font-bold">Llama-3.3-70B</span>
+                </h3>
+                <p className="text-xs text-zinc-400">Contextual AI Assistant powered by Hugging Face & Groq</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h4 className="text-base font-extrabold text-white">Unlock AI Security Copilot Assistant</h4>
-              <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
-                Sign in to chat directly with AI Security Copilot about your audit findings, secret purging steps, and custom git fixes.
-              </p>
+
+            <p className="text-xs text-zinc-300 leading-relaxed font-sans">
+              Need step-by-step guidance to purge secrets with <code className="bg-black text-emerald-400 px-1.5 py-0.5 rounded border border-zinc-800 font-mono">git-filter-repo</code>, raise @{username}'s health score to 95+, or apply 1-Click security patches?
+            </p>
+
+            <div className="grid grid-cols-1 gap-2 pt-1 font-mono text-[11px]">
+              <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
+                <span>💬 Ask about secret revocation & history purging</span>
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              </div>
+              <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
+                <span>⚡ Get custom terminal commands & code fixes</span>
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              </div>
             </div>
           </div>
-        )}
+
+          <button
+            onClick={() => setIsCopilotOpen(true)}
+            className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 font-sans"
+          >
+            <Bot className="w-4 h-4 text-black" />
+            <span>Launch IDE Copilot Panel</span>
+          </button>
+        </div>
 
       </div>
 

@@ -241,9 +241,7 @@ def verify_scan_access(
         raise HTTPException(status_code=404, detail="Scan not found or access denied")
     
     allowed = False
-    if not scan.user_id:
-        allowed = True
-    elif current_user and scan.user_id == current_user.id:
+    if current_user and scan.user_id and scan.user_id == current_user.id:
         allowed = True
     elif scan.session_id and scan.session_id == session_id:
         allowed = True

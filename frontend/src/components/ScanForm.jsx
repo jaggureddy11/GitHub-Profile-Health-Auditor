@@ -69,7 +69,7 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="username" className="block font-bold text-zinc-300">
-              {loggedInGithubUser ? 'Or Scan Any Public Profile' : 'GitHub Username'} <span className="text-white">*</span>
+              {loggedInGithubUser ? 'Or Scan Any Profile / Repo Link' : 'GitHub Username or Repo Link'} <span className="text-white">*</span>
             </label>
             <span className="text-[10px] text-zinc-500">Public repos only</span>
           </div>
@@ -82,7 +82,7 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
               id="username"
               required
               disabled={isLoading}
-              placeholder={loggedInGithubUser || "octocat"}
+              placeholder={loggedInGithubUser || "username or torvalds/linux"}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="block w-full pl-24 pr-3 py-2.5 sm:py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-700 focus:outline-none focus:border-zinc-500 disabled:opacity-50 text-xs sm:text-sm font-mono transition duration-150"

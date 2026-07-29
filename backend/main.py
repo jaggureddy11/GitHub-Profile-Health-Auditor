@@ -204,6 +204,32 @@ def get_session_id(
         )
     return session_id
 
+def parse_github_target(raw_input: str) -> tuple[str, Optional[str]]:
+    """
+    Parses raw input string into (username, target_repo_name).
+    Supports:
+    - 'octocat' -> ('octocat', None)
+    - '@octocat' -> ('octocat', None)
+    - 'github.com/octocat' -> ('octocat', None)
+    - 'https://github.com/octocat/Hello-World' -> ('octocat', 'Hello-World')
+    - 'octocat/Hello-World' -> ('octocat', 'Hello-World')
+    """
+    if not raw_input:
+        return ("", None)
+    s = raw_input.strip()
+    if "github.com/" in s:
+        s = s.split("github.com/")[1]
+    s = s.lstrip("@").strip()
+    if s.endswith(".git"):
+        s = s[:-4]
+    
+    parts = [p.strip() for p in s.split("/") if p.strip()]
+    if not parts:
+        return ("", None)
+    if len(parts) == 1:
+        return (parts[0], None)
+    return (parts[0], parts[1])
+
 def verify_scan_access(
     scan_id: str,
     db: Session,
@@ -671,10 +697,7 @@ async def get_profile_quickstats(
     Lightweight, fast endpoint (<2s) returning GitHub profile statistics (avatar, bio, followers, stars, top languages).
     Does NOT clone repos, run static analysis (TruffleHog/Semgrep), or call AI synthesis.
     """
-    clean_username = username.strip()
-    if "github.com/" in clean_username:
-        clean_username = clean_username.split("github.com/")[1].split("/")[0]
-    clean_username = clean_username.lstrip("@").strip()
+    clean_username, target_repo = parse_github_target(username)
 
     if not clean_username:
         raise HTTPException(status_code=400, detail="Username cannot be empty")
@@ -710,10 +733,7 @@ async def get_profile_repositories(
     Lightweight, fast endpoint (<2s) returning GitHub repositories list with metadata (stars, forks, language).
     Does NOT clone repos, run static analysis (TruffleHog/Semgrep), or call AI synthesis.
     """
-    clean_username = username.strip()
-    if "github.com/" in clean_username:
-        clean_username = clean_username.split("github.com/")[1].split("/")[0]
-    clean_username = clean_username.lstrip("@").strip()
+    clean_username, target_repo = parse_github_target(username)
 
     if not clean_username:
         raise HTTPException(status_code=400, detail="Username cannot be empty")
@@ -721,6 +741,11 @@ async def get_profile_repositories(
     # 1. Check 15-minute cache
     cached = get_cached_repos(clean_username)
     if cached:
+        if target_repo and "repositories" in cached:
+            target_matches = [r for r in cached["repositories"] if r.get("name", "").lower() == target_repo.lower()]
+            other_repos = [r for r in cached["repositories"] if r.get("name", "").lower() != target_repo.lower()]
+            if target_matches:
+                cached["repositories"] = target_matches + other_repos
         return cached
 
     # 2. Check per-IP rate limit
@@ -730,6 +755,11 @@ async def get_profile_repositories(
     max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
     try:
         repos_data = await get_user_repositories(clean_username, token=token_to_use, max_repos=max_repos_cap)
+        if target_repo and "repositories" in repos_data:
+            target_matches = [r for r in repos_data["repositories"] if r.get("name", "").lower() == target_repo.lower()]
+            other_repos = [r for r in repos_data["repositories"] if r.get("name", "").lower() != target_repo.lower()]
+            if target_matches:
+                repos_data["repositories"] = target_matches + other_repos
         set_cached_repos(clean_username, repos_data)
         return repos_data
     except GitHubAPIError as e:

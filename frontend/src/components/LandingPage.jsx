@@ -138,7 +138,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               </span>
               <input
                 type="text"
-                placeholder="username (e.g. octocat)"
+                placeholder="username or repo URL (e.g. torvalds/linux or octocat)"
                 value={quickUsername}
                 onChange={(e) => setQuickUsername(e.target.value)}
                 className="w-full py-3.5 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none font-mono text-xs sm:text-sm text-left font-semibold"

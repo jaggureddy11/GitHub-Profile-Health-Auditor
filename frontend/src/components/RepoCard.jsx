@@ -10,9 +10,16 @@ export default function RepoCard({ repo, status = 'idle', onAnalyze }) {
     <div className="bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 group shadow-lg font-sans">
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-sans font-bold text-base text-white group-hover:text-zinc-200 transition-colors flex items-center gap-2 truncate">
-            {repo.name}
-          </h3>
+          <div className="space-y-1 min-w-0">
+            <h3 className="font-sans font-bold text-base text-white group-hover:text-zinc-200 transition-colors flex items-center gap-2 truncate">
+              {repo.name}
+            </h3>
+            {repo.is_target_repo && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 uppercase tracking-wider">
+                🎯 Target Repo
+              </span>
+            )}
+          </div>
           <a
             href={repo.html_url || repo.url}
             target="_blank"

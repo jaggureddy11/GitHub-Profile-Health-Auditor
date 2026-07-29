@@ -1,26 +1,49 @@
-# GitHub Profile Health Auditor
+<p align="center">
+  <img src="frontend/public/logo.png" alt="GitHub Profile Health Auditor Logo" width="128" height="128" style="border-radius: 24px;" />
+</p>
 
-A privacy-first, production-grade security and static analysis scanner for public GitHub profiles. It aggregates developer repository metadata, evaluates codebases for credential leaks, structural neglect, and configuration smells, and produces a synthesized AI report card with auto-fix patches and embeddable badges.
+<h1 align="center">GitHub Profile Health Auditor</h1>
+
+<p align="center">
+  <strong>Automated Multi-Engine Static Security Analysis & Git Hygiene Auditor for GitHub Profiles & Repositories</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/jaggureddy11/GitHub-Profile-Health-Auditor/actions"><img src="https://img.shields.io/badge/Build-Passing-emerald?style=for-the-badge&logo=github-actions&logoColor=white" alt="Build Status" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.110.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/Frontend-Vite%20%2B%20React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="Vite React" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" /></a>
+</p>
 
 ---
 
-## ⚡ Hybrid Performance Architecture
+## 💡 Overview
 
-The application implements a decoupled, multi-layered processing architecture designed to match competitor initial loading speeds while delivering deep security telemetry:
+**GitHub Profile Health Auditor** is a privacy-first, production-grade security and static analysis platform. It analyzes public GitHub profiles and single repository URLs, intercepting committed API credentials, detecting code smells, evaluating Git hygiene debt, and synthesizing executive AI security reports with 1-click downloadable `.patch` fixes.
 
-1. **Instant Overview Layer (<2s)**: Fret-free, unauthenticated endpoint (`GET /api/profile/{username}/quickstats`) that collects profile metadata, followers, star/fork aggregates, top language distributions, and active history via REST API without cloning. Cached for 15 minutes in Redis.
-2. **Progressive Scan Pipeline**: Concurrently submits the target username to the background queue worker. The frontend immediately displays the metadata card and updates a live checklist for:
-   - *Stage 1*: Repository Discovery & Cap Checks (Truncated to top 10 most active repositories).
-   - *Stage 2*: Git Hygiene Audits (Flags missing README, LICENSE, `.gitignore`, and committed configs).
-   - *Stage 3*: TruffleHog Commit Log Scanning (Runs across full git history).
-   - *Stage 4*: Semgrep Code Smell Static Analysis.
-   - *Stage 5*: AI Report Synthesis.
-3. **Decoupled Verification Badge**: Public score indexing is strictly opt-in. Unverified usernames render a default `Unverified` SVG. Score publication is gated behind proof-of-ownership (OAuth integration or server-issued 15-minute challenge tokens placed in the user's GitHub bio).
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **🎯 Single Repository Audit** | Pass any direct repository link (`https://github.com/torvalds/linux` or `torvalds/linux`) to isolate and audit **only** that target repository, with an option to reveal remaining profile repos. |
+| **🔐 Secret Leak Interception** | Integrated **TruffleHog** scanner to detect exposed API keys, AWS credentials, Slack webhooks, and database tokens across full Git commit histories. |
+| **🧹 Semgrep AST Code Smell Audit** | Automated AST analysis checking for unhandled exceptions, dangerous `eval()` calls, hardcoded secrets, and missing error handlers. |
+| **🤖 Groq AI Security Synthesis** | Leverages `llama-3.3-70b-versatile` to synthesize audit findings into actionable remediation guidance, recruiter risk ratings, and clean summary reports. |
+| **🩹 1-Click `.patch` Remediation** | Generates standardized `.patch` files for instant application via `git apply`, fixing `.gitignore` gaps, README shields, and license debt. |
+| **🛡️ Opt-In Verifiable Badges** | Generates embeddable SVG profile badges (`A+`, `B-`, `SECURITY SHIELD`) verified via GitHub OAuth or 15-minute bio challenge tokens. |
+| **⚡ Hybrid Performance Architecture** | Lightweight `<2s` profile quickstats endpoint using Redis 15-minute caching and asynchronous background queue processing via RQ. |
+
+---
+
+## ⚡ Hybrid Architecture Flow
 
 ```
                         ┌────────────────────────────────────────┐
                         │              React Frontend            │
-                        │               (Vite, React)            │
+                        │          (Vite, Tailwind, React)       │
                         └───────────────────┬────────────────────┘
                                             │
                                  POST/GET Scan Requests
@@ -28,102 +51,102 @@ The application implements a decoupled, multi-layered processing architecture de
                                             ▼
                         ┌────────────────────────────────────────┐
                         │             FastAPI Backend            │
-                        │           (Database & Jobs)            │
+                        │        (Endpoints, RQ Enqueue, DB)     │
                         └─────────┬───────────────────┬──────────┘
                                   │                   │
                              Submit Job           Save Info
                                   │                   │
                                   ▼                   ▼
-     ┌────────────────────────────────┐   ┌───────────────────────┐
-     │        Redis Queue (RQ)        │   │    SQLite Database    │
-     │      Background Jobs Queue     │   │      (SQLAlchemy)     │
-     └──────────────┬─────────────────┘   └───────────▲───────────┘
-                    │                                 │
-                 Pulls Job                            │
-                    │                                 │
-                    ▼                                 │
-     ┌────────────────────────────────┐               │
-     │          Background            │               │
-     │         Python Worker          ├───────────────┘
-     │          (worker.py)           │          Writes Findings
-     └──────────────┬─────────────────┘
-                    │
-            Clones Repositories
-            Executes Scanners
-                    │
-      ┌─────────────┼─────────────┐
-      ▼             ▼             ▼
-  TruffleHog     Semgrep       Hygiene
-  (Secrets)     (Smells)      (Structure)
-      │             │             │
-      └─────────────┼─────────────┘
-                    │
-                    ▼
-          Hugging Face API (AI Synthesis)
+      ┌────────────────────────────────┐   ┌───────────────────────┐
+      │        Redis Queue (RQ)        │   │    SQLite Database    │
+      │      Background Jobs Queue     │   │      (SQLAlchemy)     │
+      └──────────────┬─────────────────┘   └───────────▲───────────┘
+                     │                                 │
+                  Pulls Job                            │
+                     │                                 │
+                     ▼                                 │
+      ┌────────────────────────────────┐               │
+      │          Background            │               │
+      │         Python Worker          ├───────────────┘
+      │          (worker.py)           │          Writes Findings
+      └──────────────┬─────────────────┘
+                     │
+             Clones Repositories
+             Executes Scanners
+                     │
+       ┌─────────────┼─────────────┐
+       ▼             ▼             ▼
+   TruffleHog     Semgrep       Hygiene
+   (Secrets)     (Smells)      (Structure)
+       │             │             │
+       └─────────────┼─────────────┘
+                     │
+                     ▼
+           Groq AI Engine (llama-3.3-70b)
 ```
 
 ---
 
-## 🔒 Security Hardening & Abuse Prevention
+## 🔒 Security Hardening & Isolation
 
-- **Absolute Secret Redaction**: Discovered credentials (AWS, Slack, Stripe, database keys) are processed inside local worker scopes and immediately replaced with `[REDACTED]` prior to DB persistence or API serialization.
-- **Session-Scoped Isolation**: Anonymous scans are mapped to cryptographically signed HttpOnly session cookies (`scan_session_id`). Scan findings are private to the session and cannot be queried by username.
-- **Universal Per-IP Rate Limiting**: Limiters (`RATE_LIMIT_SCANS_PER_IP_24H`, default: 5 scans/IP/24h) apply universally to all users. Custom GitHub tokens are used solely for GitHub REST API calls and cannot bypass compute rate limits.
-- **Honeypot Bot Protection**: A hidden honeypot field (`website_url`) catches automated scrapers, rejecting requests immediately with `400 Bad Request`.
-- **Resource Constraints**: Scans are bounded by `MAX_REPOS_PER_SCAN` (capped at 10 repos) and a hard execution timeout (`SCAN_JOB_TIMEOUT_SECONDS` = 180s) to protect CPU and memory usage.
+- **Zero Secret Storage**: Discovered credentials (AWS, Stripe, Database keys) are processed inside isolated worker RAM and immediately sanitized into `[REDACTED]` before saving or rendering.
+- **Session-Scoped Findings**: Anonymous scans are bound to HttpOnly session IDs. Findings remain private to the active browser session.
+- **Per-IP Rate Limiting**: Intelligent rate limiters prevent API abuse while custom GitHub tokens increase REST extraction limits.
+- **Honeypot Protection**: Built-in honeypot parameters automatically block automated scraping bots.
 
 ---
 
-## 🚀 Installation & Running Locally
+## 🛠️ Installation & Local Setup
 
 ### Prerequisites
 - **Python 3.11+**
-- **Node.js & npm**
-- **Redis Server** (e.g. `redis-server`)
-- **TruffleHog CLI** (must be on executable PATH)
-- **Semgrep CLI** (installed via pip or package manager)
+- **Node.js 18+ & npm**
+- **Redis Server** (`redis-server`)
+- **TruffleHog CLI** (added to executable `PATH`)
+- **Semgrep CLI** (`pip install semgrep`)
 
-### 1. Configuration Setup
-Create a `.env` file in the root folder based on `.env.example`:
+### 1. Environment Configuration
+Copy the sample configuration file and configure your API keys:
 ```bash
 cp .env.example .env
 ```
 Key parameters:
-- `GITHUB_TOKEN`: Classic/OAuth GitHub token to raise public API extraction limits.
-- `HF_API_TOKEN`: Hugging Face token for AI synthesis (`meta-llama/Llama-3.3-70B-Instruct`).
+- `GITHUB_TOKEN`: GitHub OAuth/Personal Access Token for API extraction.
+- `GROQ_API_KEY`: Groq API Key for AI synthesis (`llama-3.3-70b-versatile`).
 - `REDIS_URL`: RQ worker connection (default: `redis://localhost:6379/0`).
 
-### 2. Run Backend & Background Worker
-Install Python dependencies and start the API server:
+### 2. Backend & RQ Worker Startup
+Install dependencies and run the API server:
 ```bash
 cd backend
-pip3 install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-In a separate terminal tab, run the background worker:
+In a second terminal window, start the RQ background worker:
 ```bash
 cd backend
-python3 worker.py
+python worker.py
 ```
 
-### 3. Run Frontend SPA
-Install frontend node modules and start the Vite development server:
+### 3. Frontend SPA Startup
+Install frontend dependencies and launch Vite:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ---
 
-## 🧪 Testing
+## 🧪 Running Unit & Integration Tests
 
-To run the complete automated test suite covering database isolation, secret redaction, rate limiting, and the caching/quickstats API:
+Run the full pytest suite covering rate limiters, database isolation, secret redactions, and endpoints:
 
 ```bash
 cd backend
-python3 -m pytest -v
+python -m pytest -v
 ```
 
 ```text
@@ -132,6 +155,16 @@ python3 -m pytest -v
 
 ---
 
-## 📄 License & Governance
+## 👤 Developer & Maintainer
 
-Distributed under the **MIT License**. Check out [LICENSE](LICENSE) and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+Developed with ❤️ by **R Jagadishwar R** (`jaggureddy11`)
+
+* **LinkedIn**: [linkedin.com/in/jaggureddy/](https://www.linkedin.com/in/jaggureddy/)
+* **GitHub**: [github.com/jaggureddy11](https://github.com/jaggureddy11)
+* **Email**: [jaggureddy2004@gmail.com](mailto:jaggureddy2004@gmail.com)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.

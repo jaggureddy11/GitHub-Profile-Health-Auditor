@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
@@ -51,6 +51,57 @@ export default function App() {
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
   const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
+
+  // Resizable panel widths (in px)
+  const [leftWidth, setLeftWidth] = useState(288);
+  const [copilotWidth, setCopilotWidth] = useState(340);
+  const isResizingLeft = useRef(false);
+  const isResizingRight = useRef(false);
+  const resizeStartX = useRef(0);
+  const resizeStartWidth = useRef(0);
+
+  // Left sidebar resize
+  const startResizeLeft = (e) => {
+    isResizingLeft.current = true;
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = leftWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  // Right copilot resize
+  const startResizeRight = (e) => {
+    isResizingRight.current = true;
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = copilotWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const onMouseMove = (e) => {
+      if (isResizingLeft.current) {
+        const diff = e.clientX - resizeStartX.current;
+        setLeftWidth(Math.max(200, Math.min(480, resizeStartWidth.current + diff)));
+      }
+      if (isResizingRight.current) {
+        const diff = resizeStartX.current - e.clientX;
+        setCopilotWidth(Math.max(260, Math.min(620, resizeStartWidth.current + diff)));
+      }
+    };
+    const onMouseUp = () => {
+      isResizingLeft.current = false;
+      isResizingRight.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
 
   // Batch scan progress state
   const [isBatchScanning, setIsBatchScanning] = useState(false);
@@ -771,11 +822,21 @@ export default function App() {
           <nav className="flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
             <button 
               onClick={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl transition text-xs font-bold font-mono"
-              title="Click to toggle IDE Security Copilot"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition text-xs font-bold border ${
+                isCopilotCollapsed
+                  ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/40'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+              }`}
+              title={isCopilotCollapsed ? 'Open Copilot' : 'Close Copilot'}
             >
-              <Bot className="w-4 h-4 text-emerald-400" />
-              <span className="hidden sm:inline">Copilot AI</span>
+              {/* VS Code Copilot robot SVG icon */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.4" />
+                <path d="M5 6.5C5 5.67 5.67 5 6.5 5S8 5.67 8 6.5 7.33 8 6.5 8 5 7.33 5 6.5Z" fill="currentColor"/>
+                <path d="M8 6.5C8 5.67 8.67 5 9.5 5S11 5.67 11 6.5 10.33 8 9.5 8 8 7.33 8 6.5Z" fill="currentColor"/>
+                <path d="M5.5 10c0-.83 1.12-1.5 2.5-1.5s2.5.67 2.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <span className="hidden sm:inline font-mono">Copilot</span>
             </button>
 
             <button 
@@ -1134,8 +1195,11 @@ export default function App() {
         {view === 'dashboard' && (
           <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none">
             
-            {/* COLUMN 1: LEFT SIDEBAR (Sharp Block Container) */}
-            <aside className="w-80 lg:w-88 border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex flex-col justify-between hidden md:flex">
+            {/* COLUMN 1: LEFT SIDEBAR (Resizable) */}
+            <aside
+              style={{ width: leftWidth, minWidth: 200, maxWidth: 480 }}
+              className="border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex flex-col justify-between hidden md:flex"
+            >
               <div className="space-y-5">
                 
                 {/* Scan Form Panel */}
@@ -1240,8 +1304,17 @@ export default function App() {
               </div>
             </aside>
 
+            {/* LEFT RESIZE HANDLE */}
+            <div
+              onMouseDown={startResizeLeft}
+              className="w-1 cursor-col-resize bg-transparent hover:bg-emerald-500/40 active:bg-emerald-500/60 transition shrink-0 group relative"
+              title="Drag to resize sidebar"
+            >
+              <div className="absolute inset-y-0 -left-0.5 -right-0.5 group-hover:bg-emerald-500/20 transition rounded" />
+            </div>
+
             {/* COLUMN 2: CENTER MAIN CONTENT AREA */}
-            <main className="flex-1 bg-black overflow-y-auto p-4 sm:p-6 lg:p-8 no-scrollbar rounded-none">
+            <main className="flex-1 bg-black overflow-y-auto p-4 sm:p-6 lg:p-8 no-scrollbar rounded-none min-w-0">
               
               {/* VIEW: IDLE / REPOS LOADED */}
               {scanState === 'idle' && (
@@ -1376,6 +1449,17 @@ export default function App() {
 
             </main>
 
+            {/* RIGHT RESIZE HANDLE (only when copilot is open) */}
+            {!isCopilotCollapsed && (
+              <div
+                onMouseDown={startResizeRight}
+                className="w-1 cursor-col-resize bg-transparent hover:bg-emerald-500/40 active:bg-emerald-500/60 transition shrink-0 group relative"
+                title="Drag to resize Copilot panel"
+              >
+                <div className="absolute inset-y-0 -left-0.5 -right-0.5 group-hover:bg-emerald-500/20 transition rounded" />
+              </div>
+            )}
+
             {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL */}
             <SecurityCopilot 
               scanId={currentScanId || scanReport?.scan_id || 'guest'} 
@@ -1385,6 +1469,7 @@ export default function App() {
               onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
               isCollapsed={isCopilotCollapsed}
               onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+              width={isCopilotCollapsed ? 44 : copilotWidth}
             />
 
           </div>

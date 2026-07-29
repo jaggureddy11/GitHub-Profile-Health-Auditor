@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 export default function SecurityCopilot({
   scanId, token, username, score, onRequireAuth,
-  isCollapsed, onToggleCollapse, sessionId
+  isCollapsed, onToggleCollapse, sessionId, width
 }) {
   const [messages, setMessages] = useState([]);
   const [inputMsg, setInputMsg] = useState('');
@@ -187,13 +187,22 @@ export default function SecurityCopilot({
   // ────────── COLLAPSED RAIL ──────────
   if (isCollapsed) {
     return (
-      <div className="w-11 bg-zinc-950 border-l border-zinc-800 flex flex-col items-center py-3 gap-3 shrink-0">
+      <div
+        style={{ width: width || 44 }}
+        className="bg-zinc-950 border-l border-zinc-800 flex flex-col items-center py-3 gap-3 shrink-0 overflow-hidden"
+      >
         <button
           onClick={onToggleCollapse}
-          title="Expand Copilot"
-          className="p-2 hover:bg-zinc-900 text-zinc-500 hover:text-emerald-400 rounded-lg transition"
+          title="Open Copilot"
+          className="p-2 hover:bg-zinc-900 text-zinc-500 hover:text-emerald-400 rounded-lg transition group"
         >
-          <ChevronLeft className="w-4 h-4" />
+          {/* VS Code Copilot robot icon */}
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="group-hover:scale-110 transition-transform">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.4" />
+            <path d="M5 6.5C5 5.67 5.67 5 6.5 5S8 5.67 8 6.5 7.33 8 6.5 8 5 7.33 5 6.5Z" fill="currentColor"/>
+            <path d="M8 6.5C8 5.67 8.67 5 9.5 5S11 5.67 11 6.5 10.33 8 9.5 8 8 7.33 8 6.5Z" fill="currentColor"/>
+            <path d="M5.5 10c0-.83 1.12-1.5 2.5-1.5s2.5.67 2.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
         </button>
         <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
           <Bot className="w-4 h-4 text-emerald-400" />
@@ -216,15 +225,21 @@ export default function SecurityCopilot({
   // ────────── FULL PANEL ──────────
   return (
     <aside
-      className="w-80 lg:w-[340px] bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0"
-      style={{ height: '100%', minHeight: 0 }}
+      style={{ width: width || 340, minWidth: 260 }}
+      className="bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0"
     >
 
       {/* ── HEADER ── */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-800 bg-zinc-900 shrink-0">
         <div className="flex items-center gap-2.5">
+          {/* VS Code Copilot robot icon */}
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <Bot className="w-4 h-4 text-emerald-400" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-emerald-400">
+              <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.5" />
+              <path d="M5 6.5C5 5.67 5.67 5 6.5 5S8 5.67 8 6.5 7.33 8 6.5 8 5 7.33 5 6.5Z" fill="currentColor"/>
+              <path d="M8 6.5C8 5.67 8.67 5 9.5 5S11 5.67 11 6.5 10.33 8 9.5 8 8 7.33 8 6.5Z" fill="currentColor"/>
+              <path d="M5.5 10c0-.83 1.12-1.5 2.5-1.5s2.5.67 2.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
           </div>
           <div>
             <div className="flex items-center gap-1.5">

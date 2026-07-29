@@ -26,7 +26,7 @@ from rq import Queue
 from database import engine, Base, get_db
 import models
 import schemas
-from scanners.github_client import list_public_repositories, get_user_quickstats, get_user_repositories, GitHubRateLimitError, GitHubAPIError
+from scanners.github_client import list_public_repositories, get_user_quickstats, get_user_repositories, get_single_repository, GitHubRateLimitError, GitHubAPIError
 from scanners.orchestrator import run_scan_job, run_single_repo_scan_job
 
 # Create database tables
@@ -687,7 +687,7 @@ async def public_scan(request: schemas.ScanRequest):
     return basic_report
 
 # Authenticated Full Scan Endpoints (Multi-tenant)
-@app.get("/api/profile/{username}/quickstats", response_model=schemas.QuickStatsResponse)
+@app.get("/api/profile/{username:path}/quickstats", response_model=schemas.QuickStatsResponse)
 async def get_profile_quickstats(
     username: str,
     request: Request,
@@ -723,7 +723,7 @@ async def get_profile_quickstats(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch quickstats: {str(e)}")
 
-@app.get("/api/profile/{username}/repos", response_model=schemas.RepoListResponse)
+@app.get("/api/profile/{username:path}/repos", response_model=schemas.RepoListResponse)
 async def get_profile_repositories(
     username: str,
     request: Request,
@@ -738,28 +738,33 @@ async def get_profile_repositories(
     if not clean_username:
         raise HTTPException(status_code=400, detail="Username cannot be empty")
 
+    token_to_use = github_token or os.getenv("GITHUB_TOKEN")
+    max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
+
+    # If a specific repository link was entered (e.g. torvalds/linux), return ONLY that single repository!
+    if target_repo:
+        try:
+            single_repo = await get_single_repository(clean_username, target_repo, token=token_to_use)
+            if single_repo:
+                return {
+                    "username": clean_username,
+                    "total_repos": 1,
+                    "capped": False,
+                    "repositories": [single_repo]
+                }
+        except Exception:
+            pass
+
     # 1. Check 15-minute cache
     cached = get_cached_repos(clean_username)
     if cached:
-        if target_repo and "repositories" in cached:
-            target_matches = [r for r in cached["repositories"] if r.get("name", "").lower() == target_repo.lower()]
-            other_repos = [r for r in cached["repositories"] if r.get("name", "").lower() != target_repo.lower()]
-            if target_matches:
-                cached["repositories"] = target_matches + other_repos
         return cached
 
     # 2. Check per-IP rate limit
     check_quickstats_ip_rate_limit(request)
 
-    token_to_use = github_token or os.getenv("GITHUB_TOKEN")
-    max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
     try:
         repos_data = await get_user_repositories(clean_username, token=token_to_use, max_repos=max_repos_cap)
-        if target_repo and "repositories" in repos_data:
-            target_matches = [r for r in repos_data["repositories"] if r.get("name", "").lower() == target_repo.lower()]
-            other_repos = [r for r in repos_data["repositories"] if r.get("name", "").lower() != target_repo.lower()]
-            if target_matches:
-                repos_data["repositories"] = target_matches + other_repos
         set_cached_repos(clean_username, repos_data)
         return repos_data
     except GitHubAPIError as e:
@@ -859,9 +864,19 @@ async def start_scan(
     check_ip_rate_limit(req_obj, scan_req=request)
     token = request.github_token or (current_user.github_oauth_token if current_user else None) or os.getenv("GITHUB_TOKEN")
     
+    clean_username, target_repo = parse_github_target(request.username)
+
     # 1. List public repositories
     try:
-        repos = await list_public_repositories(request.username, token=token)
+        if target_repo:
+            single_repo = await get_single_repository(clean_username, target_repo, token=token)
+            if single_repo:
+                repos = [single_repo]
+            else:
+                all_repos = await list_public_repositories(clean_username, token=token)
+                repos = [r for r in all_repos if r["name"].lower() == target_repo.lower()] or all_repos[:1]
+        else:
+            repos = await list_public_repositories(clean_username, token=token)
     except GitHubRateLimitError as e:
         raise HTTPException(status_code=403, detail=f"GitHub API rate limit exceeded: {str(e)}")
     except GitHubAPIError as e:
@@ -875,7 +890,7 @@ async def start_scan(
         id=parent_scan_id,
         user_id=current_user.id if current_user else None,
         session_id=session_id,
-        username=request.username,
+        username=clean_username,
         scan_type="group",
         status="running",
         created_at=datetime.now(timezone.utc)
@@ -903,7 +918,7 @@ async def start_scan(
             id=child_id,
             user_id=current_user.id if current_user else None,
             session_id=session_id,
-            username=request.username,
+            username=clean_username,
             parent_scan_id=parent_scan_id,
             scan_type="single_repo",
             repo_name=r["name"],
@@ -924,7 +939,7 @@ async def start_scan(
                     scan_queue.enqueue(
                         "scanners.orchestrator.run_single_repo_scan_job",
                         scan_id=child_id,
-                        username=request.username,
+                        username=clean_username,
                         repo_name=r["name"],
                         repo_url=r["url"],
                         token=token
@@ -934,7 +949,7 @@ async def start_scan(
                 print(f"Warning: Failed to enqueue child scan to Redis queue: {e}")
 
         if not enqueued:
-            background_tasks.add_task(run_single_repo_scan_job, child_id, request.username, r["name"], r["url"], token)
+            background_tasks.add_task(run_single_repo_scan_job, child_id, clean_username, r["name"], r["url"], token)
 
     db.commit()
     db.refresh(parent_scan)

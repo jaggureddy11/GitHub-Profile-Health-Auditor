@@ -20,7 +20,10 @@ async def list_public_repositories(
     Lists public, non-fork repositories for a given GitHub username sorted by pushed date.
     Caps total results to max_repos (default 10) for fast audit execution.
     """
-    username = username.strip()
+    if "github.com/" in username:
+        username = username.split("github.com/")[1].split("/")[0]
+    username = username.lstrip("@").strip()
+
     if not username:
         raise ValueError("Username cannot be empty")
     if "@" in username:
@@ -28,7 +31,8 @@ async def list_public_repositories(
 
     headers = {
         "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "GitHub-Profile-Health-Auditor"
     }
     if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
         if token.startswith("ghp_") or token.startswith("gho_") or token.startswith("github_pat_"):
@@ -94,7 +98,9 @@ async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dic
     Fetches lightweight user profile and repository metadata from GitHub REST API
     without cloning repositories or running static analysis. Response target: <2s.
     """
-    username = username.strip().lstrip("@")
+    if "github.com/" in username:
+        username = username.split("github.com/")[1].split("/")[0]
+    username = username.lstrip("@").strip()
     if not username:
         raise ValueError("Username cannot be empty")
 
@@ -177,7 +183,9 @@ async def get_user_repositories(
     Fetches public, non-fork repositories for a given GitHub username via REST API only.
     No git cloning or static analysis. Returns formatted repo list capped at max_repos.
     """
-    username = username.strip().lstrip("@")
+    if "github.com/" in username:
+        username = username.split("github.com/")[1].split("/")[0]
+    username = username.lstrip("@").strip()
     if not username:
         raise ValueError("Username cannot be empty")
     if "@" in username:
@@ -251,3 +259,45 @@ async def get_user_repositories(
         "capped": capped,
         "repositories": repos[:max_repos]
     }
+
+async def get_single_repository(
+    username: str,
+    repo_name: str,
+    token: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Fetches metadata for a single specific repository via GitHub API.
+    """
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "GitHub-Profile-Health-Auditor"
+    }
+    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
+        if token.startswith("ghp_") or token.startswith("gho_") or token.startswith("github_pat_"):
+            headers["Authorization"] = f"token {token}"
+        else:
+            headers["Authorization"] = f"Bearer {token}"
+
+    url = f"https://api.github.com/repos/{username}/{repo_name}"
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            response = await client.get(url, headers=headers)
+            if response.status_code == 200:
+                repo = response.json()
+                return {
+                    "name": repo["name"],
+                    "url": repo.get("html_url", f"https://github.com/{username}/{repo['name']}"),
+                    "html_url": repo.get("html_url", f"https://github.com/{username}/{repo['name']}"),
+                    "last_commit": repo.get("pushed_at"),
+                    "pushed_at": repo.get("pushed_at"),
+                    "default_branch": repo.get("default_branch", "main"),
+                    "description": repo.get("description", ""),
+                    "language": repo.get("language"),
+                    "stargazers_count": repo.get("stargazers_count", 0),
+                    "forks_count": repo.get("forks_count", 0),
+                    "is_target_repo": True
+                }
+        except Exception:
+            pass
+    return None

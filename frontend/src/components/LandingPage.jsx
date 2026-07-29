@@ -114,13 +114,15 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
         {/* High-Impact Headline */}
         <div className="space-y-4 relative">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[1.08] font-sans">
-            <span className="text-slate-900 dark:text-white block">Uncover Leaked Secrets.</span>
-            <span className="text-slate-600 dark:text-zinc-400 block pt-1">Elevate Profile Security.</span>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.08] font-display">
+            <span className="text-white block">Uncover Leaked Secrets.</span>
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent block pt-1">
+              Elevate Profile Security.
+            </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1 tracking-tight font-sans">
+          <p className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1 tracking-tight font-sans">
             Automated static analysis across public GitHub repositories. Intercept committed API credentials, fix Git hygiene debt, and generate 1-click auto-fix patches.
           </p>
         </div>

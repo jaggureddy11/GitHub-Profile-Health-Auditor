@@ -747,7 +747,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-white/20 font-sans">
+    <div className="h-screen bg-black text-white flex flex-col overflow-hidden selection:bg-white/20 font-sans">
       
       {/* Global Header / Navbar */}
       <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 py-4">
@@ -1132,7 +1132,7 @@ export default function App() {
 
         {/* VIEW: DASHBOARD (AUTHENTICATED / 3-COLUMN IDE BLOCK LAYOUT) */}
         {view === 'dashboard' && (
-          <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none min-h-[calc(100vh-65px)]">
+          <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none">
             
             {/* COLUMN 1: LEFT SIDEBAR (Sharp Block Container) */}
             <aside className="w-80 lg:w-88 border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex flex-col justify-between hidden md:flex">

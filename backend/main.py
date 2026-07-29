@@ -741,16 +741,22 @@ async def get_profile_repositories(
     token_to_use = github_token or os.getenv("GITHUB_TOKEN")
     max_repos_cap = int(os.getenv("MAX_REPOS_PER_SCAN", "10"))
 
-    # If a specific repository link was entered (e.g. torvalds/linux), return ONLY that single repository!
+    # If a specific repository link was entered (e.g. torvalds/linux), return target repo AND remaining repos
     if target_repo:
         try:
             single_repo = await get_single_repository(clean_username, target_repo, token=token_to_use)
             if single_repo:
+                single_repo["is_target_repo"] = True
+                all_repos_data = await get_user_repositories(clean_username, token=token_to_use, max_repos=max_repos_cap)
+                all_repos = all_repos_data.get("repositories", [])
+                other_repos = [r for r in all_repos if r.get("name", "").lower() != target_repo.lower()]
                 return {
                     "username": clean_username,
-                    "total_repos": 1,
+                    "total_repos": len(all_repos) or 1,
                     "capped": False,
-                    "repositories": [single_repo]
+                    "target_repo_name": target_repo,
+                    "repositories": [single_repo],
+                    "other_repositories": other_repos
                 }
         except Exception:
             pass

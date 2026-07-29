@@ -41,6 +41,8 @@ export default function App() {
   const [quickstats, setQuickstats] = useState(null);
   const [quickstatsLoading, setQuickstatsLoading] = useState(false);
   const [userRepos, setUserRepos] = useState([]);
+  const [otherRepos, setOtherRepos] = useState([]);
+  const [targetRepoName, setTargetRepoName] = useState(null);
   const [userReposLoading, setUserReposLoading] = useState(false);
   const [repoStatuses, setRepoStatuses] = useState({});
   const [activeUsername, setActiveUsername] = useState('');
@@ -432,6 +434,8 @@ export default function App() {
   const fetchUserRepos = async (username, githubToken) => {
     setUserReposLoading(true);
     setUserRepos([]);
+    setOtherRepos([]);
+    setTargetRepoName(null);
     setRepoStatuses({});
     try {
       let url = `${API_BASE_URL}/api/profile/${encodeURIComponent(username)}/repos`;
@@ -442,6 +446,8 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setUserRepos(data.repositories || []);
+        setOtherRepos(data.other_repositories || []);
+        setTargetRepoName(data.target_repo_name || null);
       }
     } catch (err) {
       console.warn("Failed to fetch user repos:", err);
@@ -1176,6 +1182,9 @@ export default function App() {
                   {userRepos && userRepos.length > 0 ? (
                     <RepoGrid 
                       repositories={userRepos} 
+                      otherRepositories={otherRepos}
+                      targetRepoName={targetRepoName}
+                      activeUsername={activeUsername}
                       repoStatuses={repoStatuses} 
                       isLoading={userReposLoading}
                       onAnalyzeRepo={handleStartSingleRepoScan}

@@ -181,11 +181,14 @@ class RepoItem(BaseModel):
     pushed_at: Optional[str] = None
     html_url: str
     default_branch: str = "main"
+    is_target_repo: Optional[bool] = False
 
 class RepoListResponse(BaseModel):
     username: str
     total_repos: int
     capped: bool
     repositories: List[RepoItem]
+    other_repositories: Optional[List[RepoItem]] = []
+    target_repo_name: Optional[str] = None
 
 

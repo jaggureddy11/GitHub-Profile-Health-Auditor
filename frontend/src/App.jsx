@@ -1314,7 +1314,8 @@ export default function App() {
             </div>
 
             {/* COLUMN 2: CENTER MAIN CONTENT AREA */}
-            <main className="flex-1 bg-black overflow-y-auto p-4 sm:p-6 lg:p-8 no-scrollbar rounded-none min-w-0">
+            <main className="flex-1 bg-black overflow-y-auto no-scrollbar rounded-none min-w-0" style={{ containerType: 'inline-size', containerName: 'centerMain' }}>
+              <div className="p-4 sm:p-6 lg:p-8">
               
               {/* VIEW: IDLE / REPOS LOADED */}
               {scanState === 'idle' && (
@@ -1447,6 +1448,7 @@ export default function App() {
                 </div>
               )}
 
+              </div>{/* end padding wrapper */}
             </main>
 
             {/* RIGHT RESIZE HANDLE (only when copilot is open) */}

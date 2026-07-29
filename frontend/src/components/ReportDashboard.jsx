@@ -124,7 +124,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
   };
 
   return (
-    <div className="space-y-8 animate-fade-in print:space-y-6">
+    <div className="space-y-6 animate-fade-in print:space-y-6 @container">
       
       {/* Instant Profile Stats Card (Phase 2 Instant View) */}
       <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
@@ -142,14 +142,14 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
             </p>
           </div>
         </div>
-        <div className="hidden lg:flex items-center space-x-2 border border-zinc-800 bg-black px-3.5 py-2 rounded-xl text-xs font-mono text-zinc-300 shrink-0">
+        <div className="hidden @[520px]:flex items-center space-x-2 border border-zinc-800 bg-black px-3.5 py-2 rounded-xl text-xs font-mono text-zinc-300 shrink-0">
           <span className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse"></span>
           <span>100% Ephemeral RAM</span>
         </div>
       </div>
 
       {/* Overview Block */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 animate-slide-up-2">
+      <div className="grid grid-cols-1 @[700px]:grid-cols-3 gap-5 animate-slide-up-2">
         
         {/* Radial Score Gauge */}
         <div className="border border-zinc-800 bg-zinc-950 p-6 sm:p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xl">
@@ -193,9 +193,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
         </div>
 
         {/* Stats Grid & Action Bar */}
-        <div className="md:col-span-2 border border-zinc-800 bg-zinc-950 p-6 sm:p-8 rounded-3xl flex flex-col justify-between shadow-xl space-y-6">
+        <div className="@[700px]:col-span-2 border border-zinc-800 bg-zinc-950 p-5 @[700px]:p-8 rounded-3xl flex flex-col justify-between shadow-xl space-y-5">
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-900 pb-5">
+            <div className="flex flex-col @[480px]:flex-row @[480px]:items-center justify-between gap-4 border-b border-zinc-900 pb-5">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   Audit Summary Dashboard
@@ -205,10 +205,10 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                 </p>
               </div>
               
-              <div className="flex flex-wrap items-center gap-2 print:hidden w-full sm:w-auto">
+              <div className="flex flex-wrap items-center gap-2 print:hidden w-full @[480px]:w-auto">
                 <button
                   onClick={() => setShowBadgeModal(true)}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-bold transition duration-150 border border-zinc-750 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
+                  className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-bold transition duration-150 border border-zinc-750 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
                   title="Opt-in to publish public README badge"
                 >
                   <BadgeCheck className="w-4 h-4 text-zinc-300" />
@@ -216,7 +216,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                 </button>
                 <button
                   onClick={handleGenerateAiReadme}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md active:scale-95"
+                  className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md active:scale-95"
                   title="Generate AI Profile README.md"
                 >
                   <Sparkles className="w-4 h-4 text-black" />
@@ -224,21 +224,21 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                 </button>
                 <button
                   onClick={() => handleExport('markdown')}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
+                  className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-white transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
                   title="Export Markdown file"
                 >
                   <Download className="w-4 h-4" /><span>Export .md</span>
                 </button>
                 <button
                   onClick={() => handleExport('json')}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5"
+                  className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition duration-150 border border-zinc-700 rounded-xl flex items-center justify-center space-x-1.5"
                   title="Export JSON file"
                 >
                   <FileJson className="w-4 h-4" /><span>Export JSON</span>
                 </button>
                 <button
                   onClick={() => onReRun(username)}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md flex items-center justify-center space-x-1.5"
+                  className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-xs font-bold text-black transition duration-150 rounded-xl shadow-md flex items-center justify-center space-x-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /><span>Re-run</span>
                 </button>
@@ -251,7 +251,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
               </div>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-2 @[480px]:grid-cols-4 gap-4 mt-6">
               <div className="bg-black/90 p-4 sm:p-5 rounded-2xl border border-zinc-800 shadow-inner">
                 <span className="text-xs text-zinc-400 font-bold block uppercase tracking-wider">Repositories</span>
                 <span className="text-3xl sm:text-4xl font-black text-white mt-1 block">{totalRepos}</span>
@@ -273,7 +273,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
             </div>
           </div>
 
-          <div className="pt-5 border-t border-zinc-900 mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-zinc-400 gap-3">
+          <div className="pt-5 border-t border-zinc-900 mt-4 flex flex-col @[480px]:flex-row justify-between items-start @[480px]:items-center text-xs text-zinc-400 gap-3">
             <span>Audit Date: <span className="font-mono text-white font-semibold">{scanDate}</span></span>
             <div className="flex items-center space-x-4">
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 inline-block"></span>Secrets ({secretsCount})</span>
@@ -301,7 +301,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+        <div className="grid grid-cols-1 @[560px]:grid-cols-2 gap-4 text-xs font-mono">
           <div className="bg-black p-4 rounded-xl border border-zinc-850 space-y-2">
             <div className="flex justify-between items-center text-zinc-400 text-xs">
               <span className="font-bold text-zinc-200">Markdown Code (README.md)</span>
@@ -341,7 +341,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
             <Sparkles className="w-5 h-5 text-zinc-300" />
             <h3 className="text-base font-bold text-white">AI Architecture & Documentation Evaluation</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 @[560px]:grid-cols-2 gap-4 text-xs font-mono">
             {summary.architecture_summary && (
               <div className="bg-black p-4 rounded-xl border border-zinc-850 space-y-1">
                 <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Repository Architecture</span>
@@ -360,7 +360,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
 
 
       {/* Prioritized AI Recommendations & AI Copilot Banner Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up-3">
+      <div className="grid grid-cols-1 @[800px]:grid-cols-2 gap-6 animate-slide-up-3">
         
         {/* AI Prioritized Insights */}
         <div className="border border-zinc-800 bg-zinc-950 p-7 rounded-2xl shadow-xl space-y-6 hover:border-zinc-700 transition-all duration-300">
@@ -505,7 +505,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                 />
 
                 {/* Footer Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div className="flex flex-col @[480px]:flex-row items-center justify-between gap-3 pt-2">
                   <div className="text-xs font-mono text-zinc-500">
                     <span>File target: </span>
                     <code className="text-zinc-300">github.com/{username}/{username}/README.md</code>

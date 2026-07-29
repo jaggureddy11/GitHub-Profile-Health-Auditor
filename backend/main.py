@@ -130,7 +130,19 @@ app.add_middleware(
 )
 
 # Initialize Redis connection
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+raw_redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+def sanitize_redis_url(url: str) -> str:
+    url = url.strip()
+    if "-u " in url:
+        url = url.split("-u ")[-1].strip()
+    elif "--url " in url:
+        url = url.split("--url ")[-1].strip()
+    if "upstash.io" in url and url.startswith("redis://"):
+        url = url.replace("redis://", "rediss://", 1)
+    return url
+
+REDIS_URL = sanitize_redis_url(raw_redis_url)
 try:
     redis_conn = redis.from_url(REDIS_URL)
     # Ping Redis to verify connection

@@ -502,19 +502,26 @@ def login_user(request: schemas.UserLogin, db: Session = Depends(get_db)):
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
-# GitHub OAuth settings
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "dummy_client_id")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "dummy_client_secret")
-GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:3000/auth/github/callback")
-
 from urllib.parse import quote
+
+def get_github_oauth_config():
+    client_id = os.getenv("GITHUB_CLIENT_ID", "")
+    client_secret = os.getenv("GITHUB_CLIENT_SECRET", "")
+    redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:3000/auth/github/callback")
+    return client_id, client_secret, redirect_uri
 
 @app.get("/api/auth/github/url")
 def get_github_oauth_url():
-    encoded_redirect_uri = quote(GITHUB_REDIRECT_URI, safe="")
+    client_id, _, redirect_uri = get_github_oauth_config()
+    if not client_id or client_id in ("dummy_id", "dummy_client_id"):
+        raise HTTPException(
+            status_code=400,
+            detail="GITHUB_CLIENT_ID environment variable is not configured on the backend server."
+        )
+    encoded_redirect_uri = quote(redirect_uri, safe="")
     url = (
         f"https://github.com/login/oauth/authorize"
-        f"?client_id={GITHUB_CLIENT_ID}"
+        f"?client_id={client_id}"
         f"&redirect_uri={encoded_redirect_uri}"
         f"&scope=read:user,public_repo"
     )
@@ -561,16 +568,23 @@ async def github_oauth_callback(payload: dict, db: Session = Depends(get_db)):
     if not code:
         raise HTTPException(status_code=400, detail="OAuth code is missing")
     
+    client_id, client_secret, redirect_uri = get_github_oauth_config()
+    if not client_id or not client_secret:
+        raise HTTPException(
+            status_code=400,
+            detail="GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables must be set on the backend server."
+        )
+
     # 1. Exchange code for access token
     async with httpx.AsyncClient() as client:
         token_res = await client.post(
             "https://github.com/login/oauth/access_token",
             headers={"Accept": "application/json"},
             data={
-                "client_id": GITHUB_CLIENT_ID,
-                "client_secret": GITHUB_CLIENT_SECRET,
+                "client_id": client_id,
+                "client_secret": client_secret,
                 "code": code,
-                "redirect_uri": GITHUB_REDIRECT_URI
+                "redirect_uri": redirect_uri
             }
         )
         if token_res.status_code != 200:

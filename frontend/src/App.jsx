@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Sun, Moon, Mail, Phone } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';

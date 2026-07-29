@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
@@ -8,6 +8,7 @@ import QuickStatsCard from './components/QuickStatsCard';
 import RepoGrid from './components/RepoGrid';
 import LiveScanTelemetry from './components/LiveScanTelemetry';
 import ContactPage from './components/ContactPage';
+import SecurityCopilot from './components/SecurityCopilot';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -49,6 +50,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
+  const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
 
   // Batch scan progress state
   const [isBatchScanning, setIsBatchScanning] = useState(false);
@@ -299,6 +301,24 @@ export default function App() {
       localStorage.setItem('token', token);
       fetchUserProfile();
       fetchScanHistory();
+
+      // Return to exact scan view if login was requested from Copilot sign-in redirect
+      const redirectUrl = sessionStorage.getItem('redirect_after_login');
+      if (redirectUrl) {
+        sessionStorage.removeItem('redirect_after_login');
+        try {
+          const urlObj = new URL(redirectUrl);
+          const redirectUser = urlObj.searchParams.get('user');
+          if (redirectUser) {
+            setActiveUsername(redirectUser);
+            setView('dashboard');
+            return;
+          }
+        } catch (err) {
+          console.error("Error evaluating redirect url:", err);
+        }
+      }
+
       setView((prevView) => prevView === 'landing' || prevView === 'auth' ? 'dashboard' : prevView);
     } else {
       localStorage.removeItem('token');
@@ -748,7 +768,16 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="flex items-center space-x-4 sm:space-x-6 text-sm font-semibold shrink-0">
+          <nav className="flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
+            <button 
+              onClick={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl transition text-xs font-bold font-mono"
+              title="Click to toggle IDE Security Copilot"
+            >
+              <Bot className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">Copilot AI</span>
+            </button>
+
             <button 
               onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')}
               className={`hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-white font-bold' : 'text-zinc-400'}`}
@@ -790,8 +819,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Container - Widened layout for full visibility */}
-      <main className="max-w-[1536px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-8 flex-grow flex flex-col justify-start">
+      {/* Main 3-Column IDE Layout Container */}
+      <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none">
         
         {/* VIEW: LANDING */}
         {view === 'landing' && (
@@ -1101,49 +1130,52 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW: DASHBOARD (AUTHENTICATED) */}
+        {/* VIEW: DASHBOARD (AUTHENTICATED / 3-COLUMN IDE BLOCK LAYOUT) */}
         {view === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none min-h-[calc(100vh-65px)]">
             
-            {/* Left Sidebar: ScanForm & Scan History (3 cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              
-              {/* Scan Form Panel */}
-              <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-3xl space-y-4 shadow-xl font-sans">
-                <h3 className="font-bold text-sm text-white font-sans flex items-center">
-                  <Zap className="w-4 h-4 mr-2 text-emerald-400" /> New Repository Scan
-                </h3>
-                <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
-              </div>
-
-              {/* Scan History list */}
-              <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-3xl space-y-4 shadow-xl font-sans">
-                <h3 className="font-bold text-sm text-white font-sans flex items-center justify-between">
-                  <span className="flex items-center space-x-2"><FolderOpen className="w-4 h-4 text-zinc-400" /><span>Scan History</span></span>
-                  <span className="text-xs text-zinc-500 font-mono">({scanHistory.length} total)</span>
-                </h3>
+            {/* COLUMN 1: LEFT SIDEBAR (Sharp Block Container) */}
+            <aside className="w-80 lg:w-88 border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex flex-col justify-between hidden md:flex">
+              <div className="space-y-5">
                 
-                {scanHistory.length > 0 ? (
-                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                    {scanHistory.map((pastScan) => (
-                      <div 
-                        key={pastScan.scan_id}
-                        onClick={() => scanState !== 'loading' && handleSelectPastScan(pastScan.scan_id)}
-                        className={`p-3 rounded-xl border text-left cursor-pointer transition select-none flex items-center justify-between ${
-                          currentScanId === pastScan.scan_id 
-                            ? 'bg-zinc-900 border-zinc-700' 
-                            : 'bg-black border-zinc-850 hover:border-zinc-700'
-                        } ${scanState === 'loading' ? 'opacity-50 pointer-events-none' : ''}`}
-                      >
-                        <div className="space-y-1 min-w-0">
-                          <p className="font-bold text-xs text-white truncate font-mono">@{pastScan.username}</p>
-                          <p className="text-[10px] text-zinc-500 font-mono">
-                            {new Date(pastScan.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full uppercase border font-mono ${
+                {/* Scan Form Panel */}
+                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-3 shadow-lg">
+                  <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center font-mono">
+                    <Zap className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> New Repository Scan
+                  </h3>
+                  <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
+                </div>
+
+                {/* Scan History list */}
+                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-3 shadow-lg">
+                  <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center justify-between font-mono">
+                    <span className="flex items-center space-x-1.5">
+                      <FolderOpen className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Scan History</span>
+                    </span>
+                    <span className="text-[10px] text-zinc-500">({scanHistory.length})</span>
+                  </h3>
+                  
+                  {scanHistory.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1 no-scrollbar">
+                      {scanHistory.map((pastScan) => (
+                        <div 
+                          key={pastScan.scan_id}
+                          onClick={() => scanState !== 'loading' && handleSelectPastScan(pastScan.scan_id)}
+                          className={`p-2.5 rounded-lg border text-left cursor-pointer transition select-none flex items-center justify-between ${
+                            currentScanId === pastScan.scan_id 
+                              ? 'bg-zinc-900 border-zinc-700' 
+                              : 'bg-zinc-950 border-zinc-850 hover:border-zinc-750'
+                          } ${scanState === 'loading' ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="font-bold text-xs text-white truncate font-mono">@{pastScan.username}</p>
+                            <p className="text-[10px] text-zinc-500 font-mono">
+                              {new Date(pastScan.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          
+                          <span className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase border font-mono ${
                             pastScan.status === 'completed' 
                               ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80' 
                               : (pastScan.status === 'failed' ? 'bg-red-950/40 text-red-400 border-red-900' : 'bg-zinc-900 text-zinc-400 border-zinc-800')
@@ -1151,28 +1183,65 @@ export default function App() {
                             {pastScan.status}
                           </span>
                         </div>
-                      </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-xs text-zinc-500 py-4 font-mono">No past scans recorded.</p>
+                  )}
+                </div>
+
+                {/* Additional Sidebar Sections (as drawn in wireframe: "add some more sections here") */}
+                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-2.5 shadow-lg font-mono text-xs">
+                  <h4 className="font-bold text-zinc-300 text-[11px] uppercase tracking-wider border-b border-zinc-900 pb-1 flex items-center justify-between">
+                    <span>Security Pipeline Rules</span>
+                    <span className="text-emerald-400 text-[9px]">4/4 Active</span>
+                  </h4>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between text-zinc-300">
+                      <span className="flex items-center"><ShieldCheck className="w-3 h-3 text-emerald-400 mr-1.5" /> TruffleHog Secrets</span>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-bold">ACTIVE</span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-300">
+                      <span className="flex items-center"><ShieldCheck className="w-3 h-3 text-cyan-400 mr-1.5" /> Semgrep Static Rules</span>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded font-bold">ACTIVE</span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-300">
+                      <span className="flex items-center"><ShieldCheck className="w-3 h-3 text-emerald-400 mr-1.5" /> In-Memory RAM Wipe</span>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-bold">100%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Target Shortcuts */}
+                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-2 shadow-lg font-mono text-xs">
+                  <h4 className="font-bold text-zinc-400 text-[10px] uppercase tracking-wider">Quick Target Audits</h4>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {['octocat', 'torvalds', 'gaearon', 'sindresorhus'].map((sample) => (
+                      <button
+                        key={sample}
+                        onClick={() => handleStartScan(sample, '')}
+                        className="px-2 py-1 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 hover:text-white rounded border border-zinc-800 transition text-[11px] truncate text-left"
+                      >
+                        @{sample}
+                      </button>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-center text-xs text-zinc-500 py-6 font-sans">No past repository scans recorded.</p>
-                )}
+                </div>
+
               </div>
 
-              {/* Data Deletion under dashboard */}
-              <div className="p-3 text-center">
+              <div className="pt-3 border-t border-zinc-900 text-center">
                 <button
                   onClick={() => setView('privacy')}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 font-medium tracking-wide transition hover:underline"
+                  className="text-[11px] text-zinc-500 hover:text-zinc-300 font-mono transition"
                 >
                   Manage Account &amp; Data Retention
                 </button>
               </div>
+            </aside>
 
-            </div>
-
-            {/* Right Main Panel: Scan Output / State (9 cols) */}
-            <div className="lg:col-span-9 space-y-8">
+            {/* COLUMN 2: CENTER MAIN CONTENT AREA */}
+            <main className="flex-1 bg-black overflow-y-auto p-4 sm:p-6 lg:p-8 no-scrollbar rounded-none">
               
               {/* VIEW: IDLE / REPOS LOADED */}
               {scanState === 'idle' && (
@@ -1252,6 +1321,7 @@ export default function App() {
                     token={token}
                     quickstats={quickstats}
                     quickstatsLoading={quickstatsLoading}
+                    onOpenCopilot={() => setIsCopilotCollapsed(false)}
                   />
 
                   {/* Public Repositories Grid View */}
@@ -1304,12 +1374,23 @@ export default function App() {
                 </div>
               )}
 
-            </div>
+            </main>
+
+            {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL */}
+            <SecurityCopilot 
+              scanId={currentScanId || scanReport?.scan_id || 'guest'} 
+              token={token} 
+              username={activeUsername || scanReport?.username || user?.github_username || 'guest'} 
+              score={scanReport?.overall_score || 100} 
+              onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
+              isCollapsed={isCopilotCollapsed}
+              onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+            />
 
           </div>
         )}
 
-      </main>
+      </div>
     </div>
   );
 }

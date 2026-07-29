@@ -7,7 +7,7 @@ import RepoBreakdown from './RepoBreakdown';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export default function ReportDashboard({ report, onReset, onReRun, token, quickstats, quickstatsLoading }) {
+export default function ReportDashboard({ report, onReset, onReRun, token, quickstats, quickstatsLoading, onOpenCopilot }) {
   const { scan_id, overall_score, summary, repositories, findings, username, created_at } = report;
   const [copiedType, setCopiedType] = useState(null);
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -357,31 +357,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           </div>
         </div>
       )}
-      
-      {/* Floating IDE Copilot Trigger Button */}
-      <button
-        onClick={() => setIsCopilotOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2 border border-black/20 transition transform hover:scale-105 active:scale-95 group font-sans"
-      >
-        <div className="w-6 h-6 rounded-lg bg-black/10 flex items-center justify-center">
-          <Bot className="w-4 h-4 text-black group-hover:rotate-12 transition" />
-        </div>
-        <span className="text-xs font-bold tracking-tight">IDE Copilot AI</span>
-        <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
-        </span>
-      </button>
 
-      {/* Slide-out IDE Sidebar Copilot Component */}
-      <SecurityCopilot 
-        scanId={scan_id} 
-        token={token} 
-        username={username} 
-        score={overall_score} 
-        isOpen={isCopilotOpen} 
-        onClose={() => setIsCopilotOpen(false)} 
-      />
 
       {/* Prioritized AI Recommendations & AI Copilot Banner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up-3">
@@ -465,7 +441,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           </div>
 
           <button
-            onClick={() => setIsCopilotOpen(true)}
+            onClick={onOpenCopilot}
             className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 font-sans"
           >
             <Bot className="w-4 h-4 text-black" />

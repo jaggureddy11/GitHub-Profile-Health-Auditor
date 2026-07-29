@@ -72,26 +72,51 @@ export default function App() {
     "Finalizing Health Score calculation..."
   ];
 
-  // Rehydrate state on initial mount from URL or localStorage
+  // Save active view in sessionStorage when view changes
+  const handleNavView = (targetView) => {
+    setView(targetView);
+    sessionStorage.setItem('auditor_current_view', targetView);
+    if (targetView === 'landing') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('user');
+      window.history.replaceState({}, '', url.pathname);
+    }
+  };
+
+  // Rehydrate state on initial mount from URL, sessionStorage, or localStorage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlUser = params.get('user');
-    const savedUser = urlUser || localStorage.getItem('auditor_username');
+    const savedView = sessionStorage.getItem('auditor_current_view');
 
-    if (savedUser) {
-      setActiveUsername(savedUser);
+    if (urlUser) {
+      setActiveUsername(urlUser);
       setView('dashboard');
+      sessionStorage.setItem('auditor_current_view', 'dashboard');
       
       const savedQuickstats = localStorage.getItem('auditor_quickstats');
       if (savedQuickstats) {
-        try { setQuickstats(JSON.parse(savedQuickstats)); } catch (e) {}
+        try {
+          const parsed = JSON.parse(savedQuickstats);
+          if (parsed && (parsed.login === urlUser || parsed.username === urlUser)) {
+            setQuickstats(parsed);
+          } else {
+            fetchQuickStats(urlUser, null);
+          }
+        } catch (e) {
+          fetchQuickStats(urlUser, null);
+        }
+      } else {
+        fetchQuickStats(urlUser, null);
       }
-      
+
       const savedUserRepos = localStorage.getItem('auditor_user_repos');
       if (savedUserRepos) {
         try { setUserRepos(JSON.parse(savedUserRepos)); } catch (e) {}
+      } else {
+        fetchUserRepos(urlUser, null);
       }
-      
+
       const savedRepoStatuses = localStorage.getItem('auditor_repo_statuses');
       if (savedRepoStatuses) {
         try { setRepoStatuses(JSON.parse(savedRepoStatuses)); } catch (e) {}
@@ -101,26 +126,50 @@ export default function App() {
       if (savedScanReport) {
         try {
           const report = JSON.parse(savedScanReport);
-          setScanReport(report);
-          setScanState('completed');
+          if (report && (report.username === urlUser || report.github_username === urlUser)) {
+            setScanReport(report);
+            setScanState('completed');
+          }
         } catch (e) {}
-      } else {
+      }
+    } else if (savedView) {
+      setView(savedView);
+      const savedUser = localStorage.getItem('auditor_username');
+      if (savedUser) {
+        setActiveUsername(savedUser);
+      }
+    } else {
+      const savedUser = localStorage.getItem('auditor_username');
+      if (savedUser && savedUser.trim() !== '') {
+        setActiveUsername(savedUser);
+        setView('dashboard');
+        sessionStorage.setItem('auditor_current_view', 'dashboard');
         fetchQuickStats(savedUser, null);
         fetchUserRepos(savedUser, null);
+      } else {
+        setView('landing');
+        sessionStorage.setItem('auditor_current_view', 'landing');
       }
     }
   }, []);
 
   // Save session state to localStorage and sync URL
   useEffect(() => {
-    if (activeUsername) {
+    if (activeUsername && view === 'dashboard') {
       localStorage.setItem('auditor_username', activeUsername);
       const url = new URL(window.location.href);
       if (url.searchParams.get('user') !== activeUsername) {
         url.searchParams.set('user', activeUsername);
         window.history.replaceState({}, '', url.pathname + url.search);
       }
+    } else if (view === 'landing') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('user')) {
+        url.searchParams.delete('user');
+        window.history.replaceState({}, '', url.pathname);
+      }
     }
+    
     if (quickstats) {
       localStorage.setItem('auditor_quickstats', JSON.stringify(quickstats));
     }
@@ -135,7 +184,7 @@ export default function App() {
     } else {
       localStorage.removeItem('auditor_scan_report');
     }
-  }, [activeUsername, quickstats, userRepos, repoStatuses, scanReport]);
+  }, [activeUsername, view, quickstats, userRepos, repoStatuses, scanReport]);
 
   // Enforce Dark Mode
   useEffect(() => {
@@ -677,7 +726,7 @@ export default function App() {
       {/* Global Header / Navbar */}
       <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 py-4">
         <div className="max-w-[1536px] mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => setView(token ? 'dashboard' : 'landing')}>
+          <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => handleNavView('landing')}>
             <img 
               src="/logo.png" 
               alt="GitHub Profile Auditor" 
@@ -695,19 +744,19 @@ export default function App() {
 
           <nav className="flex items-center space-x-4 sm:space-x-6 text-sm font-semibold shrink-0">
             <button 
-              onClick={() => setView(token ? 'dashboard' : 'landing')}
+              onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')}
               className={`hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-white font-bold' : 'text-zinc-400'}`}
             >
               Dashboard
             </button>
             <button 
-              onClick={() => setView('privacy')}
+              onClick={() => handleNavView('privacy')}
               className={`hover:text-white transition text-sm ${view === 'privacy' ? 'text-white font-bold' : 'text-zinc-400'}`}
             >
               Privacy &amp; Security
             </button>
             <button 
-              onClick={() => setView('contact')}
+              onClick={() => handleNavView('contact')}
               className={`hover:text-white transition text-sm ${view === 'contact' ? 'text-white font-bold' : 'text-zinc-400'}`}
             >
               Contact
@@ -725,7 +774,7 @@ export default function App() {
               </div>
             ) : (
               <button 
-                onClick={() => { setView('auth'); setAuthMode('login'); }}
+                onClick={() => { handleNavView('auth'); setAuthMode('login'); }}
                 className="px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold transition text-xs shadow-md"
               >
                 Sign In

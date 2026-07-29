@@ -1,11 +1,53 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { FolderOpen, FolderClosed, Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X, Search, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Wrench, Clipboard, ClipboardCheck, Download, CheckCircle2, X, Search, ShieldAlert, Lightbulb } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-export default function RepoBreakdown({ _repositories, findings, token, scanId }) {
-  const [expandedRepos, setExpandedRepos] = useState({});
-  const [expandedFiles, setExpandedFiles] = useState({});
+function getBeginnerExplanation(finding) {
+  const type = finding.type;
+  const rule = (finding.rule_id || '').toLowerCase();
+  
+  if (type === 'secret') {
+    return {
+      title: "Secret Key or Credential Detected",
+      what: finding.description || "A sensitive API key, access token, or password was found in your source code.",
+      why: "If committed to GitHub, automated scanners and attacker bots can scrape this key within seconds to access your cloud services or compromise your account.",
+      fix: "1. Remove the key from source code. 2. Move secrets to a local .env file. 3. Immediately revoke and regenerate the key on your provider dashboard."
+    };
+  }
+  if (rule.includes('readme')) {
+    return {
+      title: "Missing Project README.md File",
+      what: "Your repository is missing a README documentation file.",
+      why: "Recruiters, hiring managers, and developers look at the README first to understand what your application does and how to run it.",
+      fix: "Use the 'AI README' button above to generate a complete markdown README file for your project."
+    };
+  }
+  if (rule.includes('gitignore')) {
+    return {
+      title: "Missing .gitignore Configuration",
+      what: "Your repository lacks a .gitignore file.",
+      why: "Without a .gitignore file, build files, dependencies (node_modules), and secret environment files (.env) accidentally get pushed to GitHub.",
+      fix: "Click '1-Click Auto-Fix Patch' below to add a standard .gitignore file."
+    };
+  }
+  if (rule.includes('license')) {
+    return {
+      title: "Missing Open-Source License",
+      what: "No open-source LICENSE file was found in your repository root.",
+      why: "Without a license, legal default copyright applies, meaning other developers cannot legally reuse or fork your code.",
+      fix: "Click '1-Click Auto-Fix Patch' below to add an MIT License file."
+    };
+  }
+  return {
+    title: finding.rule_id || "Code Hygiene / Best Practice Warning",
+    what: finding.description || "Potential code smell or anti-pattern detected.",
+    why: "Resolving code quality warnings prevents unexpected runtime errors, improves code readability, and shows recruiters clean coding practices.",
+    fix: "Review the code line snippet below and refactor according to standard language best practices."
+  };
+}
+
+export default function RepoBreakdown({ findings, token, scanId }) {
   const [filterType, setFilterType] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,54 +64,17 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
       const matchesType = filterType === 'all' || f.type === filterType;
       const matchesSeverity = filterSeverity === 'all' || f.severity === filterSeverity;
       const matchesSearch = (
-        f.repo_name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
-        f.file_path.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1 ||
-        f.description.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+        (f.repo_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (f.file_path || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (f.description || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
       return matchesType && matchesSeverity && matchesSearch;
     });
   }, [findings, filterType, filterSeverity, searchQuery]);
 
-  // Group findings by repo, and then by file path
-  const grouped = useMemo(() => {
-    const res = {};
-    filteredFindings.forEach(f => {
-      if (!res[f.repo_name]) {
-        res[f.repo_name] = {};
-      }
-      if (!res[f.repo_name][f.file_path]) {
-        res[f.repo_name][f.file_path] = [];
-      }
-      res[f.repo_name][f.file_path].push(f);
-    });
-    return res;
-  }, [filteredFindings]);
-
-  // Auto-expand all repos and file trees by default
-  useEffect(() => {
-    const defaultExpandedRepos = {};
-    const defaultExpandedFiles = {};
-    Object.keys(grouped).forEach(repoName => {
-      defaultExpandedRepos[repoName] = true;
-      Object.keys(grouped[repoName]).forEach(filePath => {
-        defaultExpandedFiles[`${repoName}:${filePath}`] = true;
-      });
-    });
-    setExpandedRepos(defaultExpandedRepos);
-    setExpandedFiles(defaultExpandedFiles);
-  }, [grouped]);
-
-  const toggleRepo = (repoName) => {
-    setExpandedRepos(prev => ({ ...prev, [repoName]: !prev[repoName] }));
-  };
-
-  const toggleFile = (fileKey) => {
-    setExpandedFiles(prev => ({ ...prev, [fileKey]: !prev[fileKey] }));
-  };
-
   const getSeverityBadgeClass = (severity) => {
     const sev = severity ? severity.toLowerCase() : '';
-    if (sev === 'critical') return 'bg-red-950 text-red-300 border-red-800 font-extrabold animate-critical-pulse';
+    if (sev === 'critical') return 'bg-red-950 text-red-300 border-red-800 font-black';
     if (sev === 'high') return 'bg-orange-950 text-orange-300 border-orange-800 font-bold';
     if (sev === 'medium') return 'bg-amber-950 text-amber-300 border-amber-800 font-bold';
     return 'bg-zinc-900 text-zinc-300 border-zinc-700 font-medium';
@@ -78,7 +83,7 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
   const getTypeBadgeClass = (type) => {
     if (type === 'secret') return 'bg-red-950/80 text-red-300 border-red-800 font-extrabold';
     if (type === 'structural') return 'bg-amber-950/80 text-amber-300 border-amber-800 font-bold';
-    return 'bg-cyan-950/80 text-cyan-300 border-cyan-800 font-bold';
+    return 'bg-zinc-900 text-zinc-300 border-zinc-750 font-bold';
   };
 
   const canAutoFix = (finding) => {
@@ -104,7 +109,7 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           scan_id: scanId,
@@ -145,7 +150,6 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
     a.remove();
   };
 
-  // Helper to render real redacted code preview snippets
   const renderCodeSnippet = (finding) => {
     if (!finding.code_snippet) return null;
     
@@ -161,16 +165,16 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
     });
 
     return (
-      <div className="mt-3 border border-zinc-800 rounded-xl overflow-hidden font-mono text-xs bg-zinc-950 shadow-inner">
-        <div className="bg-zinc-900 px-4 py-2 border-b border-zinc-800 flex justify-between items-center text-zinc-400 text-xs">
-          <span>{finding.file_path}</span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-green-300 bg-green-950/60 px-2 py-0.5 rounded border border-green-800/60">
-            Redacted Memory Snippet
+      <div className="mt-3 border border-zinc-850 rounded-xl overflow-hidden font-mono text-xs bg-black shadow-inner">
+        <div className="bg-zinc-900/80 px-4 py-2 border-b border-zinc-850 flex justify-between items-center text-zinc-400 text-xs">
+          <span className="font-bold text-zinc-300">{finding.file_path}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+            Redacted Code Context
           </span>
         </div>
         <div className="p-3 space-y-1 overflow-x-auto">
           {codeLines.map((l, i) => (
-            <div key={i} className={`flex items-start ${l.highlight ? 'bg-red-950/30 text-red-200 font-semibold py-1 -mx-3 px-3 border-l-4 border-red-500' : 'text-zinc-400'}`}>
+            <div key={i} className={`flex items-start ${l.highlight ? 'bg-red-950/40 text-red-200 font-bold py-1 -mx-3 px-3 border-l-4 border-red-500' : 'text-zinc-400'}`}>
               <span className="w-10 select-none text-zinc-600 text-right pr-4">{l.num}</span>
               <span className="flex-1 whitespace-pre select-all text-left">{l.text}</span>
             </div>
@@ -181,25 +185,26 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
   };
 
   return (
-    <div className="border border-zinc-800 bg-zinc-950 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
+    <div className="border border-zinc-800 bg-zinc-950 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl font-sans">
       
-      {/* Filters & Header */}
+      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-900 pb-6">
         <div>
-          <h3 className="text-xl font-extrabold text-white flex items-center">
-            <FolderClosed className="w-5 h-5 mr-2.5 text-zinc-400" /> Detailed Repository Findings
+          <h3 className="text-xl font-black text-white flex items-center">
+            <ShieldAlert className="w-5 h-5 mr-2.5 text-zinc-300" /> Discovered Audit Findings &amp; Action Guide
           </h3>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-            Audited file locations, severities, and remediation steps. <span className="text-green-400 font-bold underline decoration-dotted">Secrets are strictly redacted.</span>
+            Plain-English breakdown of issues found, why they matter, and step-by-step instructions to fix them.
           </p>
         </div>
 
+        {/* Filter Controls */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search files or rules..."
+              placeholder="Search findings or files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-3.5 py-2 bg-black border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 text-xs w-56 font-mono"
@@ -209,18 +214,18 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 bg-black border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none text-xs cursor-pointer font-medium"
+            className="px-3.5 py-2 bg-black border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none text-xs cursor-pointer font-medium"
           >
-            <option value="all">All Categories</option>
-            <option value="secret">Secret Leaks Only</option>
-            <option value="structural">Structural Hygiene</option>
-            <option value="smell">Code Smells</option>
+            <option value="all">All Categories ({findings.length})</option>
+            <option value="secret">Secret Leaks ({findings.filter(f => f.type === 'secret').length})</option>
+            <option value="structural">Setup &amp; Hygiene ({findings.filter(f => f.type === 'structural').length})</option>
+            <option value="smell">Code Quality ({findings.filter(f => f.type === 'smell').length})</option>
           </select>
 
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
-            className="px-3 py-2 bg-black border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none text-xs cursor-pointer font-medium"
+            className="px-3.5 py-2 bg-black border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none text-xs cursor-pointer font-medium"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -231,138 +236,92 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
         </div>
       </div>
 
-      {/* Repo Tree List */}
-      <div className="space-y-5">
-        {Object.keys(grouped).length > 0 ? (
-          Object.keys(grouped).map(repoName => {
-            const repoFiles = grouped[repoName];
-            const isRepoExpanded = expandedRepos[repoName] !== false; // Default open
-            
-            let criticalCount = 0;
-            let highCount = 0;
-            let otherCount = 0;
-            Object.values(repoFiles).forEach(fileFindings => {
-              fileFindings.forEach(f => {
-                if (f.severity === 'critical') criticalCount++;
-                else if (f.severity === 'high') highCount++;
-                else otherCount++;
-              });
-            });
+      {/* Beginner Guidance Box */}
+      <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-5 rounded-2xl space-y-3">
+        <div className="flex items-center space-x-2 text-zinc-300 font-bold text-xs">
+          <Lightbulb className="w-4 h-4" />
+          <span>Beginner's Action Plan</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-zinc-300 font-sans">
+          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-bold text-red-400 block">1. Fix Secret Leaks First</span>
+            <p className="text-zinc-400 text-[11px] leading-relaxed">Rotate active API keys immediately on provider dashboards (AWS, GitHub, Slack) and remove keys from source code.</p>
+          </div>
+          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-bold text-amber-300 block">2. Add Missing Files</span>
+            <p className="text-zinc-400 text-[11px] leading-relaxed">Add a README.md, LICENSE, and .gitignore file to show recruiters professional repository management.</p>
+          </div>
+          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-bold text-zinc-300 block">3. Use 1-Click Patches</span>
+            <p className="text-zinc-400 text-[11px] leading-relaxed">Click the "1-Click Auto-Fix Patch" button on any issue card below to download or copy ready-to-use fixes.</p>
+          </div>
+        </div>
+      </div>
 
+      {/* Findings List */}
+      <div className="space-y-4">
+        {filteredFindings.length > 0 ? (
+          filteredFindings.map((finding, idx) => {
+            const exp = getBeginnerExplanation(finding);
             return (
-              <div key={repoName} className="border border-zinc-850 hover:border-zinc-750 rounded-2xl overflow-hidden bg-black shadow-md transition duration-300">
-                {/* Repo Header */}
-                <div 
-                  onClick={() => toggleRepo(repoName)}
-                  className="bg-zinc-950 hover:bg-zinc-900/60 p-5 flex items-center justify-between cursor-pointer select-none transition duration-150 border-b border-zinc-900"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-zinc-400">
-                      {isRepoExpanded ? <ChevronDown className="w-4 h-4 text-zinc-400" /> : <ChevronRight className="w-4 h-4 text-zinc-400" />}
+              <div key={idx} className="border border-zinc-850 bg-black hover:border-zinc-750 p-5 sm:p-6 rounded-2xl space-y-4 transition duration-200 shadow-md">
+                
+                {/* Header & Badges */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-900 pb-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-3 py-1 text-xs font-black rounded-lg border ${getTypeBadgeClass(finding.type)}`}>
+                      {finding.type === 'secret' ? '🔐 SECRET LEAK' : finding.type === 'structural' ? '📄 REPO HYGIENE' : '⚡ CODE SMELL'}
                     </span>
-                    <GitBranch className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="font-extrabold text-base text-white font-mono">{repoName}</span>
+                    <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${getSeverityBadgeClass(finding.severity)}`}>
+                      {finding.severity ? finding.severity.toUpperCase() : 'INFO'}
+                    </span>
+                    <span className="font-mono text-xs font-bold text-white bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg">
+                      {finding.file_path} {finding.line_number ? `: Line ${finding.line_number}` : ''}
+                    </span>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    {criticalCount > 0 && (
-                      <span className="px-2.5 py-1 text-xs font-extrabold bg-red-950 text-red-300 border border-red-800 rounded-full shadow-sm">
-                        {criticalCount} Critical
-                      </span>
-                    )}
-                    {highCount > 0 && (
-                      <span className="px-2.5 py-1 text-xs font-bold bg-orange-950 text-orange-300 border border-orange-800 rounded-full shadow-sm">
-                        {highCount} High
-                      </span>
-                    )}
-                    {otherCount > 0 && (
-                      <span className="px-2.5 py-1 text-xs font-bold bg-zinc-900 text-zinc-300 border border-zinc-750 rounded-full">
-                        {otherCount} Info
-                      </span>
-                    )}
+
+                  {canAutoFix(finding) && (
+                    <button
+                      onClick={() => handleOpenFixModal(finding)}
+                      className="py-1.5 px-3.5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-lg text-xs transition duration-150 flex items-center space-x-1.5 shadow-md active:scale-95 shrink-0 font-sans"
+                    >
+                      <Wrench className="w-3.5 h-3.5" />
+                      <span>1-Click Auto-Fix Patch</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Plain English Explanation Grid */}
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="text-sm font-extrabold text-white">{exp.title}</h4>
+                    <p className="text-xs text-zinc-300 mt-1 leading-relaxed">{exp.what}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
+                    <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-900 space-y-1">
+                      <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Why this matters:</span>
+                      <p className="text-zinc-400 leading-relaxed text-[11px]">{exp.why}</p>
+                    </div>
+                    <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-900 space-y-1">
+                      <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider block">How to fix it:</span>
+                      <p className="text-zinc-400 leading-relaxed text-[11px]">{exp.fix}</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Repo Files (Collapsible) */}
-                {isRepoExpanded && (
-                  <div className="p-5 space-y-4 bg-zinc-950/30 divide-y divide-zinc-900">
-                    {Object.keys(repoFiles).map(filePath => {
-                      const fileFindings = repoFiles[filePath];
-                      const fileKey = `${repoName}:${filePath}`;
-                      const isFileExpanded = expandedFiles[fileKey] !== false; // Default open
-
-                      return (
-                        <div key={filePath} className="pt-4 first:pt-0">
-                          {/* File Path Header */}
-                          <div 
-                            onClick={() => toggleFile(fileKey)}
-                            className="flex items-center justify-between cursor-pointer select-none hover:text-white py-1 transition duration-150"
-                          >
-                            <div className="flex items-center space-x-2 font-mono text-sm text-zinc-200 font-semibold">
-                              {isFileExpanded ? <FolderOpen className="w-4 h-4 text-zinc-400" /> : <FolderClosed className="w-4 h-4 text-zinc-500" />}
-                              <span className="underline decoration-zinc-700">{filePath}</span>
-                              <span className="text-xs text-zinc-500 font-normal">({fileFindings.length} issue{fileFindings.length > 1 ? 's' : ''})</span>
-                            </div>
-                            <span className="text-zinc-500 text-xs font-mono">
-                              {isFileExpanded ? 'collapse' : 'expand'}
-                            </span>
-                          </div>
-
-                          {/* Findings in File */}
-                          {isFileExpanded && (
-                            <div className="pl-6 mt-4 space-y-5">
-                              {fileFindings.map((finding, idx) => (
-                                <div key={idx} className="border-l-2 border-zinc-800 pl-5 py-1 space-y-2.5">
-                                  <div className="flex flex-wrap items-center gap-2.5">
-                                    <span className={`px-2.5 py-1 text-xs font-extrabold rounded-md border ${getTypeBadgeClass(finding.type)}`}>
-                                      {finding.type.toUpperCase()}
-                                    </span>
-                                    <span className={`px-2.5 py-1 text-xs font-extrabold rounded-md border ${getSeverityBadgeClass(finding.severity)}`}>
-                                      {finding.severity ? finding.severity.toUpperCase() : 'INFO'}
-                                    </span>
-                                    {finding.line_number && (
-                                      <span className="text-xs font-mono text-zinc-400">
-                                        Line {finding.line_number}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <p className="text-sm text-zinc-100 leading-relaxed font-semibold">
-                                    {finding.description}
-                                  </p>
-
-                                  {/* Render redacted code snippet */}
-                                  {finding.code_snippet && renderCodeSnippet(finding)}
-
-                                  {/* Auto-Fix Trigger */}
-                                  {canAutoFix(finding) && (
-                                    <div className="pt-2">
-                                      <button
-                                        onClick={() => handleOpenFixModal(finding)}
-                                        className="py-1.5 px-3.5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-lg text-xs transition duration-150 border border-white flex items-center space-x-1.5 shadow-md"
-                                      >
-                                        <Wrench className="w-3.5 h-3.5" /><span>View &amp; Copy 1-Click Auto-Fix Patch</span>
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Redacted Code Snippet Context */}
+                {finding.code_snippet && renderCodeSnippet(finding)}
               </div>
             );
           })
         ) : (
-          <div className="text-center py-16 bg-black rounded-2xl border border-dashed border-zinc-850">
-            <div className="flex justify-center mb-3">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+          <div className="text-center py-14 bg-black rounded-2xl border border-dashed border-zinc-850 space-y-2">
+            <div className="flex justify-center mb-1">
+              <CheckCircle2 className="w-10 h-10 text-zinc-400" />
             </div>
-            <p className="text-sm font-semibold text-zinc-300">No issues found matching your filter criteria!</p>
+            <h4 className="text-sm font-bold text-white">No findings matched your criteria!</h4>
+            <p className="text-xs text-zinc-500">Try adjusting your category or severity filters above.</p>
           </div>
         )}
       </div>
@@ -374,10 +333,11 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
             <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
               <div>
                 <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
-                  <Wrench className="w-4 h-4 text-white" /><span>Unified Auto-Fix Patch Inspector</span>
+                  <Wrench className="w-4 h-4 text-zinc-300" />
+                  <span>1-Click Auto-Fix Patch Generator</span>
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Repo: <span className="font-mono text-white font-bold">{activePatchFinding.repo_name}</span> | Rule: <span className="font-mono text-white font-bold">{activePatchFinding.rule_id}</span>
+                <p className="text-xs text-zinc-400 mt-1 font-mono">
+                  Target File: <span className="text-white font-bold">{activePatchFinding.file_path}</span>
                 </p>
               </div>
               <button
@@ -390,8 +350,8 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
 
             {isFetchingPatch ? (
               <div className="py-12 text-center text-xs font-mono text-zinc-400 space-y-3">
-                <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full mx-auto"></div>
-                <p>Synthesizing unified git patch...</p>
+                <div className="animate-spin h-6 w-6 border-2 border-zinc-200 border-t-transparent rounded-full mx-auto"></div>
+                <p>Generating unified git patch for {activePatchFinding.rule_id}...</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -400,9 +360,9 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
                 </div>
 
                 <div className="bg-zinc-900/60 p-4 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1.5 font-mono">
-                  <p className="font-bold text-white">How to apply this patch locally in your repository:</p>
-                  <p className="text-zinc-400">1. Download or copy the `.patch` file into your local git repository folder.</p>
-                  <p className="text-zinc-200 bg-black px-3 py-1.5 rounded-lg border border-zinc-800 inline-block text-xs mt-1">
+                  <p className="font-bold text-white">How to apply this patch to your code in 1 step:</p>
+                  <p className="text-zinc-400">Save the patch file into your project folder and run:</p>
+                  <p className="text-zinc-200 bg-black px-3 py-1.5 rounded-lg border border-zinc-800 inline-block text-xs mt-1 font-mono font-bold">
                     git apply {activePatchFinding.repo_name}-{activePatchFinding.rule_id}-fix.patch
                   </p>
                 </div>
@@ -412,7 +372,7 @@ export default function RepoBreakdown({ _repositories, findings, token, scanId }
                     onClick={handleCopyPatch}
                     className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 border border-zinc-700 rounded-xl transition duration-150 flex items-center space-x-1.5"
                   >
-                    {copiedPatch ? <><ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" /><span>Copied!</span></> : <><Clipboard className="w-3.5 h-3.5" /><span>Copy Patch</span></>}
+                    {copiedPatch ? <><ClipboardCheck className="w-3.5 h-3.5 text-zinc-300" /><span>Copied to Clipboard!</span></> : <><Clipboard className="w-3.5 h-3.5" /><span>Copy Patch</span></>}
                   </button>
                   <button
                     onClick={handleDownloadPatch}

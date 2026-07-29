@@ -14,14 +14,59 @@ import {
   KeyRound, 
   ChevronDown,
   Search,
-  EyeOff
+  EyeOff,
+  ShieldAlert,
+  FileCode,
+  Lock,
+  Zap,
+  Layers,
+  XCircle,
+  Mail,
+  Phone,
+  ExternalLink,
+  Globe
 } from 'lucide-react';
+
+const LinkedinIcon = (props) => (
+  <svg className={props.className || "w-3.5 h-3.5"} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.75a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"/>
+  </svg>
+);
+
+const GithubIcon = (props) => (
+  <svg className={props.className || "w-3.5 h-3.5"} fill="currentColor" viewBox="0 0 24 24">
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+  </svg>
+);
 
 export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQuickScan }) {
   const [quickUsername, setQuickUsername] = useState('');
   const [demoTab, setDemoTab] = useState('terminal'); // 'terminal', 'findings', 'scorecard', 'patches'
   const [activeFaq, setActiveFaq] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  // Interactive Recruiter Risk Simulator State
+  const [riskItems, setRiskItems] = useState({
+    hasSecrets: true,
+    missingGitignore: true,
+    missingLicense: false,
+    noReadme: false,
+    hardcodedUrls: true
+  });
+
+  const toggleRiskItem = (key) => {
+    setRiskItems(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const calcScore = () => {
+    let score = 100;
+    if (riskItems.hasSecrets) score -= 40;
+    if (riskItems.missingGitignore) score -= 15;
+    if (riskItems.missingLicense) score -= 10;
+    if (riskItems.noReadme) score -= 15;
+    if (riskItems.hardcodedUrls) score -= 20;
+    return Math.max(0, score);
+  };
 
   const handleQuickSubmit = (e) => {
     e.preventDefault();
@@ -48,60 +93,47 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
   };
 
   return (
-    <div className="space-y-16 sm:space-y-24 lg:space-y-28 py-4 sm:py-6 text-white relative overflow-hidden font-sans">
+    <div className="space-y-16 sm:space-y-24 lg:space-y-28 py-0 sm:py-1 text-white relative overflow-hidden font-sans">
       
       {/* Background Subtle Grid & Ambient Radial Beam */}
       <div className="absolute inset-0 bg-grid-pattern opacity-15 pointer-events-none -z-10"></div>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-950/25 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-zinc-800/20 via-zinc-900/10 to-transparent blur-[160px] rounded-full pointer-events-none -z-10"></div>
 
       {/* Expansive Ambient Octocat Watermark Artwork (Fully Mobile Responsive) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[480px] sm:h-[720px] pointer-events-none z-0 flex items-center justify-center opacity-[0.10] sm:opacity-[0.13] select-none">
         <img 
           src="/octocat-user-outline.png" 
           alt="GitHub Profile Auditor Background Artwork" 
-          className="w-[340px] xs:w-[460px] sm:w-[840px] lg:w-[960px] max-w-none transform -translate-y-2 sm:-translate-y-6" 
+          className="w-[340px] xs:w-[460px] sm:w-[840px] lg:w-[960px] max-w-none transform -translate-y-6 sm:-translate-y-12" 
         />
       </div>
 
 
       {/* HERO SECTION - WORLD-CLASS DEVELOPER SECURITY STUDIO */}
-      <section className="text-center space-y-10 max-w-5xl mx-auto pt-4 sm:pt-6 relative z-10 animate-fade-in">
-        
-        {/* Version Badge */}
-        <div className="inline-flex items-center space-x-2.5 px-4 py-2 bg-zinc-900/90 border border-zinc-800 rounded-full text-xs font-mono text-zinc-300 shadow-xl backdrop-blur-md hover:border-emerald-500/40 transition duration-300 cursor-default">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
-          <span className="font-bold text-zinc-200 tracking-wider text-[11px] uppercase">SECURITY ENGINE (BETA)</span>
-          <span className="text-zinc-700 font-bold">•</span>
-          <span className="text-zinc-300 font-semibold flex items-center space-x-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Zero-Secret Retention</span>
-          </span>
-        </div>
+      <section className="text-center space-y-8 max-w-5xl mx-auto -mt-4 sm:-mt-8 pt-0 relative z-10 animate-fade-in">
 
         {/* High-Impact Headline */}
-        <div className="space-y-5 relative">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.08] font-sans">
-            Uncover Leaked Secrets. <br />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-              Elevate Profile Security.
-            </span>
+        <div className="space-y-4 relative">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[1.08] font-sans">
+            <span className="text-slate-900 dark:text-white block">Uncover Leaked Secrets.</span>
+            <span className="text-slate-600 dark:text-zinc-400 block pt-1">Elevate Profile Security.</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1">
+          <p className="text-base sm:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal pt-1 tracking-tight font-sans">
             Automated static analysis across public GitHub repositories. Intercept committed API credentials, fix Git hygiene debt, and generate 1-click auto-fix patches.
           </p>
         </div>
 
         {/* Developer Command Line Search Box */}
-        <div className="pt-2 max-w-2xl mx-auto space-y-4">
+        <div className="pt-1 max-w-2xl mx-auto space-y-4">
           <form 
             onSubmit={handleQuickSubmit} 
-            className="bg-zinc-950/90 p-2.5 rounded-3xl border border-zinc-800 shadow-2xl focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all duration-300 flex flex-col sm:flex-row items-center gap-2.5 backdrop-blur-xl"
+            className="bg-white dark:bg-zinc-950/90 p-2.5 rounded-3xl border border-slate-300 dark:border-zinc-800 shadow-2xl focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all duration-300 flex flex-col sm:flex-row items-center gap-2.5 backdrop-blur-xl"
           >
             <div className="relative w-full flex items-center pl-4">
-              <Search className="w-5 h-5 text-emerald-400 shrink-0 mr-2.5" />
-              <span className="text-zinc-500 font-mono text-xs sm:text-sm font-bold select-none shrink-0 pr-1">
+              <Search className="w-5 h-5 text-slate-400 dark:text-zinc-400 shrink-0 mr-2.5" />
+              <span className="text-slate-500 dark:text-zinc-500 font-mono text-xs sm:text-sm font-bold select-none shrink-0 pr-1">
                 github.com/
               </span>
               <input
@@ -109,22 +141,22 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                 placeholder="username (e.g. octocat)"
                 value={quickUsername}
                 onChange={(e) => setQuickUsername(e.target.value)}
-                className="w-full py-3.5 bg-transparent text-white placeholder-zinc-500 focus:outline-none font-mono text-xs sm:text-sm text-left font-semibold"
+                className="w-full py-3.5 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none font-mono text-xs sm:text-sm text-left font-semibold"
               />
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto shrink-0 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 hover:scale-[1.02] active:scale-98 flex items-center justify-center space-x-2.5"
+              className="w-full sm:w-auto shrink-0 px-8 py-4 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 flex items-center justify-center space-x-2.5"
             >
               <span>Audit Profile</span>
-              <ArrowRight className="w-4 h-4 text-black shrink-0" />
+              <ArrowRight className="w-4 h-4 text-white dark:text-black shrink-0" />
             </button>
           </form>
 
           {/* Quick Target Chips */}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2 font-mono text-xs text-zinc-400">
             <span className="text-xs text-zinc-400 font-bold">Featured profiles:</span>
-            {['torvalds', 'yyx990803', 'gaearon', 'sundarpichai', 'sindresorhus', 'octocat'].map((sampleUser) => (
+            {['torvalds', 'gaearon', 'octocat'].map((sampleUser) => (
               <button
                 key={sampleUser}
                 type="button"
@@ -133,7 +165,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   if (onStartQuickScan) onStartQuickScan(sampleUser);
                   else onStartRegister();
                 }}
-                className="px-3 py-1.5 bg-zinc-900 hover:bg-emerald-950/80 text-zinc-300 hover:text-emerald-300 rounded-xl border border-zinc-800 hover:border-emerald-700/60 text-xs font-bold transition duration-200 flex items-center space-x-1 shadow-sm active:scale-95"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl border border-zinc-800 hover:border-zinc-700 text-xs font-bold transition duration-200 flex items-center space-x-1 shadow-sm active:scale-95"
               >
                 <span>@{sampleUser}</span>
               </button>
@@ -141,18 +173,18 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </div>
 
           {/* Trust Highlights */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-zinc-400">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-zinc-400">
             <span className="flex items-center space-x-2 font-semibold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-zinc-300" />
               <span>Instant 10s Audit</span>
             </span>
             <span className="flex items-center space-x-2 font-semibold">
-              <EyeOff className="w-4 h-4 text-emerald-400" />
+              <EyeOff className="w-4 h-4 text-zinc-300" />
               <span>In-Memory Redaction</span>
             </span>
             <button 
               onClick={onGitHubOAuth}
-              className="text-zinc-400 hover:text-emerald-400 underline font-bold transition duration-200 flex items-center space-x-1"
+              className="text-zinc-400 hover:text-white underline font-bold transition duration-200 flex items-center space-x-1"
             >
               <span>Log in with GitHub</span>
             </button>
@@ -161,13 +193,13 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       </section>
 
       {/* METRICS TRUST BANNER */}
-      <section className="max-w-5xl mx-auto border border-zinc-850 bg-zinc-950/60 rounded-3xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center font-mono shadow-2xl animate-slide-up-1 backdrop-blur-xl">
+      <section className="max-w-5xl mx-auto -mt-20 sm:-mt-24 lg:-mt-28 border border-zinc-850 bg-zinc-950/90 rounded-3xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center font-mono shadow-2xl animate-slide-up-1 backdrop-blur-xl relative z-10">
         <div className="space-y-1.5">
-          <span className="text-3xl sm:text-4xl font-black text-white block">100%</span>
+          <span className="text-3xl sm:text-4xl font-black text-emerald-400 block">100%</span>
           <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">In-Memory Redaction</span>
         </div>
         <div className="space-y-1.5">
-          <span className="text-3xl sm:text-4xl font-black text-emerald-400 block">&lt; 10s</span>
+          <span className="text-3xl sm:text-4xl font-black text-cyan-400 block">&lt; 10s</span>
           <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Average Scan Runtime</span>
         </div>
         <div className="space-y-1.5">
@@ -175,7 +207,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">TruffleHog • Semgrep • Hygiene</span>
         </div>
         <div className="space-y-1.5">
-          <span className="text-3xl sm:text-4xl font-black text-cyan-400 block">0</span>
+          <span className="text-3xl sm:text-4xl font-black text-amber-400 block">0</span>
           <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Credentials Stored</span>
         </div>
       </section>
@@ -458,6 +490,139 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
         </div>
       </section>
 
+      {/* INTERACTIVE RECRUITER RISK SIMULATOR */}
+      <section className="max-w-5xl mx-auto space-y-8 animate-slide-up-2">
+        <div className="text-center space-y-2">
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400">Interactive Simulator</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Test Your Profile Score Impact</h2>
+          <p className="text-xs text-zinc-400 font-mono max-w-lg mx-auto">Toggle common repository security flaws to see how automated recruiter scanners rank your profile health.</p>
+        </div>
+
+        <div className="bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-850 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center shadow-2xl">
+          {/* Risk Toggles (7 cols) */}
+          <div className="lg:col-span-7 space-y-3 font-mono">
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block pb-1">Toggle Profile Security Conditions:</span>
+
+            <button
+              type="button"
+              onClick={() => toggleRiskItem('hasSecrets')}
+              className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                riskItems.hasSecrets 
+                  ? 'bg-red-950/40 border-red-800/80 text-red-300' 
+                  : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className={`w-4 h-4 shrink-0 ${riskItems.hasSecrets ? 'text-red-400' : 'text-zinc-500'}`} />
+                <span>Exposed API Keys / AWS Secrets (-40 pts)</span>
+              </div>
+              <span className={`text-[10px] px-2.5 py-1 rounded-lg font-mono ${riskItems.hasSecrets ? 'bg-red-900/60 text-red-200' : 'bg-zinc-800 text-zinc-500'}`}>
+                {riskItems.hasSecrets ? 'EXPOSED' : 'CLEAN'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleRiskItem('missingGitignore')}
+              className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                riskItems.missingGitignore 
+                  ? 'bg-amber-950/40 border-amber-800/80 text-amber-300' 
+                  : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <FileCode className={`w-4 h-4 shrink-0 ${riskItems.missingGitignore ? 'text-amber-400' : 'text-zinc-500'}`} />
+                <span>Missing Root .gitignore (-15 pts)</span>
+              </div>
+              <span className={`text-[10px] px-2.5 py-1 rounded-lg font-mono ${riskItems.missingGitignore ? 'bg-amber-900/60 text-amber-200' : 'bg-zinc-800 text-zinc-500'}`}>
+                {riskItems.missingGitignore ? 'MISSING' : 'PRESENT'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleRiskItem('hardcodedUrls')}
+              className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                riskItems.hardcodedUrls 
+                  ? 'bg-amber-950/40 border-amber-800/80 text-amber-300' 
+                  : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Terminal className={`w-4 h-4 shrink-0 ${riskItems.hardcodedUrls ? 'text-amber-400' : 'text-zinc-500'}`} />
+                <span>Hardcoded Localhost URLs (-20 pts)</span>
+              </div>
+              <span className={`text-[10px] px-2.5 py-1 rounded-lg font-mono ${riskItems.hardcodedUrls ? 'bg-amber-900/60 text-amber-200' : 'bg-zinc-800 text-zinc-500'}`}>
+                {riskItems.hardcodedUrls ? 'DETECTED' : 'CLEAN'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleRiskItem('missingLicense')}
+              className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                riskItems.missingLicense 
+                  ? 'bg-purple-950/40 border-purple-800/80 text-purple-300' 
+                  : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <ShieldAlert className={`w-4 h-4 shrink-0 ${riskItems.missingLicense ? 'text-purple-400' : 'text-zinc-500'}`} />
+                <span>Missing Open-Source License (-10 pts)</span>
+              </div>
+              <span className={`text-[10px] px-2.5 py-1 rounded-lg font-mono ${riskItems.missingLicense ? 'bg-purple-900/60 text-purple-200' : 'bg-zinc-800 text-zinc-500'}`}>
+                {riskItems.missingLicense ? 'MISSING' : 'PRESENT'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleRiskItem('noReadme')}
+              className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                riskItems.noReadme 
+                  ? 'bg-purple-950/40 border-purple-800/80 text-purple-300' 
+                  : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Lock className={`w-4 h-4 shrink-0 ${riskItems.noReadme ? 'text-purple-400' : 'text-zinc-500'}`} />
+                <span>Empty / Missing README.md (-15 pts)</span>
+              </div>
+              <span className={`text-[10px] px-2.5 py-1 rounded-lg font-mono ${riskItems.noReadme ? 'bg-purple-900/60 text-purple-200' : 'bg-zinc-800 text-zinc-500'}`}>
+                {riskItems.noReadme ? 'MISSING' : 'PRESENT'}
+              </span>
+            </button>
+          </div>
+
+          {/* Dynamic Score Output Display (5 cols) */}
+          <div className="lg:col-span-5 bg-black p-6 rounded-2xl border border-zinc-800 text-center space-y-4 font-mono">
+            <span className="text-xs text-zinc-400 uppercase tracking-widest block font-bold">Simulated Health Score</span>
+            
+            <div className="text-5xl sm:text-6xl font-black transition-all">
+              <span className={calcScore() >= 80 ? 'text-emerald-400' : calcScore() >= 50 ? 'text-amber-400' : 'text-red-400'}>
+                {calcScore()}
+              </span>
+              <span className="text-2xl text-zinc-600">/100</span>
+            </div>
+
+            <div className="p-3 bg-zinc-900/90 rounded-xl border border-zinc-800 text-xs">
+              <span className="text-zinc-400 block pb-1">Recruiter Risk Tier:</span>
+              <span className={`font-extrabold uppercase ${calcScore() >= 80 ? 'text-emerald-400' : calcScore() >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                {calcScore() >= 80 ? 'Optimal (Top Profile)' : calcScore() >= 50 ? 'Moderate Risk' : 'Critical Risk'}
+              </span>
+            </div>
+
+            <button
+              onClick={onStartRegister}
+              className="w-full py-3 bg-white text-black font-extrabold text-xs rounded-xl hover:bg-zinc-200 transition shadow-lg flex items-center justify-center space-x-2"
+            >
+              <span>Scan Your Actual Profile Now</span>
+              <ArrowRight className="w-4 h-4 text-black" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* STEP-BY-STEP AUDIT WORKFLOW */}
       <section className="max-w-5xl mx-auto space-y-10 animate-slide-up-3">
         <div className="text-center space-y-2">
@@ -529,13 +694,13 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Live Badge Component */}
           <div className="shrink-0 p-4 bg-black rounded-2xl border border-zinc-800 text-center space-y-3">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Live SVG Badge Preview</span>
+            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block font-bold">Live SVG Badge Preview</span>
             <div className="inline-flex items-center rounded-md overflow-hidden font-mono text-xs font-bold shadow-md">
-              <span className="bg-zinc-800 text-white px-3 py-1.5 flex items-center space-x-1.5">
+              <span className="bg-zinc-800 text-white badge-dark-label px-3 py-1.5 flex items-center space-x-1.5">
                 <span>octocat</span>
               </span>
-              <span className="bg-emerald-500 text-black px-3 py-1.5">
-                health: 88/100
+              <span className="bg-emerald-500 text-black badge-green-label px-3 py-1.5">
+                <span>health: 88/100</span>
               </span>
             </div>
           </div>
@@ -551,7 +716,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
             <code className="truncate pr-4 text-emerald-400 text-xs">{badgeMarkdown}</code>
             <button
               onClick={handleCopyBadge}
-              className="px-3.5 py-1.5 bg-zinc-850 hover:bg-zinc-750 text-white font-bold rounded-lg text-xs transition shrink-0 flex items-center space-x-1.5"
+              className="copy-btn-dark px-3.5 py-1.5 bg-zinc-850 hover:bg-zinc-750 text-white font-bold rounded-lg text-xs transition shrink-0 flex items-center space-x-1.5"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
               <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -669,6 +834,122 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           </button>
         </div>
       </section>
+
+      {/* RICH MODERN DEVELOPER FOOTER */}
+      <footer className="mt-16 border-t border-zinc-200 dark:border-zinc-850 pt-14 pb-10 bg-slate-50 dark:bg-black/90 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-10">
+          
+          {/* Brand & Developer Bio (5 cols) */}
+          <div className="md:col-span-5 space-y-4">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/logo.png" 
+                alt="GitHub Profile Auditor Logo" 
+                className="w-8 h-8 rounded-xl object-cover border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shrink-0 shadow-sm" 
+              />
+              <span className="font-extrabold text-zinc-900 dark:text-white text-base tracking-tight font-sans">
+                GitHub Profile Auditor
+              </span>
+              <span className="px-2.5 py-0.5 text-[10px] bg-emerald-950/80 text-emerald-400 font-mono font-bold rounded-full border border-emerald-800/80 uppercase tracking-wider">
+                BETA
+              </span>
+            </div>
+            <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed max-w-sm font-sans">
+              Automated multi-engine static analysis for public GitHub profiles. Intercept committed credentials, clean repository hygiene debt, and boost your recruiter hiring rank.
+            </p>
+            
+            {/* Developer Contact Quick Bar */}
+            <div className="pt-2 flex flex-wrap items-center gap-2">
+              <a
+                href="https://www.linkedin.com/in/jaggureddy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+              >
+                <LinkedinIcon className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <span>LinkedIn</span>
+              </a>
+              <a
+                href="https://github.com/jaggureddy11"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+              >
+                <GithubIcon className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+                <span>GitHub</span>
+              </a>
+              <a
+                href="mailto:jaggureddy2004@gmail.com"
+                className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-800 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition flex items-center space-x-2 text-[11px] shadow-sm font-bold"
+              >
+                <Mail className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Email</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Engine Features (3 cols) */}
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider">Analysis Engines</h4>
+            <ul className="space-y-2 text-zinc-600 dark:text-zinc-400 text-[11px]">
+              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>TruffleHog Redaction</span>
+              </li>
+              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                <span>Semgrep AST Hygiene</span>
+              </li>
+              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
+                <span>AI Recruiter Score</span>
+              </li>
+              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>Unified .patch Fixes</span>
+              </li>
+              <li className="flex items-center space-x-1.5 hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>README Health Shield</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Security & System Info (4 cols) */}
+          <div className="md:col-span-4 space-y-3">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider">Security Architecture</h4>
+            <div className="p-3.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-2xl space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Clone RAM Wiping:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% In-Memory</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Stored Credentials:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">0 Secrets Saved</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-zinc-600 dark:text-zinc-400 font-semibold">Scanner Queue:</span>
+                <span className="text-cyan-600 dark:text-cyan-400 font-bold">Redis Ephemeral</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-zinc-500 leading-relaxed font-sans">
+              Designed for open-source software engineers, security auditors, and recruiters.
+            </p>
+          </div>
+
+        </div>
+
+        {/* Sub-Footer Copyright Bar */}
+        <div className="max-w-6xl mx-auto px-4 mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
+          <p>© {new Date().getFullYear()} R Jagadishwar R (jaggureddy11). All rights reserved.</p>
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-zinc-700 dark:text-zinc-400 font-bold">All Engines Operational</span>
+            </span>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );

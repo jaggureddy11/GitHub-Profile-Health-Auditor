@@ -39,11 +39,11 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
 
     try:
         result = subprocess.run(
-            ["git", "clone", "--depth", "1", url, dest_path],
+            ["git", "clone", "--depth", "1", "--single-branch", "--no-tags", url, dest_path],
             capture_output=True,
             text=True,
             check=False,
-            timeout=30
+            timeout=20
         )
         if result.returncode != 0:
             stderr_clean = result.stderr
@@ -136,6 +136,10 @@ def run_single_repo_scan_job(scan_id: str, username: str, repo_name: str, repo_u
                     smell_findings = scan_smells(tmp_dir, repo_name)
                     findings.extend(smell_findings)
 
+                    # Synthesize AI Health Report with architecture and README analysis
+                    score, summary_json = _safe_run_coroutine(synthesize_report(findings, repo_name=repo_name, repo_path=tmp_dir))
+                    scan.overall_score = score
+                    scan.summary = summary_json
                 except TimeoutError as te:
                     print(f"[SingleRepoScan {scan_id}] {te}")
                     timed_out = True
@@ -183,7 +187,7 @@ def run_single_repo_scan_job(scan_id: str, username: str, repo_name: str, repo_u
             scan.status = "completed"
             scan.completed_at = datetime.now(timezone.utc)
             db.commit()
-            print(f"[SingleRepoScan {scan_id}] Completed successfully with {len(findings)} findings.")
+            print(f"[SingleRepoScan {scan_id}] Completed successfully with {len(findings)} findings and score {scan.overall_score}.")
 
         # Check if this child scan belongs to a parent group scan
         if scan.parent_scan_id:

@@ -1,13 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Sun, Moon, Mail, Phone } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
 import LandingPage from './components/LandingPage';
 import QuickStatsCard from './components/QuickStatsCard';
 import RepoGrid from './components/RepoGrid';
+import LiveScanTelemetry from './components/LiveScanTelemetry';
+import ContactPage from './components/ContactPage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+const LinkedinIcon = (props) => (
+  <svg className={props.className || "w-3.5 h-3.5"} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.75a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"/>
+  </svg>
+);
+
+const GithubIcon = (props) => (
+  <svg className={props.className || "w-3.5 h-3.5"} fill="currentColor" viewBox="0 0 24 24">
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+  </svg>
+);
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -123,15 +137,11 @@ export default function App() {
     }
   }, [activeUsername, quickstats, userRepos, repoStatuses, scanReport]);
 
-  // Sync theme with HTML root class and localStorage
+  // Enforce Dark Mode
   useEffect(() => {
-    localStorage.setItem('auditor_theme', theme);
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-  }, [theme]);
+    localStorage.setItem('auditor_theme', 'dark');
+    document.documentElement.classList.remove('light');
+  }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -340,7 +350,6 @@ export default function App() {
   };
 
   const handleStartQuickScan = async (username) => {
-    // Zero-auth public scan — no login required
     let cleanUsername = username.trim();
     if (cleanUsername.includes('github.com/')) {
       cleanUsername = cleanUsername.split('github.com/')[1].split('/')[0];
@@ -348,27 +357,7 @@ export default function App() {
     cleanUsername = cleanUsername.replace(/^@/, '').trim();
     if (!cleanUsername) return;
 
-    setScanState('loading');
-    setErrorMessage('');
-    setLoadingStep(0);
-    setPublicScanReport(null);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/public-scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: cleanUsername })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'Public scan failed');
-      }
-      setPublicScanReport(data);
-      setScanState('public-completed');
-    } catch (err) {
-      setScanState('error');
-      setErrorMessage(err.message || 'Failed to connect to scanning server.');
-    }
+    handleStartScan(cleanUsername, null);
   };
 
   const fetchQuickStats = async (username, githubToken) => {
@@ -418,14 +407,19 @@ export default function App() {
     
     setScanState('loading');
     setErrorMessage('');
-    setLoadingStep(0);
     setScanReport(null);
     setRepoStatuses((prev) => ({ ...prev, [repoName]: 'running' }));
+    
+    // Smooth scroll to top of page where live telemetry / report is displayed
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     try {
       const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           username: targetUsername,
           repo_name: repoName,
@@ -437,6 +431,7 @@ export default function App() {
       }
       const data = await res.json();
       setCurrentScanId(data.scan_id);
+      setScanReport(data);
       pollSingleRepoScanStatus(data.scan_id, repoName);
     } catch (err) {
       console.error(`Single repo scan error for ${repoName}:`, err);
@@ -446,60 +441,100 @@ export default function App() {
     }
   };
 
-  const handleStartScan = async (username, githubToken) => {
-    setActiveUsername(username);
-    setView('dashboard');
-    setScanState('idle');
-    setErrorMessage('');
-    setScanReport(null);
-
-    // Concurrently trigger quickstats fetch and repo listing (<1-2s target)
-    fetchQuickStats(username, githubToken);
-    fetchUserRepos(username, githubToken);
-  };
-
-  const pollSingleRepoScanStatus = (scanId, repoName) => {
-    let stepCount = 0;
+  const pollFullScanStatus = (scanId) => {
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
-        if (!response.ok) {
-          throw new Error('Failed to fetch scan progress.');
-        }
-
-        const report = await response.json();
-        
-        stepCount = Math.min(stepCount + 1, loadingMessages.length - 1);
-        setLoadingStep(stepCount);
+        if (!res.ok) return;
+        const report = await res.json();
+        setScanReport(report);
 
         if (report.status === 'completed') {
           clearInterval(pollInterval);
-          setScanReport(report);
+          setScanState('completed');
+          fetchScanHistory();
+        } else if (report.status === 'failed' || report.status === 'timed_out') {
+          clearInterval(pollInterval);
+          setScanState('completed');
+        }
+      } catch (err) {
+        console.error("Poll scan error:", err);
+      }
+    }, 1200);
+
+    setTimeout(() => clearInterval(pollInterval), 180000);
+  };
+
+  const handleStartScan = async (username, githubToken) => {
+    let cleanUsername = username.trim().replace(/^@/, '');
+    if (!cleanUsername) return;
+
+    setActiveUsername(cleanUsername);
+    setView('dashboard');
+    setScanState('loading');
+    setErrorMessage('');
+    setScanReport(null);
+
+    // Concurrently fetch quickstats and repo listing (<1s)
+    fetchQuickStats(cleanUsername, githubToken);
+    fetchUserRepos(cleanUsername, githubToken);
+
+    // Trigger deep background scan
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/scan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ username: cleanUsername, github_token: githubToken || undefined })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentScanId(data.scan_id);
+        setScanReport(data);
+        pollFullScanStatus(data.scan_id);
+      } else {
+        const errData = await res.json();
+        console.warn("Scan initiation notice:", errData.detail);
+      }
+    } catch (err) {
+      console.error("Failed to initiate deep scan:", err);
+    }
+  };
+
+  const pollSingleRepoScanStatus = (scanId, repoName) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) return;
+
+        const report = await response.json();
+        setScanReport(report);
+
+        if (report.status === 'completed') {
+          clearInterval(pollInterval);
           setScanState('completed');
           setRepoStatuses((prev) => ({ ...prev, [repoName]: 'completed' }));
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           fetchScanHistory();
         } else if (report.status === 'failed' || report.status === 'timed_out') {
           clearInterval(pollInterval);
           setRepoStatuses((prev) => ({ ...prev, [repoName]: report.status }));
-          setScanState((currentState) => (currentState === 'loading' ? 'idle' : currentState));
+          setScanState('completed');
         }
       } catch (err) {
         console.error("Polling error for repo scan:", err);
       }
-    }, 2000);
+    }, 1200);
 
-    // Safety timeout per single repo scan (180 seconds max)
     setTimeout(() => {
       clearInterval(pollInterval);
-      setRepoStatuses((prev) => {
-        if (prev[repoName] === 'running' || prev[repoName] === 'queued') {
-          return { ...prev, [repoName]: 'timed_out' };
-        }
-        return prev;
-      });
-      setScanState((currentState) => (currentState === 'loading' ? 'idle' : currentState));
     }, 180000);
   };
 
@@ -671,37 +706,13 @@ export default function App() {
             >
               Privacy &amp; Security
             </button>
+            <button 
+              onClick={() => setView('contact')}
+              className={`hover:text-white transition text-sm ${view === 'contact' ? 'text-white font-bold' : 'text-zinc-400'}`}
+            >
+              Contact
+            </button>
 
-            {/* Interactive Theme Switch (ON / OFF Slider) */}
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 p-1.5 px-3 rounded-2xl text-xs font-mono font-bold shadow-sm">
-              <span className="text-zinc-400 text-[11px] hidden sm:inline">Theme</span>
-              <button
-                onClick={toggleTheme}
-                role="switch"
-                aria-checked={theme === 'dark'}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-300 p-0.5 flex items-center cursor-pointer ${
-                  theme === 'dark' ? 'bg-emerald-950 border border-emerald-700' : 'bg-amber-100 border border-amber-300'
-                }`}
-                title={`Dark Mode ${theme === 'dark' ? 'ON' : 'OFF'} (Click to toggle)`}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full shadow-md flex items-center justify-center transition-transform duration-300 transform ${
-                    theme === 'dark'
-                      ? 'translate-x-5 bg-emerald-400 text-black'
-                      : 'translate-x-0 bg-amber-500 text-white'
-                  }`}
-                >
-                  {theme === 'dark' ? (
-                    <Moon className="w-2.5 h-2.5 fill-black text-black" />
-                  ) : (
-                    <Sun className="w-2.5 h-2.5 fill-white text-white" />
-                  )}
-                </div>
-              </button>
-              <span className={`text-[11px] font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-amber-600'}`}>
-                {theme === 'dark' ? 'Dark ON' : 'Light'}
-              </span>
-            </div>
             {token ? (
               <div className="flex items-center space-x-3 pl-2 border-l border-zinc-850">
                 <span className="text-xs text-zinc-400 font-mono hidden md:inline">{user?.email}</span>
@@ -945,6 +956,11 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW: DEVELOPER CONTACT DETAILS */}
+        {view === 'contact' && (
+          <ContactPage onBackToDashboard={() => setView(token ? 'dashboard' : 'landing')} />
+        )}
+
         {/* VIEW: AUTHENTICATION */}
         {view === 'auth' && (
           <div className="max-w-md w-full mx-auto bg-zinc-950 border border-zinc-900 p-8 rounded-2xl space-y-6 shadow-xl animate-fade-in">
@@ -1103,18 +1119,6 @@ export default function App() {
             {/* Right Main Panel: Scan Output / State (9 cols) */}
             <div className="lg:col-span-9 space-y-8">
               
-              {scanState === 'idle' && (
-                <div className="border border-dashed border-zinc-800 p-20 rounded-2xl text-center space-y-3">
-                  <div className="flex justify-center">
-                    <Search className="w-10 h-10 text-zinc-700" />
-                  </div>
-                  <h4 className="font-bold text-sm text-zinc-400">Ready for scan analysis</h4>
-                  <p className="text-xs text-zinc-550 max-w-sm mx-auto leading-relaxed">
-                    Provide a public GitHub profile username in the scanner on the left to start a profile health check.
-                  </p>
-                </div>
-              )}
-
               {/* VIEW: IDLE / REPOS LOADED */}
               {scanState === 'idle' && (
                 <div className="space-y-8">
@@ -1144,69 +1148,23 @@ export default function App() {
                 </div>
               )}
 
-              {/* VIEW: LOADING REPO SCAN */}
+              {/* VIEW: LOADING REPO SCAN — REAL LIVE TELEMETRY */}
               {scanState === 'loading' && (
                 <div className="space-y-8">
+                  <LiveScanTelemetry report={scanReport} />
                   <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
-
-                  <div className="border border-zinc-800 bg-zinc-950 p-8 sm:p-10 rounded-3xl flex flex-col justify-start space-y-6 shadow-2xl font-sans">
-                    <div className="flex items-center space-x-4 border-b border-zinc-900 pb-5">
-                      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                        <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/40 animate-spin" style={{ animationDuration: '4s' }}></div>
-                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                      </div>
-                      <div className="text-left">
-                        <h3 className="text-lg font-bold text-white">Repository Health Audit in Progress</h3>
-                        <p className="text-xs text-zinc-400 font-mono">Running live static analysis &amp; secret interception pipeline</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 text-left max-w-xl font-mono text-xs">
-                      {loadingMessages.map((msg, idx) => {
-                        const isCompleted = idx < loadingStep;
-                        const isActive = idx === loadingStep;
-                        const isPending = idx > loadingStep;
-
-                        return (
-                          <div 
-                            key={idx} 
-                            className={`flex items-center space-x-3 transition-all duration-300 ${
-                              isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-bold' : 'text-zinc-700')
-                            }`}
-                          >
-                            {isCompleted && (
-                              <span className="w-5 h-5 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-xs text-emerald-400 shrink-0 font-bold">
-                                ✓
-                              </span>
-                            )}
-                            {isActive && (
-                              <span className="relative flex h-2.5 w-2.5 shrink-0 ml-1 mr-1">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                              </span>
-                            )}
-                            {isPending && (
-                              <span className="w-2.5 h-2.5 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
-                            )}
-                            <span className="text-xs font-mono">{msg}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="space-y-2 pt-2 max-w-xl">
-                      <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
-                        <div 
-                          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 transition-all duration-700 ease-out"
-                          style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-zinc-500 font-mono">
-                        <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
-                        <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
-                      </div>
-                    </div>
-                  </div>
+                  
+                  {userRepos && userRepos.length > 0 && (
+                    <RepoGrid 
+                      repositories={userRepos} 
+                      repoStatuses={repoStatuses} 
+                      isLoading={userReposLoading}
+                      onAnalyzeRepo={handleStartSingleRepoScan}
+                      onAuditAll={handleAuditAllRepos}
+                      isBatchScanning={isBatchScanning}
+                      batchProgress={batchProgress}
+                    />
+                  )}
                 </div>
               )}
 
@@ -1214,16 +1172,19 @@ export default function App() {
               {scanState === 'completed' && scanReport && (
                 <div className="space-y-8 animate-fade-in font-sans">
                   {/* Top Navigation Bar back to Repositories list */}
-                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800">
+                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-lg">
                     <button
                       onClick={handleReset}
-                      className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white rounded-xl text-xs font-bold font-sans transition flex items-center space-x-2 border border-zinc-700"
+                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md"
                     >
-                      <span>← Back to Repository List</span>
+                      <span>← Back to Repositories Grid</span>
                     </button>
-                    <span className="text-xs text-emerald-400 font-mono font-bold">
-                      Audit Complete • Verified Real Data
-                    </span>
+                    <div className="flex items-center space-x-3 text-xs font-mono">
+                      <span className="text-zinc-400">Target Repo: <span className="text-white font-bold">{scanReport.repo_name || activeUsername}</span></span>
+                      <span className="text-zinc-200 font-bold bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-800">
+                        Audit Complete
+                      </span>
+                    </div>
                   </div>
 
                   <ReportDashboard 
@@ -1233,13 +1194,6 @@ export default function App() {
                     token={token}
                     quickstats={quickstats}
                     quickstatsLoading={quickstatsLoading}
-                  />
-
-                  <RepoBreakdown 
-                    repositories={scanReport.repositories} 
-                    findings={scanReport.findings}
-                    token={token}
-                    scanId={currentScanId || scanReport?.scan_id}
                   />
 
                   {/* Public Repositories Grid View */}
@@ -1298,11 +1252,6 @@ export default function App() {
         )}
 
       </main>
-
-      {/* Global Footer */}
-      <footer className="border-t border-zinc-950 py-5 text-center text-[10px] text-zinc-600 bg-black font-mono">
-        <p>&copy; {new Date().getFullYear()} GitHub Profile Auditor. Enabled with static analysis &amp; AI synthesis. Ephemeral clone memory wiping.</p>
-      </footer>
     </div>
   );
 }

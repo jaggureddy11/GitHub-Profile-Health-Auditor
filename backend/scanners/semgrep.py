@@ -20,7 +20,7 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
         # Run semgrep with auto config in JSON mode with 30s timeout and folder exclusions
         result = subprocess.run(
             [
-                semgrep_path, "--config", "auto", "--json", 
+                semgrep_path, "--config", "auto", "--offline", "--quiet", "--json", 
                 "--max-target-bytes", "5000000",
                 "--exclude", "node_modules",
                 "--exclude", "venv",
@@ -31,7 +31,7 @@ def scan_smells(repo_path: str, repo_name: str) -> List[Dict[str, Any]]:
             capture_output=True,
             text=True,
             check=False,
-            timeout=30
+            timeout=15
         )
     except subprocess.TimeoutExpired:
         print(f"Warning: Semgrep scan timed out for repository {repo_path} after 30s.")

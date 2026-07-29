@@ -3,6 +3,7 @@ import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, Refr
 import SecurityCopilot from './SecurityCopilot';
 import PublicBadgeModal from './PublicBadgeModal';
 import QuickStatsCard from './QuickStatsCard';
+import RepoBreakdown from './RepoBreakdown';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -128,20 +129,20 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
       <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
 
       {/* Redaction Guarantee Banner */}
-      <div className="border border-green-900/80 bg-green-950/30 p-5 rounded-2xl flex items-center justify-between text-green-300 print:hidden shadow-lg animate-slide-up-1 animate-border-glow">
+      <div className="border border-zinc-800 bg-zinc-950 p-5 rounded-2xl flex items-center justify-between text-zinc-300 print:hidden shadow-lg animate-slide-up-1">
         <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 rounded-xl bg-green-900/60 border border-green-800/60 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-6 h-6 text-green-300" />
+          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-6 h-6 text-zinc-300" />
           </div>
           <div className="space-y-1">
-            <p className="font-extrabold text-sm sm:text-base text-green-200">Absolute Secret Redaction Guarantee Active</p>
-            <p className="text-xs sm:text-sm text-green-400/90 leading-relaxed">
+            <p className="font-extrabold text-sm sm:text-base text-zinc-200">Absolute Secret Redaction Guarantee Active</p>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
               Secret values are never logged, stored in databases, or output in plain text. Repositories are cloned to ephemeral memory and wiped immediately after static analysis.
             </p>
           </div>
         </div>
-        <div className="hidden lg:flex items-center space-x-2 border border-green-800/60 bg-black/60 px-3.5 py-2 rounded-xl text-xs font-mono text-green-300 shrink-0">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        <div className="hidden lg:flex items-center space-x-2 border border-zinc-800 bg-black px-3.5 py-2 rounded-xl text-xs font-mono text-zinc-300 shrink-0">
+          <span className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse"></span>
           <span>100% Ephemeral RAM</span>
         </div>
       </div>
@@ -166,7 +167,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                 cx="50"
                 cy="50"
                 r="40"
-                className="stroke-emerald-400 text-emerald-400 transition-all duration-1000 ease-out"
+                className="stroke-zinc-200 text-zinc-200 transition-all duration-1000 ease-out"
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={251.2}
@@ -181,7 +182,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           </div>
           <span className="mt-5 px-4 py-1.5 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
             {overall_score >= 90 ? (
-              <span className="flex items-center space-x-1.5"><Sparkles className="w-4 h-4 text-emerald-400" /><span>Excellent Standing</span></span>
+              <span className="flex items-center space-x-1.5"><Sparkles className="w-4 h-4 text-zinc-300" /><span>Excellent Standing</span></span>
             ) : overall_score >= 70 ? (
               <span className="flex items-center space-x-1.5"><AlertTriangle className="w-4 h-4 text-amber-300" /><span>Fair - Action Recommended</span></span>
             ) : (
@@ -206,15 +207,15 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
               <div className="flex flex-wrap items-center gap-2 print:hidden w-full sm:w-auto">
                 <button
                   onClick={() => setShowBadgeModal(true)}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 text-xs font-bold transition duration-150 border border-emerald-800/80 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
+                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-bold transition duration-150 border border-zinc-750 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm"
                   title="Opt-in to publish public README badge"
                 >
-                  <BadgeCheck className="w-4 h-4 text-emerald-400" />
+                  <BadgeCheck className="w-4 h-4 text-zinc-300" />
                   <span>Make Score Public</span>
                 </button>
                 <button
                   onClick={handleGenerateAiReadme}
-                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                  className="flex-1 sm:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md active:scale-95"
                   title="Generate AI Profile README.md"
                 >
                   <Sparkles className="w-4 h-4 text-black" />
@@ -332,6 +333,30 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
         </div>
       </div>
 
+      {/* AI Architecture & README Evaluation */}
+      {(summary?.architecture_summary || summary?.readme_evaluation) && (
+        <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-2xl shadow-xl space-y-4 font-sans animate-slide-up-3">
+          <div className="flex items-center space-x-3 border-b border-zinc-900 pb-3">
+            <Sparkles className="w-5 h-5 text-zinc-300" />
+            <h3 className="text-base font-bold text-white">AI Architecture & Documentation Evaluation</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            {summary.architecture_summary && (
+              <div className="bg-black p-4 rounded-xl border border-zinc-850 space-y-1">
+                <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Repository Architecture</span>
+                <p className="text-zinc-200 leading-relaxed font-sans text-xs">{summary.architecture_summary}</p>
+              </div>
+            )}
+            {summary.readme_evaluation && (
+              <div className="bg-black p-4 rounded-xl border border-zinc-850 space-y-1">
+                <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">README & Documentation Analysis</span>
+                <p className="text-zinc-200 leading-relaxed font-sans text-xs">{summary.readme_evaluation}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Prioritized AI Recommendations & AI Copilot Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up-3">
         
@@ -399,6 +424,9 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
         )}
 
       </div>
+
+      {/* Detailed Beginner-Friendly Audit Findings & Remediation Guide */}
+      <RepoBreakdown findings={findings || []} token={token} scanId={scan_id} />
 
       {/* AI PROFILE README GENERATOR MODAL */}
       {showReadmeModal && (

@@ -126,7 +126,7 @@ except Exception as e:
     scan_queue = None
 
 # JWT Config
-JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET") or os.getenv("JWT_SECRET_KEY")
 if not JWT_SECRET:
     if os.getenv("ENVIRONMENT", "development").lower() in ("prod", "production"):
         raise RuntimeError("CRITICAL SECURITY ERROR: JWT_SECRET environment variable must be explicitly set in production!")
@@ -215,7 +215,9 @@ def verify_scan_access(
         raise HTTPException(status_code=404, detail="Scan not found or access denied")
     
     allowed = False
-    if current_user and scan.user_id == current_user.id:
+    if not scan.user_id:
+        allowed = True
+    elif current_user and scan.user_id == current_user.id:
         allowed = True
     elif scan.session_id and scan.session_id == session_id:
         allowed = True

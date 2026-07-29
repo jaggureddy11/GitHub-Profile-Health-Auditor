@@ -131,26 +131,42 @@ def clean_llm_json(response_text: str) -> str:
         text = text[:-3]
     return text.strip()
 
-async def synthesize_report(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
+async def synthesize_report(findings: List[Dict[str, Any]], repo_name: str = None, repo_path: str = None) -> Tuple[int, str]:
     """
-    Aggregates findings and calls Groq (or Hugging Face) LLM to synthesize report.
+    Aggregates findings, inspects repo architecture/README (if path provided),
+    and calls Groq (or Hugging Face) LLM to synthesize report.
     Returns: (overall_score, summary_json_string)
     """
-    if not findings:
-        empty_report = {
-            "overall_score": 100,
-            "top_issues": [],
-            "repo_summaries": {}
-        }
-        return 100, json.dumps(empty_report)
-
     groq_token = os.getenv("GROQ_API_TOKEN")
     hf_token = os.getenv("HF_API_TOKEN")
+
+    file_structure = []
+    readme_text = ""
+    if repo_path and os.path.exists(repo_path):
+        try:
+            for root, dirs, files in os.walk(repo_path):
+                # Ignore heavy or hidden folders
+                dirs[:] = [d for d in dirs if d not in ("node_modules", ".git", "venv", "__pycache__", "dist", "build")]
+                rel_root = os.path.relpath(root, repo_path)
+                if rel_root == ".":
+                    rel_root = ""
+                for f in files:
+                    rel_file = os.path.join(rel_root, f) if rel_root else f
+                    file_structure.append(rel_file)
+                    if f.lower().startswith("readme") and not readme_text:
+                        readme_file_path = os.path.join(root, f)
+                        try:
+                            with open(readme_file_path, "r", encoding="utf-8", errors="ignore") as rf:
+                                readme_text = rf.read(1200)
+                        except Exception:
+                            pass
+        except Exception as ex:
+            print(f"Error inspecting repo path for AI synthesis: {ex}")
 
     findings_summary = []
     for f in findings:
         findings_summary.append({
-            "repo": f.get("repo_name"),
+            "repo": f.get("repo_name") or repo_name or "repository",
             "type": f.get("type"),
             "file": f.get("file_path"),
             "severity": f.get("severity"),
@@ -161,10 +177,12 @@ async def synthesize_report(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
     Return ONLY a raw valid JSON object matching the following structure exactly. Do not include any explanation or markdown block wrappers (do not wrap in ```json).
     {
       "overall_score": 85,
+      "architecture_summary": "Python/FastAPI backend with SQLite database and React frontend containerized with Docker.",
+      "readme_evaluation": "Good README structure with overview and setup commands.",
       "top_issues": [
         {
           "issue": "Committed sensitive environment file '.env'",
-          "justification": "A recruiter or security-conscious reviewer will immediately flag committed credentials as a critical security concern.",
+          "justification": "Exposing active API keys or credentials allows unauthorized access and potential data leaks.",
           "severity": "critical"
         }
       ],
@@ -177,10 +195,17 @@ async def synthesize_report(findings: List[Dict[str, Any]]) -> Tuple[int, str]:
     }
     """
 
-    prompt = f"""You are a senior full-stack engineer and recruiter auditor.
-Analyze the following list of findings across a developer's public repositories and synthesize them into a health report.
+    prompt = f"""You are a senior Lead Software Architect and Application Security Auditor.
+Analyze the following public repository and its security findings to synthesize an accurate, professional Health Audit report.
 
-Aggregated Findings:
+Target Repository: {repo_name or 'Public Repository'}
+File Structure Sample (top 30 files):
+{json.dumps(file_structure[:30], indent=2)}
+
+README Preview (first 1000 chars):
+{readme_text or 'No README file found.'}
+
+Aggregated Security & Code Findings ({len(findings_summary)} items):
 {json.dumps(findings_summary, indent=2)}
 
 {prompt_schema_desc}
@@ -190,26 +215,24 @@ Aggregated Findings:
     if groq_token and not groq_token.startswith("dummy"):
         for attempt in range(2):
             try:
-                print(f"Invoking Groq API AI Engine (attempt {attempt+1})...")
+                print(f"Invoking Groq API AI Engine for '{repo_name or 'repo'}' (attempt {attempt+1})...")
                 response_text = await call_groq_api(prompt, groq_token)
                 cleaned_text = clean_llm_json(response_text)
                 parsed_json = json.loads(cleaned_text)
-                overall_score = int(parsed_json.get("overall_score", 50))
+                overall_score = int(parsed_json.get("overall_score", calculate_fallback_score(findings)))
                 return overall_score, json.dumps(parsed_json)
             except Exception as e:
                 print(f"Groq API synthesis attempt {attempt+1} failed: {e}")
-                if attempt == 1:
-                    print("Falling back to Hugging Face / Deterministic engine...")
 
     # 2. Try Hugging Face API with retry on malformed JSON
     if hf_token and not hf_token.startswith("dummy"):
         for attempt in range(2):
             try:
-                print(f"Invoking Hugging Face API AI Engine (attempt {attempt+1})...")
+                print(f"Invoking Hugging Face API AI Engine for '{repo_name or 'repo'}' (attempt {attempt+1})...")
                 response_text = await call_hf_api(prompt, hf_token)
                 cleaned_text = clean_llm_json(response_text)
                 parsed_json = json.loads(cleaned_text)
-                overall_score = int(parsed_json.get("overall_score", 50))
+                overall_score = int(parsed_json.get("overall_score", calculate_fallback_score(findings)))
                 return overall_score, json.dumps(parsed_json)
             except Exception as e:
                 print(f"Hugging Face API synthesis attempt {attempt+1} failed: {e}")

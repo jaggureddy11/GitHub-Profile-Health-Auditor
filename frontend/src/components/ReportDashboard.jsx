@@ -430,11 +430,11 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
 
             <div className="grid grid-cols-1 gap-2 pt-1 font-mono text-[11px]">
               <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
-                <span>💬 Ask about secret revocation & history purging</span>
+                <span>Ask about secret revocation &amp; history purging</span>
                 <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               </div>
               <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
-                <span>⚡ Get custom terminal commands & code fixes</span>
+                <span>Get custom terminal commands &amp; code fixes</span>
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
               </div>
             </div>

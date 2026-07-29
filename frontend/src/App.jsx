@@ -926,7 +926,7 @@ export default function App() {
                       >
                         {isCompleted && (
                           <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
-                            ✓
+                            <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
                           </span>
                         )}
                         {isActive && (

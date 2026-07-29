@@ -16,7 +16,7 @@ export default function RepoCard({ repo, status = 'idle', onAnalyze }) {
             </h3>
             {repo.is_target_repo && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 uppercase tracking-wider">
-                🎯 Target Repo
+                Target Repo
               </span>
             )}
           </div>

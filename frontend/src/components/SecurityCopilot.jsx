@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Bot, Send, User, Sparkles, RefreshCw, ChevronRight, ChevronLeft,
-  Copy, Check, Trash2, Terminal, Lock, LogIn, Cpu, Zap, Shield, ArrowUp
+  Copy, Check, Trash2, Terminal, Lock, LogIn, Cpu, Zap, Shield, ArrowUp,
+  Key, TrendingUp, FileCode, FileText, MessageSquare, BarChart2
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -117,10 +118,10 @@ export default function SecurityCopilot({
   };
 
   const starterPrompts = [
-    { icon: '🔐', text: 'How do I purge a leaked secret from Git history?' },
-    { icon: '📈', text: `Top steps to raise @${username || 'profile'}'s score to 95+?` },
-    { icon: '🛡️', text: 'Explain how 1-Click .patch security fixes work' },
-    { icon: '📝', text: 'Generate a security-optimized README.md template' },
+    { icon: Key, color: 'text-red-400', text: 'How do I purge a leaked secret from Git history?' },
+    { icon: TrendingUp, color: 'text-emerald-400', text: `Top steps to raise @${username || 'profile'}'s score to 95+?` },
+    { icon: FileCode, color: 'text-cyan-400', text: 'Explain how 1-Click .patch security fixes work' },
+    { icon: FileText, color: 'text-zinc-400', text: 'Generate a security-optimized README.md template' },
   ];
 
   // Format messages with code blocks and inline bold
@@ -314,13 +315,13 @@ export default function SecurityCopilot({
             <div className="w-full pt-3 border-t border-zinc-800/80 text-left space-y-2">
               <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold">Capabilities</p>
               {[
-                { icon: '🔐', label: 'Secret purge assistance' },
-                { icon: '💬', label: 'Private per-user chat history' },
-                { icon: '🛡️', label: '1-Click patch fix explanations' },
-                { icon: '📊', label: 'Score optimization guidance' },
+                { icon: Key, color: 'text-red-400', label: 'Secret purge assistance' },
+                { icon: MessageSquare, color: 'text-cyan-400', label: 'Private per-user chat history' },
+                { icon: Shield, color: 'text-emerald-400', label: '1-Click patch fix explanations' },
+                { icon: BarChart2, color: 'text-zinc-400', label: 'Score optimization guidance' },
               ].map((cap, i) => (
                 <div key={i} className="flex items-center gap-2 text-[11px] text-zinc-400">
-                  <span>{cap.icon}</span>
+                  <cap.icon className={`w-3.5 h-3.5 shrink-0 ${cap.color}`} />
                   <span>{cap.label}</span>
                 </div>
               ))}
@@ -351,7 +352,7 @@ export default function SecurityCopilot({
                   onClick={() => handleSendMessage(p.text)}
                   className="w-full p-2.5 bg-zinc-900 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 rounded-xl text-left transition group flex items-start gap-2.5"
                 >
-                  <span className="text-sm shrink-0 mt-0.5">{p.icon}</span>
+                  <p.icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${p.color}`} />
                   <span className="text-[11px] text-zinc-400 group-hover:text-zinc-200 transition leading-relaxed line-clamp-2">{p.text}</span>
                 </button>
               ))}

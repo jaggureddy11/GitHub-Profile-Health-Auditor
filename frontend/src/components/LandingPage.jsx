@@ -289,9 +289,9 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
             {demoTab === 'terminal' && (
               <div className="space-y-3 leading-relaxed text-zinc-300 animate-fade-in">
                 <p className="text-zinc-500"># Initializing ephemeral Redis Queue scanning worker...</p>
-                <p className="text-emerald-400">➜ GitHub REST API: Enumerating public non-fork repositories for user @octocat</p>
+                <p className="text-emerald-400">&gt; GitHub REST API: Enumerating public non-fork repositories for user @octocat</p>
                 <p className="text-zinc-400 flex items-center"><Check className="w-3 h-3 text-emerald-400 inline mr-1.5 shrink-0" /><span>Found 6 public repositories [api-service, frontend-app, ml-pipeline, dotfiles, utils-cli, docs]</span></p>
-                <p className="text-cyan-400">➜ Executing Hygiene Scanner...</p>
+                <p className="text-cyan-400">&gt; Executing Hygiene Scanner...</p>
                 <p className="text-amber-400 flex items-center">
                   <AlertTriangle className="w-3 h-3 text-amber-400 inline mr-1.5 shrink-0" />
                   <span>api-service: Missing standard LICENSE file</span>
@@ -300,7 +300,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   <AlertTriangle className="w-3 h-3 text-amber-400 inline mr-1.5 shrink-0" />
                   <span>ml-pipeline: Missing root .gitignore file</span>
                 </p>
-                <p className="text-red-400 font-bold">➜ Executing TruffleHog Filesystem Scanner v3.63...</p>
+                <p className="text-red-400 font-bold">&gt; Executing TruffleHog Filesystem Scanner v3.63...</p>
                 <p className="text-red-400 flex items-center">
                   <KeyRound className="w-3.5 h-3.5 text-red-400 inline mr-1.5 shrink-0" />
                   <span>CRITICAL FINDING: Identified AWS Access Key in repo 'api-service/config/aws.json' [line 14]</span>
@@ -309,9 +309,9 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline mr-1.5 shrink-0" />
                   <span>Absolute Redaction Engine: Secret stripped from memory: 'AKIA... [REDACTED]'</span>
                 </p>
-                <p className="text-purple-400">➜ Executing Semgrep Rule Pack (auto)...</p>
+                <p className="text-purple-400">&gt; Executing Semgrep Rule Pack (auto)...</p>
                 <p className="text-amber-300 flex items-center"><AlertTriangle className="w-3 h-3 text-amber-300 inline mr-1.5 shrink-0" /><span>frontend-app: Hardcoded localhost binding detected in production build</span></p>
-                <p className="text-emerald-400">➜ Invoking Hugging Face AI Synthesis Model (Qwen2.5-Coder-32B)...</p>
+                <p className="text-emerald-400">&gt; Invoking Hugging Face AI Synthesis Model (Qwen2.5-Coder-32B)...</p>
                 <p className="text-white font-bold bg-zinc-900 p-3 rounded-lg border border-zinc-800 flex items-center shadow-lg">
                   <Sparkles className="w-4 h-4 text-emerald-400 inline mr-2 shrink-0 animate-pulse" />
                   <span>Profile Health Score Synthesized: <span className="text-emerald-400 text-sm ml-1.5 font-extrabold">88 / 100</span> (Strong Senior Profile with 1 Security Risk)</span>

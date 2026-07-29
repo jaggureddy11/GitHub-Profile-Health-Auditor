@@ -270,7 +270,7 @@ export default function RepoBreakdown({ findings, token, scanId }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-900 pb-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`px-3 py-1 text-xs font-black rounded-lg border ${getTypeBadgeClass(finding.type)}`}>
-                      {finding.type === 'secret' ? '🔐 SECRET LEAK' : finding.type === 'structural' ? '📄 REPO HYGIENE' : '⚡ CODE SMELL'}
+                      {finding.type === 'secret' ? 'SECRET LEAK' : finding.type === 'structural' ? 'REPO HYGIENE' : 'CODE SMELL'}
                     </span>
                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${getSeverityBadgeClass(finding.severity)}`}>
                       {finding.severity ? finding.severity.toUpperCase() : 'INFO'}

@@ -20,11 +20,16 @@
   
   h1, h2, h3, h4 {
     font-family: 'Space Grotesk', 'Plus Jakarta Sans', -apple-system, sans-serif;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.03em;
   }
   
   code, pre {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* Prevent text selection highlight blinks */
+  ::selection {
+    background-color: rgba(16, 185, 129, 0.18);
   }
 }
 
@@ -93,7 +98,12 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-slow {
+  animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  opacity: 0;
 }
 
 .animate-slide-up-1 {
@@ -181,10 +191,16 @@
   scrollbar-width: none;
 }
 
-/* Background Grid Pattern */
+/* Background Grid Pattern — fine dot matrix */
 .bg-grid-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Tight grid for secondary surfaces */
+.bg-grid-pattern-tight {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 18px 18px;
 }
 
 /* Shimmer Button */

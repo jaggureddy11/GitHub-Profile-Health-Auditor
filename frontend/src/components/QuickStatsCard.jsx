@@ -66,13 +66,14 @@ export default function QuickStatsCard({ quickstats, isLoading }) {
           
           {/* Enlarged Avatar Image */}
           {avatar_url ? (
-            <div className="relative shrink-0">
-              <img 
-                src={avatar_url} 
-                alt={username} 
-                className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-zinc-800 hover:border-zinc-600 transition-all duration-300 shadow-2xl object-cover" 
-              />
-            </div>
+            <div className="relative shrink-0 group">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <img 
+              src={avatar_url} 
+              alt={username} 
+              className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-zinc-800 group-hover:border-emerald-500/60 transition-all duration-300 shadow-2xl object-cover" 
+            />
+          </div>
           ) : (
             <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-zinc-900 border-4 border-zinc-800 flex items-center justify-center text-zinc-300 font-bold text-3xl font-mono shrink-0 shadow-2xl">
               @{username.slice(0, 2).toUpperCase()}
@@ -108,43 +109,43 @@ export default function QuickStatsCard({ quickstats, isLoading }) {
       {/* Metric Counters Grid - Enlarged & Minimalistic */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 font-mono text-sm">
         <div className="bg-black p-5 rounded-2xl border border-zinc-850 space-y-1.5 text-center sm:text-left hover:border-zinc-700 transition shadow-inner">
-          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-400">
-            <BookOpen className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Public Repos</span>
+          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-500">
+            <BookOpen className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Public Repos</span>
           </div>
           <span className="text-3xl sm:text-4xl font-black text-white block">{public_repos}</span>
         </div>
 
         <div className="bg-black p-5 rounded-2xl border border-zinc-850 space-y-1.5 text-center sm:text-left hover:border-zinc-700 transition shadow-inner">
-          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-400">
+          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-500">
             <Star className="w-4 h-4 text-amber-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Stars</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Total Stars</span>
           </div>
-          <span className="text-3xl sm:text-4xl font-black text-white block">{total_stars}</span>
+          <span className="text-3xl sm:text-4xl font-black text-amber-400 block">{total_stars}</span>
         </div>
 
         <div className="bg-black p-5 rounded-2xl border border-zinc-850 space-y-1.5 text-center sm:text-left hover:border-zinc-700 transition shadow-inner">
-          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-400">
-            <GitFork className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Forks</span>
+          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-500">
+            <GitFork className="w-4 h-4 text-cyan-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Forks</span>
           </div>
-          <span className="text-3xl sm:text-4xl font-black text-white block">{total_forks}</span>
+          <span className="text-3xl sm:text-4xl font-black text-cyan-400 block">{total_forks}</span>
         </div>
 
         <div className="bg-black p-5 rounded-2xl border border-zinc-850 space-y-1.5 text-center sm:text-left hover:border-zinc-700 transition shadow-inner">
-          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-400">
-            <Users className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Followers</span>
+          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-500">
+            <Users className="w-4 h-4 text-purple-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Followers</span>
           </div>
-          <span className="text-3xl sm:text-4xl font-black text-white block">{followers}</span>
+          <span className="text-3xl sm:text-4xl font-black text-purple-400 block">{followers}</span>
         </div>
 
         <div className="bg-black p-5 rounded-2xl border border-zinc-850 space-y-1.5 text-center sm:text-left col-span-2 sm:col-span-1 hover:border-zinc-700 transition shadow-inner">
-          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-400">
-            <Calendar className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Joined</span>
+          <div className="flex items-center justify-center sm:justify-start space-x-2 text-zinc-500">
+            <Calendar className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Joined</span>
           </div>
-          <span className="text-sm sm:text-base font-bold text-zinc-200 block pt-1.5">{formatDate(account_created_at)}</span>
+          <span className="text-sm sm:text-base font-bold text-emerald-300 block pt-1.5">{formatDate(account_created_at)}</span>
         </div>
       </div>
 
@@ -164,20 +165,30 @@ export default function QuickStatsCard({ quickstats, isLoading }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {top_languages.map((lang) => (
-              <div key={lang.name} className="bg-black p-4 rounded-2xl border border-zinc-850 space-y-2">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
-                  <span className="text-white">{lang.name}</span>
-                  <span className="text-zinc-300 font-bold">{lang.percentage}%</span>
+            {top_languages.map((lang, idx) => {
+              const barColors = [
+                'bg-gradient-to-r from-emerald-500 to-teal-400',
+                'bg-gradient-to-r from-cyan-500 to-blue-400',
+                'bg-gradient-to-r from-purple-500 to-violet-400',
+                'bg-gradient-to-r from-amber-500 to-orange-400',
+                'bg-gradient-to-r from-pink-500 to-rose-400',
+              ];
+              const barColor = barColors[idx % barColors.length];
+              return (
+                <div key={lang.name} className="bg-black p-4 rounded-2xl border border-zinc-850 space-y-2 hover:border-zinc-700 transition-colors">
+                  <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
+                    <span className="text-white">{lang.name}</span>
+                    <span className="text-zinc-400">{lang.percentage}%</span>
+                  </div>
+                  <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className={`${barColor} h-full rounded-full transition-all duration-700`}
+                      style={{ width: `${lang.percentage}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-zinc-200 h-full rounded-full transition-all duration-500" 
-                    style={{ width: `${lang.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

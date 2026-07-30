@@ -156,38 +156,40 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">Overall Profile Score</h3>
           <div className="relative w-36 h-36 sm:w-44 sm:h-44">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" className="stroke-zinc-900" strokeWidth="8" fill="transparent" />
               <circle
                 cx="50"
                 cy="50"
                 r="40"
-                className="stroke-zinc-900"
-                strokeWidth="8"
-                fill="transparent"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="40"
-                className="stroke-zinc-200 text-zinc-200 transition-all duration-1000 ease-out"
+                stroke={overall_score >= 80 ? '#10b981' : overall_score >= 60 ? '#f59e0b' : '#ef4444'}
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={251.2}
                 strokeDashoffset={251.2 - (251.2 * animatedScore) / 100}
                 strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl sm:text-5xl font-black tracking-tight text-white transition-all duration-300">{animatedScore}</span>
+              <span className={`text-4xl sm:text-5xl font-black tracking-tight transition-all duration-300 ${
+                overall_score >= 80 ? 'text-emerald-400' : overall_score >= 60 ? 'text-amber-400' : 'text-red-400'
+              }`}>{animatedScore}</span>
               <span className="text-xs text-zinc-500 font-bold uppercase mt-1">/ 100</span>
             </div>
           </div>
-          <span className="mt-5 px-4 py-1.5 text-xs font-extrabold rounded-full border bg-zinc-900 text-white border-zinc-700 shadow-sm">
+          <span className={`mt-5 px-4 py-1.5 text-xs font-extrabold rounded-full border shadow-sm flex items-center gap-1.5 ${
+            overall_score >= 80
+              ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
+              : overall_score >= 60
+              ? 'bg-amber-950/60 text-amber-300 border-amber-800/60'
+              : 'bg-red-950/60 text-red-300 border-red-800/60'
+          }`}>
             {overall_score >= 90 ? (
-              <span className="flex items-center space-x-1.5"><Sparkles className="w-4 h-4 text-zinc-300" /><span>Excellent Standing</span></span>
+              <><Sparkles className="w-3.5 h-3.5" /><span>Excellent Standing</span></>
             ) : overall_score >= 70 ? (
-              <span className="flex items-center space-x-1.5"><AlertTriangle className="w-4 h-4 text-amber-300" /><span>Fair - Action Recommended</span></span>
+              <><AlertTriangle className="w-3.5 h-3.5" /><span>Fair — Action Recommended</span></>
             ) : (
-              <span className="flex items-center space-x-1.5"><AlertTriangle className="w-4 h-4 text-red-400" /><span>Critical Fixes Required</span></span>
+              <><AlertTriangle className="w-3.5 h-3.5" /><span>Critical Fixes Required</span></>
             )}
           </span>
         </div>

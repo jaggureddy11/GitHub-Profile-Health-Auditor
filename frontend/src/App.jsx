@@ -138,13 +138,13 @@ export default function App() {
     }
   };
 
-  // Rehydrate state on initial mount from URL, sessionStorage, or localStorage
+  // Rehydrate state on initial mount from URL only — always open landing page first
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlUser = params.get('user');
-    const savedView = sessionStorage.getItem('auditor_current_view');
 
     if (urlUser) {
+      // Deep-link via ?user= — jump straight to dashboard for that user
       setActiveUsername(urlUser);
       setView('dashboard');
       sessionStorage.setItem('auditor_current_view', 'dashboard');
@@ -187,23 +187,14 @@ export default function App() {
           }
         } catch (e) {}
       }
-    } else if (savedView) {
-      setView(savedView);
-      const savedUser = localStorage.getItem('auditor_username');
-      if (savedUser) {
-        setActiveUsername(savedUser);
-      }
     } else {
+      // Always show landing page on fresh load — no auto-redirect to dashboard
+      setView('landing');
+      sessionStorage.setItem('auditor_current_view', 'landing');
+      // Restore username for the scan form if previously logged in
       const savedUser = localStorage.getItem('auditor_username');
       if (savedUser && savedUser.trim() !== '') {
         setActiveUsername(savedUser);
-        setView('dashboard');
-        sessionStorage.setItem('auditor_current_view', 'dashboard');
-        fetchQuickStats(savedUser, null);
-        fetchUserRepos(savedUser, null);
-      } else {
-        setView('landing');
-        sessionStorage.setItem('auditor_current_view', 'landing');
       }
     }
   }, []);
@@ -883,173 +874,165 @@ export default function App() {
       {/* Main 3-Column IDE Layout Container */}
       <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none">
         
-        {/* VIEW: LANDING */}
+        {/* VIEW: LANDING — must be a full-height scroll container */}
         {view === 'landing' && (
-          <LandingPage 
-            onStartRegister={() => { setView('auth'); setAuthMode('register'); }}
-            onGitHubOAuth={handleGitHubOAuth}
-            onStartQuickScan={(username) => {
-              setView('dashboard');
-              handleStartScan(username, '');
-            }}
-          />
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <LandingPage 
+              onStartRegister={() => { setView('auth'); setAuthMode('register'); }}
+              onGitHubOAuth={handleGitHubOAuth}
+              onStartQuickScan={(username) => {
+                setView('dashboard');
+                handleStartScan(username, '');
+              }}
+            />
+          </div>
         )}
 
         {/* VIEW: PUBLIC SCAN — Zero-auth quick scan results */}
         {view === 'public-scan' && (
-          <div className="max-w-3xl mx-auto w-full space-y-8 py-6 animate-fade-in">
-            {scanState === 'loading' && (
-              <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6 max-w-lg mx-auto">
-                <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
-                  <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
-                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
-                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
-                    <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3.5 text-left">
-                  {loadingMessages.map((msg, idx) => {
-                    const isCompleted = idx < loadingStep;
-                    const isActive = idx === loadingStep;
-                    const isPending = idx > loadingStep;
-
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`flex items-center space-x-3 transition-all duration-300 ${
-                          isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
-                        }`}
-                      >
-                        {isCompleted && (
-                          <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[10px] text-emerald-400 shrink-0 font-bold font-mono">
-                            <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
-                          </span>
-                        )}
-                        {isActive && (
-                          <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                          </span>
-                        )}
-                        {isPending && (
-                          <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
-                        )}
-                        <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="space-y-1.5 pt-2">
-                  <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850">
-                    <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
-                      style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-[9px] text-zinc-650 font-mono">
-                    <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
-                    <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {scanState === 'error' && (
-              <div className="text-center py-16 space-y-4">
-                <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
-                <p className="text-white font-bold">{errorMessage || 'Scan failed.'}</p>
-                <button onClick={() => { setScanState('idle'); setView('landing'); }} className="px-5 py-2.5 bg-white text-black font-bold rounded-lg text-xs hover:bg-zinc-200 transition">
-                  Try Again
-                </button>
-              </div>
-            )}
-
-            {scanState === 'public-completed' && publicScanReport && (
-              <div className="space-y-6">
-                {/* Basic Report Header */}
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-950/60 border border-emerald-800/60 rounded-full text-emerald-400 text-[10px] font-mono font-bold">
-                    <ShieldCheck className="w-3 h-3" />
-                    <span>PUBLIC BASIC AUDIT REPORT</span>
-                  </div>
-                  <h2 className="text-2xl font-extrabold text-white font-mono">@{publicScanReport.username}</h2>
-                  <p className="text-zinc-400 text-xs">{publicScanReport.checked_repos} of {publicScanReport.total_repos} repositories analyzed{publicScanReport.capped ? ' (top 15 most active)' : ''}</p>
-                </div>
-
-                {/* Basic Score Card */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
-                    <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.basic_score}</div>
-                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">HYGIENE SCORE</div>
-                  </div>
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
-                    <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.total_repos}</div>
-                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">PUBLIC REPOS</div>
-                  </div>
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
-                    <div className="text-3xl font-extrabold text-amber-400 font-mono">{publicScanReport.hygiene_issues?.length || 0}</div>
-                    <div className="text-[10px] text-zinc-400 mt-1 font-mono">ISSUES FOUND</div>
-                  </div>
-                </div>
-
-                {/* Repositories Preview */}
-                {publicScanReport.repositories?.length > 0 && (
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-3">
-                    <h3 className="text-sm font-bold text-white font-mono">Repositories Preview</h3>
-                    <div className="divide-y divide-zinc-900">
-                      {publicScanReport.repositories.map((repo, i) => (
-                        <div key={i} className="flex items-center justify-between py-2.5">
-                          <div>
-                            <a href={repo.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-white hover:text-emerald-400 transition font-mono">{repo.name}</a>
-                            {repo.description && <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-xs">{repo.description}</p>}
-                          </div>
-                          <span className="text-[9px] text-zinc-600 font-mono">{repo.default_branch}</span>
-                        </div>
-                      ))}
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <div className="max-w-3xl mx-auto w-full space-y-8 py-8 px-4 animate-fade-in">
+              {scanState === 'loading' && (
+                <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-10 rounded-2xl flex flex-col justify-start space-y-6 max-w-lg mx-auto">
+                  <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
+                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-emerald-500/30 animate-spin" style={{ animationDuration: '6s' }}></div>
+                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-sm font-bold text-white font-mono">Profile Health Audit Pipeline</h3>
+                      <p className="text-[10px] text-zinc-500 font-mono">Running live telemetry checks on public repositories</p>
                     </div>
                   </div>
-                )}
 
-                {/* Upgrade CTA */}
-                <div className="bg-gradient-to-br from-emerald-950/40 to-zinc-950 border border-emerald-800/50 rounded-2xl p-6 text-center space-y-4">
-                  <h3 className="text-base font-extrabold text-white">Unlock the Full Security Audit</h3>
-                  <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
-                    {publicScanReport.upgrade_message}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <button
-                      onClick={() => { setView('auth'); setAuthMode('register'); setScanState('idle'); }}
-                      className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-lg transition font-mono"
-                    >
-                      Create Free Account
-                    </button>
-                    <button
-                      onClick={() => { setView('auth'); setAuthMode('login'); setScanState('idle'); }}
-                      className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs rounded-lg transition font-mono"
-                    >
-                      Sign In
+                  <div className="space-y-3.5 text-left">
+                    {loadingMessages.map((msg, idx) => {
+                      const isCompleted = idx < loadingStep;
+                      const isActive = idx === loadingStep;
+                      const isPending = idx > loadingStep;
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center space-x-3 transition-all duration-300 ${
+                            isCompleted ? 'text-zinc-500' : (isActive ? 'text-emerald-400 font-semibold' : 'text-zinc-700')
+                          }`}
+                        >
+                          {isCompleted && (
+                            <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="relative flex h-2 w-2 shrink-0 ml-1 mr-1">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0 ml-1 mr-1"></span>
+                          )}
+                          <span className="text-xs font-mono tracking-tight leading-none">{msg}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-1.5 pt-2">
+                    <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 ease-out"
+                        style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] text-zinc-600 font-mono">
+                      <span>STEP {loadingStep + 1} OF {loadingMessages.length}</span>
+                      <span>{Math.round(((loadingStep + 1) / loadingMessages.length) * 100)}% COMPLETE</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {scanState === 'error' && (
+                <div className="text-center py-16 space-y-4">
+                  <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
+                  <p className="text-white font-bold">{errorMessage || 'Scan failed.'}</p>
+                  <button onClick={() => { setScanState('idle'); setView('landing'); }} className="px-5 py-2.5 bg-white text-black font-bold rounded-lg text-xs hover:bg-zinc-200 transition">
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              {scanState === 'public-completed' && publicScanReport && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-2">
+                    <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-950/60 border border-emerald-800/60 rounded-full text-emerald-400 text-[10px] font-mono font-bold">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>PUBLIC BASIC AUDIT REPORT</span>
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-white font-mono">@{publicScanReport.username}</h2>
+                    <p className="text-zinc-400 text-xs">{publicScanReport.checked_repos} of {publicScanReport.total_repos} repositories analyzed{publicScanReport.capped ? ' (top 15 most active)' : ''}</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                      <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.basic_score}</div>
+                      <div className="text-[10px] text-zinc-400 mt-1 font-mono">HYGIENE SCORE</div>
+                    </div>
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                      <div className="text-3xl font-extrabold text-white font-mono">{publicScanReport.total_repos}</div>
+                      <div className="text-[10px] text-zinc-400 mt-1 font-mono">PUBLIC REPOS</div>
+                    </div>
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-center">
+                      <div className="text-3xl font-extrabold text-amber-400 font-mono">{publicScanReport.hygiene_issues?.length || 0}</div>
+                      <div className="text-[10px] text-zinc-400 mt-1 font-mono">ISSUES FOUND</div>
+                    </div>
+                  </div>
+
+                  {publicScanReport.repositories?.length > 0 && (
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-3">
+                      <h3 className="text-sm font-bold text-white font-mono">Repositories Preview</h3>
+                      <div className="divide-y divide-zinc-900">
+                        {publicScanReport.repositories.map((repo, i) => (
+                          <div key={i} className="flex items-center justify-between py-2.5">
+                            <div>
+                              <a href={repo.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-white hover:text-emerald-400 transition font-mono">{repo.name}</a>
+                              {repo.description && <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-xs">{repo.description}</p>}
+                            </div>
+                            <span className="text-[9px] text-zinc-600 font-mono">{repo.default_branch}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-gradient-to-br from-emerald-950/40 to-zinc-950 border border-emerald-800/50 rounded-2xl p-6 text-center space-y-4">
+                    <h3 className="text-base font-extrabold text-white">Unlock the Full Security Audit</h3>
+                    <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">{publicScanReport.upgrade_message}</p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <button onClick={() => { setView('auth'); setAuthMode('register'); setScanState('idle'); }} className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-lg transition">
+                        Create Free Account
+                      </button>
+                      <button onClick={() => { setView('auth'); setAuthMode('login'); setScanState('idle'); }} className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs rounded-lg transition">
+                        Sign In
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <button onClick={() => { setScanState('idle'); setView('landing'); setPublicScanReport(null); }} className="text-[11px] text-zinc-500 hover:text-zinc-300 transition font-mono">
+                      ← Back to Home
                     </button>
                   </div>
                 </div>
-
-                <div className="text-center">
-                  <button onClick={() => { setScanState('idle'); setView('landing'); setPublicScanReport(null); }} className="text-[11px] text-zinc-500 hover:text-zinc-300 transition font-mono">
-                    ← Back to Home
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
         {/* VIEW: DATA PRIVACY */}
         {view === 'privacy' && (
-          <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-4">
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-10 px-4">
             <div className="space-y-3">
               <h2 className="text-3xl font-bold font-mono">What We Do With Your Data</h2>
               <p className="text-xs text-zinc-400">Last updated: July 2026</p>
@@ -1099,16 +1082,20 @@ export default function App() {
               )}
             </div>
           </div>
+          </div>
         )}
 
         {/* VIEW: DEVELOPER CONTACT DETAILS */}
         {view === 'contact' && (
-          <ContactPage onBackToDashboard={() => setView(token ? 'dashboard' : 'landing')} />
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <ContactPage onBackToDashboard={() => setView(token ? 'dashboard' : 'landing')} />
+          </div>
         )}
 
         {/* VIEW: AUTHENTICATION */}
         {view === 'auth' && (
-          <div className="max-w-md w-full mx-auto bg-zinc-950 border border-zinc-900 p-8 rounded-2xl space-y-6 shadow-xl animate-fade-in">
+          <div className="flex-1 overflow-y-auto no-scrollbar flex items-center justify-center py-12 px-4">
+          <div className="max-w-md w-full bg-zinc-950 border border-zinc-900 p-8 rounded-2xl space-y-6 shadow-2xl animate-fade-in">
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold font-mono">
                 {authMode === 'login' ? 'Sign In to Profile Auditor' : 'Create Your Account'}
@@ -1188,6 +1175,7 @@ export default function App() {
                 {authMode === 'login' ? 'Create one' : 'Sign in'}
               </button>
             </p>
+          </div>
           </div>
         )}
 
@@ -1336,14 +1324,23 @@ export default function App() {
                       batchProgress={batchProgress}
                     />
                   ) : (
-                    <div className="border border-dashed border-zinc-800 p-16 rounded-3xl text-center space-y-3 font-sans">
+                    <div className="border border-dashed border-zinc-800 p-20 rounded-3xl text-center space-y-4 font-sans bg-zinc-950/30">
                       <div className="flex justify-center">
-                        <Search className="w-10 h-10 text-zinc-600" />
+                        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                          <Search className="w-8 h-8 text-zinc-500" />
+                        </div>
                       </div>
-                      <h4 className="font-bold text-base text-zinc-300">Ready for scan analysis</h4>
-                      <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                        Enter a public GitHub username in the scanner on the left or select a sample target to audit.
-                      </p>
+                      <div className="space-y-2">
+                        <h4 className="font-bold text-lg text-zinc-200">Ready to audit a GitHub profile</h4>
+                        <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                          Enter a public GitHub username in the left panel, or pick a sample target to get started.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-2 pt-2">
+                        {['octocat', 'torvalds', 'gaearon'].map(u => (
+                          <button key={u} onClick={() => handleStartScan(u, '')} className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl text-zinc-300 hover:text-white text-xs font-mono font-bold transition">@{u}</button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

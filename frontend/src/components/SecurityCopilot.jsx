@@ -49,56 +49,6 @@ export default function SecurityCopilot({
     }
   }, [inputMsg]);
 
-  const handleSendMessage = async (msgText) => {
-    if (!token) {
-      if (onRequireAuth) onRequireAuth();
-      return;
-    }
-    const textToSend = (msgText || inputMsg).trim();
-    if (!textToSend || loading) return;
-
-    setInputMsg('');
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    setLoading(true);
-
-    const tempUserMsg = {
-      id: Date.now(),
-      role: 'user',
-      content: textToSend,
-      created_at: new Date().toISOString()
-    };
-    setMessages((prev) => [...prev, tempUserMsg]);
-
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-      if (sessionId) headers['X-Session-ID'] = sessionId;
-      const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}/copilot-chat`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ message: textToSend })
-      });
-      if (response.ok) {
-        setMessages(await response.json());
-      } else {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Copilot response failed');
-      }
-    } catch (err) {
-      console.error(err);
-      setMessages((prev) => [...prev, {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: `**Security Context for @${username || 'profile'}** (Score: ${score ?? 100}/100)\n\nAll repository findings were scanned **in-memory only** — zero credentials stored. You can:\n- Run \`git filter-repo --path <file> --invert-paths\` to purge leaked secrets\n- Apply 1-Click **.patch** fixes in the Repo Breakdown tab\n- Generate an AI **README.md** profile template from the dashboard`,
-        created_at: new Date().toISOString()
-      }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -118,11 +68,108 @@ export default function SecurityCopilot({
   };
 
   const starterPrompts = [
-    { icon: Key, color: 'text-red-400', text: 'How do I purge a leaked secret from Git history?' },
-    { icon: TrendingUp, color: 'text-emerald-400', text: `Top steps to raise @${username || 'profile'}'s score to 95+?` },
-    { icon: FileCode, color: 'text-cyan-400', text: 'Explain how 1-Click .patch security fixes work' },
-    { icon: FileText, color: 'text-zinc-400', text: 'Generate a security-optimized README.md template' },
+    { text: 'Purge Git secret history' },
+    { text: 'Raise score to 95+' },
+    { text: 'How do .patch fixes work?' },
+    { text: 'Generate README template' },
+    { text: 'Who are you?' },
+    { text: 'Tell me a dev joke' }
   ];
+
+  const handleSendMessage = async (msgText) => {
+    const textToSend = (msgText || inputMsg).trim();
+    if (!textToSend || loading) return;
+
+    setInputMsg('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    setLoading(true);
+
+    const tempUserMsg = {
+      id: Date.now(),
+      role: 'user',
+      content: textToSend,
+      created_at: new Date().toISOString()
+    };
+    setMessages((prev) => [...prev, tempUserMsg]);
+
+    // Conversational smart local fallback
+    const getLocalResponse = (query) => {
+      const q = query.toLowerCase();
+      
+      // Greetings
+      if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('who are you') || q.includes('who is this')) {
+        return `Hello! I'm your **Security Copilot**. 🤖\n\nI can analyze your GitHub repositories for exposed API tokens, build debt, and formatting smells. I also generate automated Git patches. How can I help you improve your codebase safety today?`;
+      }
+      
+      // Developer jokes
+      if (q.includes('joke') || q.includes('funny')) {
+        const jokes = [
+          "Why do programmers wear glasses? Because they can't C#! 🤓",
+          "There are 10 types of people in this world: Those who understand binary, and those who don't. 🔢",
+          "How many programmers does it take to change a light bulb? None, that's a hardware problem! 💡",
+          "A SQL query goes into a bar, walks up to two tables and asks: 'Can I join you?' 📊"
+        ];
+        return jokes[Math.floor(Math.random() * jokes.length)];
+      }
+
+      // Git secret history
+      if (q.includes('purge') || q.includes('secret') || q.includes('history') || q.includes('leak') || q.includes('key') || q.includes('aws') || q.includes('stripe')) {
+        return `**How to Purge Exposed Secrets from Git Commit History:**\n\nRemoving a file or line in your latest commit is not enough since the secret remains in the Git reflog history. Use these steps:\n\n1. **Revoke the key** in the provider dashboard (AWS, Stripe, GitHub, etc.) immediately.\n2. Install \`git-filter-repo\` and run:\n\`\`\`bash\ngit filter-repo --path path/to/leaked-file.json --invert-paths\n\`\`\`\n3. Push the clean history back to origin:\n\`\`\`bash\ngit push origin main --force --all\n\`\`\``;
+      }
+
+      // Raising score
+      if (q.includes('score') || q.includes('raise') || q.includes('95') || q.includes('improve')) {
+        return `**Steps to Raise @${username || 'profile'}'s Score to 95+:**\n\n1. **Purge committed credentials** (exposures in commit history decrease score by **40 pts**).\n2. **Git Hygiene**: Ensure each repository contains a root \`.gitignore\` file (missing: -15 pts), an open-source \`LICENSE\` file (missing: -10 pts), and a descriptive \`README.md\` (missing: -15 pts).\n3. **Smells**: Replace hardcoded development endpoints (e.g. \`http://localhost:3000\`) with configuration variables.`;
+      }
+
+      // Patches
+      if (q.includes('patch') || q.includes('fixes') || q.includes('apply')) {
+        return `**Applying 1-Click .patch Security Fixes:**\n\nWhen a missing hygiene file (like a LICENSE or .gitignore) is identified, we generate a unified patch file. To apply it:\n\n1. Click **Download .patch** on the repository findings panel.\n2. In your local repository terminal, run:\n\`\`\`bash\ngit apply name-of-file.patch\n\`\`\`\n3. Add, commit, and push the changes to GitHub.`;
+      }
+
+      // README template
+      if (q.includes('readme') || q.includes('template') || q.includes('documentation')) {
+        return `Here is a **security-optimized README.md template** for your repositories:\n\n\`\`\`markdown\n# Project Title\n\n## Security & Environment Variables\nNever commit plaintext API keys. Copy \`.env.example\` to \`.env\` and define config values there.\n\n## Getting Started\n1. Install dependencies: npm install\n2. Run development build: npm run dev\n\`\`\``;
+      }
+
+      // Generic help
+      return `I'm a helper chatbot focused on securing GitHub profiles. You can ask me:\n- "How do I fix the AWS credential leak?"\n- "Top steps to raise my score?"\n- "Tell me a developer joke!"\n- "Generate a secure README template."`;
+    };
+
+    // If authenticated, attempt backend call
+    if (token) {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        };
+        if (sessionId) headers['X-Session-ID'] = sessionId;
+        const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}/copilot-chat`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ message: textToSend })
+        });
+        if (response.ok) {
+          setMessages(await response.json());
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend chat failed, falling back to smart local chatbot:', err);
+      }
+    }
+
+    // Run local chatbot fallback (used for guest sandboxes & offline fallback)
+    setTimeout(() => {
+      setMessages((prev) => [...prev, {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: getLocalResponse(textToSend),
+        created_at: new Date().toISOString()
+      }]);
+      setLoading(false);
+    }, 850);
+  };
 
   // Format messages with code blocks and inline bold
   const renderFormattedMessage = (content, msgId) => {
@@ -291,93 +338,45 @@ export default function SecurityCopilot({
       {/* ── CHAT MESSAGES (scrollable, flex-1) ── */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0" style={{ overscrollBehavior: 'contain' }}>
 
-        {/* NOT SIGNED IN */}
+        {/* Guest Mode Banner */}
         {!token && (
-          <div className="flex flex-col items-center justify-center h-full py-8 text-center space-y-4 px-3">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-lg">
-              <Lock className="w-7 h-7 text-emerald-400" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm mb-1">Sign in to Use Copilot</h4>
-              <p className="text-[11px] text-zinc-400 leading-relaxed max-w-[200px] mx-auto">
-                Chat with AI Security Copilot and save private, user-specific conversation history.
-              </p>
-            </div>
-
-            <button
-              onClick={handleSignInRedirect}
-              className="w-full py-2.5 px-4 bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign In to Continue
-            </button>
-
-            <div className="w-full pt-3 border-t border-zinc-800/80 text-left space-y-2">
-              <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold">Capabilities</p>
-              {[
-                { icon: Key, color: 'text-red-400', label: 'Secret purge assistance' },
-                { icon: MessageSquare, color: 'text-cyan-400', label: 'Private per-user chat history' },
-                { icon: Shield, color: 'text-emerald-400', label: '1-Click patch fix explanations' },
-                { icon: BarChart2, color: 'text-zinc-400', label: 'Score optimization guidance' },
-              ].map((cap, i) => (
-                <div key={i} className="flex items-center gap-2 text-[11px] text-zinc-400">
-                  <cap.icon className={`w-3.5 h-3.5 shrink-0 ${cap.color}`} />
-                  <span>{cap.label}</span>
-                </div>
-              ))}
-            </div>
+          <div className="p-3 bg-zinc-900 border border-zinc-850 rounded-xl space-y-1 text-center">
+            <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full font-mono">GUEST SANDBOX</span>
+            <p className="text-[11px] text-zinc-400 leading-normal pt-1">
+              Ask questions, get guides, or request a dev joke. Log in to sync logs.
+            </p>
           </div>
         )}
 
-        {/* SIGNED IN — NO MESSAGES YET */}
-        {token && messages.length === 0 && (
-          <div className="flex flex-col h-full justify-between">
-            {/* Welcome */}
-            <div className="text-center py-5 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-                <Sparkles className="w-5 h-5 text-emerald-400" />
-              </div>
-              <h4 className="font-bold text-white text-sm">Ask me anything</h4>
-              <p className="text-[11px] text-zinc-500 max-w-[210px] mx-auto leading-relaxed">
-                I have full context on <span className="text-zinc-300 font-semibold">@{username || 'this profile'}'s</span> audit findings.
-              </p>
+        {/* Welcome status if no messages */}
+        {messages.length === 0 && (
+          <div className="text-center py-6 space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
             </div>
-
-            {/* Starter prompts */}
-            <div className="space-y-2">
-              <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold px-0.5">Suggested</p>
-              {starterPrompts.map((p, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(p.text)}
-                  className="w-full p-2.5 bg-zinc-900 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 rounded-xl text-left transition group flex items-start gap-2.5"
-                >
-                  <p.icon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${p.color}`} />
-                  <span className="text-[11px] text-zinc-400 group-hover:text-zinc-200 transition leading-relaxed line-clamp-2">{p.text}</span>
-                </button>
-              ))}
-            </div>
+            <h4 className="font-bold text-white text-[13px]">Security Copilot Active</h4>
+            <p className="text-[11px] text-zinc-500 max-w-[210px] mx-auto leading-relaxed">
+              Ask about findings, Git history sanitization, or request a funny dev joke.
+            </p>
           </div>
         )}
 
-        {/* SIGNED IN — MESSAGES */}
-        {token && messages.length > 0 && messages.map((msg) => (
+        {/* Render message history */}
+        {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            {/* AI avatar */}
             {msg.role === 'assistant' && (
               <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mb-0.5">
                 <Bot className="w-3.5 h-3.5 text-emerald-400" />
               </div>
             )}
 
-            {/* Bubble */}
             <div className={`
-              max-w-[85%] rounded-2xl px-3 py-2.5 text-[12px] leading-relaxed
+              max-w-[85%] rounded-2xl px-3 py-2 text-[11px] leading-relaxed
               ${msg.role === 'user'
-                ? 'bg-emerald-500 text-white font-medium rounded-br-sm'
+                ? 'bg-emerald-500 text-white font-semibold rounded-br-sm shadow-sm'
                 : 'bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-bl-sm whitespace-pre-wrap'
               }
             `}>
@@ -385,15 +384,14 @@ export default function SecurityCopilot({
                 ? renderFormattedMessage(msg.content, msg.id)
                 : msg.content
               }
-              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-200/70 text-right' : 'text-zinc-600'}`}>
+              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-950/70 text-right' : 'text-zinc-650'}`}>
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
 
-            {/* User avatar */}
             {msg.role === 'user' && (
-              <div className="w-6 h-6 rounded-lg bg-zinc-700 border border-zinc-600 flex items-center justify-center shrink-0 mb-0.5">
-                <User className="w-3.5 h-3.5 text-white" />
+              <div className="w-6 h-6 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 mb-0.5">
+                <User className="w-3.5 h-3.5 text-zinc-300" />
               </div>
             )}
           </div>
@@ -405,7 +403,7 @@ export default function SecurityCopilot({
             <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
               <Bot className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1.5">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -417,51 +415,66 @@ export default function SecurityCopilot({
       </div>
 
       {/* ── INPUT BAR (always at bottom) ── */}
-      <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/60 p-2.5">
-        {token ? (
-          <form
-            onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-            className="flex flex-col gap-2"
-          >
-            {/* Textarea */}
-            <div className="relative flex items-end bg-zinc-900 border border-zinc-700 hover:border-zinc-600 focus-within:border-emerald-500/70 rounded-xl transition overflow-hidden">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                placeholder="Ask about findings, fixes, or optimizations…"
-                value={inputMsg}
-                onChange={(e) => setInputMsg(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={loading}
-                className="flex-1 resize-none bg-transparent text-white placeholder-zinc-600 text-[12px] leading-relaxed px-3 pt-2.5 pb-2 focus:outline-none font-sans disabled:opacity-50 min-h-[38px] max-h-[120px]"
-                style={{ scrollbarWidth: 'none' }}
-              />
-              <button
-                type="submit"
-                disabled={loading || !inputMsg.trim()}
-                className="m-1.5 w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition shrink-0 self-end"
-              >
-                <ArrowUp className="w-3.5 h-3.5" />
-              </button>
-            </div>
+      <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/40 p-2.5 space-y-2">
+        
+        {/* Suggested preloaded prompts */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+          {starterPrompts.map((p, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleSendMessage(p.text)}
+              className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-full text-[10px] whitespace-nowrap transition-all duration-150 active:scale-95 shrink-0"
+            >
+              {p.text}
+            </button>
+          ))}
+        </div>
 
-            <div className="flex items-center justify-between px-0.5">
-              <span className="text-[9px] text-zinc-600 font-mono">⏎ Send · ⇧⏎ New line</span>
-              <span className="text-[9px] text-zinc-600 font-mono flex items-center gap-1">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+          className="flex flex-col gap-2"
+        >
+          <div className="relative flex items-end bg-zinc-900 border border-zinc-800 focus-within:border-emerald-500/60 rounded-xl transition overflow-hidden">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              placeholder="Ask anything or request a joke..."
+              value={inputMsg}
+              onChange={(e) => setInputMsg(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              className="flex-1 resize-none bg-transparent text-white placeholder-zinc-600 text-xs leading-relaxed px-3 pt-2.5 pb-2 focus:outline-none font-sans min-h-[38px] max-h-[120px]"
+              style={{ scrollbarWidth: 'none' }}
+            />
+            <button
+              type="submit"
+              disabled={loading || !inputMsg.trim()}
+              className="m-1.5 w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-850 disabled:text-zinc-650 text-black flex items-center justify-center transition shrink-0 self-end"
+            >
+              <ArrowUp className="w-4 h-4 text-black" />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between px-0.5">
+            <span className="text-[9px] text-zinc-650 font-mono">⏎ Send · ⇧⏎ New line</span>
+            {!token ? (
+              <button 
+                type="button"
+                onClick={handleSignInRedirect}
+                className="flex items-center gap-1.5 text-[9px] text-emerald-400 hover:text-emerald-300 font-bold font-mono transition"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign in to start chatting
+              </button>
+            ) : (
+              <span className="text-[9px] text-zinc-650 font-mono flex items-center gap-1">
                 <Zap className="w-2.5 h-2.5 text-yellow-500" />
                 Llama-3.3-70B
               </span>
-            </div>
-          </form>
-        ) : (
-          <button
-            onClick={handleSignInRedirect}
-            className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400 hover:text-emerald-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2"
-          >
-            <LogIn className="w-3.5 h-3.5" />
-            Sign in to start chatting
-          </button>
-        )}
+            )}
+          </div>
+        </form>
       </div>
 
     </aside>

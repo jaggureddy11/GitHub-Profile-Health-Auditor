@@ -9,6 +9,7 @@ import RepoGrid from './components/RepoGrid';
 import LiveScanTelemetry from './components/LiveScanTelemetry';
 import ContactPage from './components/ContactPage';
 import SecurityCopilot from './components/SecurityCopilot';
+import CopilotPage from './components/CopilotPage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -812,13 +813,13 @@ export default function App() {
 
           <nav className="flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
             <button 
-              onClick={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+              onClick={() => handleNavView('copilot')}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition text-xs font-bold border ${
-                isCopilotCollapsed
-                  ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/40'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                view === 'copilot'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/40'
               }`}
-              title={isCopilotCollapsed ? 'Open Copilot' : 'Close Copilot'}
+              title="Learn about Security Copilot"
             >
               {/* VS Code Copilot robot SVG icon */}
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
@@ -1089,6 +1090,13 @@ export default function App() {
         {view === 'contact' && (
           <div className="flex-1 overflow-y-auto no-scrollbar">
             <ContactPage onBackToDashboard={() => setView(token ? 'dashboard' : 'landing')} />
+          </div>
+        )}
+
+        {/* VIEW: COPILOT PAGE */}
+        {view === 'copilot' && (
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <CopilotPage onBackToDashboard={() => setView(token ? 'dashboard' : 'landing')} />
           </div>
         )}
 

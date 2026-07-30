@@ -9,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 export default function SecurityCopilot({
   scanId, token, username, score, onRequireAuth,
-  isCollapsed, onToggleCollapse, sessionId, width
+  isCollapsed, onToggleCollapse, sessionId, width, isMobileOpen
 }) {
   const [messages, setMessages] = useState([]);
   const [inputMsg, setInputMsg] = useState('');
@@ -273,8 +273,8 @@ export default function SecurityCopilot({
   // ────────── FULL PANEL ──────────
   return (
     <aside
-      style={{ width: width || 340, minWidth: 260 }}
-      className="bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0"
+      style={isMobileOpen ? {} : { width: width || 340, minWidth: 260 }}
+      className={`bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0 ${isMobileOpen ? 'w-full h-full' : ''}`}
     >
 
       {/* ── HEADER ── */}

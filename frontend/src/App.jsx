@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target, Menu, X, LayoutDashboard, MessageSquare, History } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
@@ -52,6 +52,8 @@ export default function App() {
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
   const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeMobileTab, setActiveMobileTab] = useState('main'); // 'main', 'history', 'copilot'
 
   // Resizable panel widths (in px)
   const [leftWidth, setLeftWidth] = useState(288);
@@ -131,6 +133,7 @@ export default function App() {
   // Save active view in sessionStorage when view changes
   const handleNavView = (targetView) => {
     setView(targetView);
+    setIsMobileMenuOpen(false);
     sessionStorage.setItem('auditor_current_view', targetView);
     if (targetView === 'landing') {
       const url = new URL(window.location.href);
@@ -811,7 +814,7 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
+          <nav className="hidden md:flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
             <button 
               onClick={() => handleNavView('copilot')}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition text-xs font-bold border ${
@@ -869,7 +872,47 @@ export default function App() {
               </button>
             )}
           </nav>
+
+          {/* Mobile Nav Toggle */}
+          <button 
+            className="md:hidden p-2 text-zinc-400 hover:text-white focus:outline-none -mr-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950 border-b border-zinc-900 shadow-2xl p-4 flex flex-col space-y-4 z-50">
+            <button onClick={() => handleNavView('copilot')} className="text-left font-bold text-emerald-400 flex items-center gap-2">
+              <Bot className="w-4 h-4" /> Copilot
+            </button>
+            <button onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" /> Dashboard
+            </button>
+            <button onClick={() => handleNavView('privacy')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
+              <Shield className="w-4 h-4" /> Privacy &amp; Security
+            </button>
+            <button onClick={() => handleNavView('contact')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Contact
+            </button>
+            <div className="pt-4 border-t border-zinc-800 flex flex-col gap-3">
+              {token ? (
+                <>
+                  <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
+                  <button onClick={handleLogout} className="py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl font-bold text-center border border-zinc-800">
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => { handleNavView('auth'); setAuthMode('login'); }} className="py-2 bg-white text-black rounded-xl font-bold text-center">
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main 3-Column IDE Layout Container */}
@@ -1193,8 +1236,9 @@ export default function App() {
             
             {/* COLUMN 1: LEFT SIDEBAR (Resizable) */}
             <aside
-              style={{ width: leftWidth, minWidth: 200, maxWidth: 480 }}
-              className="border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex flex-col justify-between hidden md:flex"
+              style={{ '--left-width': `${leftWidth}px` }}
+              className={`border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex-col justify-between 
+                ${activeMobileTab === 'history' ? 'absolute inset-0 z-40 flex w-full pb-20' : 'hidden md:flex md:w-[var(--left-width)] md:min-w-[200px] md:max-w-[480px]'}`}
             >
               <div className="space-y-5">
                 
@@ -1310,7 +1354,11 @@ export default function App() {
             </div>
 
             {/* COLUMN 2: CENTER MAIN CONTENT AREA */}
-            <main className="flex-1 bg-black overflow-y-auto no-scrollbar rounded-none min-w-0" style={{ containerType: 'inline-size', containerName: 'centerMain' }}>
+            <main 
+              className={`flex-1 bg-black overflow-y-auto no-scrollbar rounded-none min-w-0 pb-16 md:pb-0 
+                ${activeMobileTab === 'main' ? 'block' : 'hidden md:block'}`} 
+              style={{ containerType: 'inline-size', containerName: 'centerMain' }}
+            >
               <div className="p-4 sm:p-6 lg:p-8">
               
               {/* VIEW: IDLE / REPOS LOADED */}
@@ -1468,16 +1516,44 @@ export default function App() {
             )}
 
             {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL */}
-            <SecurityCopilot 
-              scanId={currentScanId || scanReport?.scan_id || 'guest'} 
-              token={token} 
-              username={activeUsername || scanReport?.username || user?.github_username || 'guest'} 
-              score={scanReport?.overall_score || 100} 
-              onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
-              isCollapsed={isCopilotCollapsed}
-              onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
-              width={isCopilotCollapsed ? 44 : copilotWidth}
-            />
+            <div className={`${activeMobileTab === 'copilot' ? 'absolute inset-0 z-40 flex pb-16 bg-black' : 'hidden md:flex'}`}>
+              <SecurityCopilot 
+                scanId={currentScanId || scanReport?.scan_id || 'guest'} 
+                token={token} 
+                username={activeUsername || scanReport?.username || user?.github_username || 'guest'} 
+                score={scanReport?.overall_score || 100} 
+                onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
+                isCollapsed={isCopilotCollapsed}
+                onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+                width={isCopilotCollapsed ? 44 : copilotWidth}
+                isMobileOpen={activeMobileTab === 'copilot'}
+              />
+            </div>
+
+            {/* Mobile Bottom Tab Bar */}
+            <div className="md:hidden absolute bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-900 flex items-center justify-around p-2 z-50">
+              <button 
+                onClick={() => setActiveMobileTab('history')} 
+                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'history' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+              >
+                <History className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-bold">History</span>
+              </button>
+              <button 
+                onClick={() => setActiveMobileTab('main')} 
+                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'main' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+              >
+                <LayoutDashboard className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-bold">Dashboard</span>
+              </button>
+              <button 
+                onClick={() => setActiveMobileTab('copilot')} 
+                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'copilot' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+              >
+                <Bot className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-bold">Copilot</span>
+              </button>
+            </div>
 
           </div>
         )}

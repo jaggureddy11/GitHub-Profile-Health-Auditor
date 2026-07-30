@@ -157,7 +157,7 @@ python -m pytest -v
 
 ## 👤 Developer & Maintainer
 
-Developed with ❤️ by **R Jagadishwar R** (`jaggureddy11`)
+Developed with ❤️ by **R Jagadishwar Reddy** (`jaggureddy11`)
 
 * **LinkedIn**: [linkedin.com/in/jaggureddy/](https://www.linkedin.com/in/jaggureddy/)
 * **GitHub**: [github.com/jaggureddy11](https://github.com/jaggureddy11)

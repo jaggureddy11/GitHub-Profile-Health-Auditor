@@ -948,10 +948,13 @@ async def start_scan(
     db.commit()
 
     # 3. Create repositories and child scans for each repo
+    target_repos = repos[:10]
+    other_repos = repos[10:]
+    
     db_repos = []
     child_scan_ids = []
 
-    for r in repos:
+    for r in target_repos:
         db_repo = models.Repository(
             scan_id=parent_scan_id,
             name=r["name"],
@@ -1004,8 +1007,8 @@ async def start_scan(
     db.refresh(parent_scan)
 
     progress = schemas.GroupProgress(
-        total_repos=len(repos),
-        queued_count=len(repos),
+        total_repos=len(target_repos),
+        queued_count=len(target_repos),
         running_count=0,
         completed_count=0,
         failed_count=0,
@@ -1024,6 +1027,14 @@ async def start_scan(
                 last_commit=r.last_commit,
                 default_branch=r.default_branch
             ) for r in db_repos
+        ],
+        other_repositories=[
+            schemas.RepositorySchema(
+                name=r["name"],
+                url=r["url"],
+                last_commit=r.get("last_commit"),
+                default_branch=r.get("default_branch", "main")
+            ) for r in other_repos
         ],
         findings=[],
         group_progress=progress,

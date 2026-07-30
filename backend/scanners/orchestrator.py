@@ -30,12 +30,13 @@ except ImportError:
 
 def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
     """
-    Clones a public GitHub repository to a destination path with 30s timeout.
+    Clones a public GitHub repository to a destination path with 45s timeout.
     """
     url = repo_url
-    if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
-        if url.startswith("https://github.com/"):
-            url = url.replace("https://github.com/", f"https://{token}@github.com/")
+    # Do not inject token for public cloning to avoid scope restrictions
+    # if token and token.strip() and not token.startswith("your_") and not token.startswith("placeholder_"):
+    #     if url.startswith("https://github.com/"):
+    #         url = url.replace("https://github.com/", f"https://{token}@github.com/")
 
     try:
         result = subprocess.run(
@@ -43,7 +44,7 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
             capture_output=True,
             text=True,
             check=False,
-            timeout=20
+            timeout=45
         )
         if result.returncode != 0:
             stderr_clean = result.stderr
@@ -55,7 +56,7 @@ def clone_repo(repo_url: str, dest_path: str, token: str = None) -> bool:
             return False
         return True
     except subprocess.TimeoutExpired:
-        print(f"Warning: Git clone timed out for repository {repo_url} after 30s.")
+        print(f"Warning: Git clone timed out for repository {repo_url} after 45s.")
         return False
     except Exception as e:
         err_msg = str(e)
@@ -105,7 +106,7 @@ def run_single_repo_scan_job(scan_id: str, username: str, repo_name: str, repo_u
             cloned = clone_repo(repo_url, tmp_dir, token)
             if not cloned:
                 elapsed = time.time() - start_time
-                if elapsed >= 29:  # Clone timeout
+                if elapsed >= 44:  # Clone timeout
                     timed_out = True
                     scan.status = "timed_out"
                     scan.error_message = f"Git clone timed out for repository {repo_name}."

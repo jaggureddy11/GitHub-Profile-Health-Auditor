@@ -81,6 +81,7 @@ class FullReportResponse(BaseModel):
     overall_score: Optional[int] = None
     summary: Optional[Dict[str, Any]] = None # Synthesized JSON
     repositories: List[RepositorySchema] = []
+    other_repositories: Optional[List[RepositorySchema]] = []
     findings: List[FindingSchema] = []
     group_progress: Optional[GroupProgress] = None
     child_scan_ids: List[str] = []

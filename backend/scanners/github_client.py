@@ -14,11 +14,11 @@ async def list_public_repositories(
     username: str, 
     token: Optional[str] = None, 
     per_page: int = 100, 
-    max_repos: int = 10
+    max_repos: int = 100
 ) -> List[Dict[str, Any]]:
     """
     Lists public, non-fork repositories for a given GitHub username sorted by pushed date.
-    Caps total results to max_repos (default 10) for fast audit execution.
+    Caps total results to max_repos (default 100) for fast audit execution.
     """
     if "github.com/" in username:
         username = username.split("github.com/")[1].split("/")[0]

@@ -12,17 +12,35 @@ import {
 export default function QuickStatsCard({ quickstats, isLoading }) {
   if (isLoading) {
     return (
-      <div className="bg-zinc-950 p-8 sm:p-10 rounded-3xl border border-zinc-800 space-y-6 animate-pulse shadow-2xl">
+      <div className="bg-zinc-950 p-8 sm:p-10 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl relative overflow-hidden font-sans animate-pulse">
+        {/* Top Loading Badge */}
+        <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
+              Fetching Profile Metadata &amp; Repo Stats...
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-zinc-500">Target Response: &lt;1s</span>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
-          <div className="w-36 h-36 sm:w-40 sm:h-40 bg-zinc-900 rounded-full shrink-0"></div>
-          <div className="space-y-4 flex-1 text-center sm:text-left">
-            <div className="h-8 bg-zinc-900 rounded-lg w-1/2 mx-auto sm:mx-0"></div>
-            <div className="h-5 bg-zinc-900 rounded-lg w-1/4 mx-auto sm:mx-0"></div>
+          <div className="w-32 h-32 sm:w-36 sm:h-36 bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-full border border-zinc-800 shrink-0 flex items-center justify-center">
+            <span className="w-12 h-12 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+          </div>
+          <div className="space-y-3 flex-1 text-center sm:text-left">
+            <div className="h-7 bg-zinc-900 rounded-xl w-48 mx-auto sm:mx-0 border border-zinc-850"></div>
+            <div className="h-4 bg-zinc-900/80 rounded-lg w-32 mx-auto sm:mx-0"></div>
+            <div className="h-10 bg-zinc-900/60 rounded-xl w-3/4 mx-auto sm:mx-0"></div>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-2">
+
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-24 bg-zinc-900 rounded-2xl"></div>
+            <div key={i} className="h-20 bg-zinc-900/70 rounded-2xl border border-zinc-850 p-4 space-y-2">
+              <div className="h-3 bg-zinc-800 rounded w-12"></div>
+              <div className="h-6 bg-zinc-800 rounded w-16"></div>
+            </div>
           ))}
         </div>
       </div>

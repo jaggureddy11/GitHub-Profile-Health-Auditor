@@ -33,7 +33,15 @@ def test_quickstats_returns_aggregated_metrics():
         {"name": "repo3", "stargazers_count": 5, "forks_count": 1, "language": "TypeScript", "pushed_at": "2026-04-20T09:00:00Z"},
     ]
 
-    async def mock_get(url, headers=None):
+    async def mock_get(*args, **kwargs):
+        url = ""
+        for a in args:
+            if isinstance(a, str):
+                url = a
+                break
+        if not url:
+            url = str(kwargs.get("url", ""))
+
         if "/users/testdev/repos" in url:
             return MockHttpResponse(200, mock_repos)
         elif "/users/testdev" in url:

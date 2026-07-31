@@ -1,3 +1,4 @@
+import asyncio
 import httpx
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -116,8 +117,12 @@ async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dic
             headers["Authorization"] = f"Bearer {token}"
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        # 1. Fetch user profile
-        user_res = await client.get(f"https://api.github.com/users/{username}", headers=headers)
+        user_req = client.get(f"https://api.github.com/users/{username}", headers=headers)
+        repos_req = client.get(f"https://api.github.com/users/{username}/repos?per_page=100&type=public&sort=pushed", headers=headers)
+        user_res, repos_res = await asyncio.gather(user_req, repos_req, return_exceptions=True)
+
+        if isinstance(user_res, Exception):
+            raise GitHubAPIError(f"HTTP request failed: {user_res}")
         if user_res.status_code == 404:
             raise GitHubAPIError(f"GitHub user @{username} not found.")
         if user_res.status_code in (403, 429) and user_res.headers.get("X-RateLimit-Remaining") == "0":
@@ -127,9 +132,9 @@ async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dic
 
         profile = user_res.json()
 
-        # 2. Fetch public repos (100 per page)
-        repos_res = await client.get(f"https://api.github.com/users/{username}/repos?per_page=100&type=public&sort=pushed", headers=headers)
-        repos_data = repos_res.json() if repos_res.status_code == 200 else []
+        repos_data = []
+        if isinstance(repos_res, httpx.Response) and repos_res.status_code == 200:
+            repos_data = repos_res.json()
 
     total_stars = 0
     total_forks = 0

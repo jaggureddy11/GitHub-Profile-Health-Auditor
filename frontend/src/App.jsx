@@ -130,8 +130,11 @@ export default function App() {
   ];
 
   // Save active view in sessionStorage when view changes
-  const handleNavView = (targetView) => {
+  const handleNavView = (targetView, mode = 'login') => {
     setView(targetView);
+    if (targetView === 'auth') {
+      setAuthMode(mode);
+    }
     setIsMobileMenuOpen(false);
     sessionStorage.setItem('auditor_current_view', targetView);
     if (targetView === 'landing') {
@@ -321,11 +324,12 @@ export default function App() {
     }
   }
 
-  const fetchUserProfile = useCallback(async () => {
-    if (!token) return;
+  const fetchUserProfile = useCallback(async (authToken) => {
+    const activeJwt = authToken || token;
+    if (!activeJwt) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${activeJwt}` }
       });
       if (response.ok) {
         const userData = await response.json();
@@ -358,7 +362,7 @@ export default function App() {
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      fetchUserProfile();
+      fetchUserProfile(token);
       fetchScanHistory();
 
       // Return to exact scan view if login was requested from Copilot sign-in redirect
@@ -383,10 +387,6 @@ export default function App() {
       localStorage.removeItem('token');
       setUser(null);
       setScanHistory([]);
-      const savedUser = localStorage.getItem('auditor_username');
-      if (!savedUser && !activeUsername) {
-        setView((prevView) => prevView === 'dashboard' ? 'landing' : prevView);
-      }
     }
   }, [token, fetchUserProfile, fetchScanHistory, activeUsername]);
 
@@ -415,43 +415,50 @@ export default function App() {
     return () => clearInterval(intervalId);
   }, [scanState, loadingMessages.length]);
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setAuthError('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'Registration failed');
-      }
-      // Automatical login
-      handleLogin(e);
-    } catch (err) {
-      setAuthError(err.message);
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const executeLogin = async (loginEmail, loginPassword) => {
     setAuthError('');
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        credentials: 'include',
+        body: JSON.stringify({ email: loginEmail, password: loginPassword })
       });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.detail || 'Login failed');
       }
       setToken(data.access_token);
+      setView('dashboard');
+      setIsAuthModalOpen(false);
     } catch (err) {
       setAuthError(err.message);
     }
+  };
+
+  const handleRegister = async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    setAuthError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Registration failed');
+      }
+      await executeLogin(email, password);
+    } catch (err) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    await executeLogin(email, password);
   };
 
   const handleLogout = () => {

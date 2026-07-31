@@ -885,13 +885,12 @@ export default function App() {
               <span className="hidden sm:inline font-mono">Copilot</span>
             </button>
 
-            <button
+            <button 
               onClick={() => setIsTourOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono transition"
-              title="Re-open Guided Dashboard Tour"
+              className="hover:text-white transition text-sm text-zinc-400"
+              title="Open Guided Dashboard Tour"
             >
-              <Zap className="w-3.5 h-3.5 fill-emerald-400" />
-              <span>Tour</span>
+              Guide
             </button>
 
             <button 

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://github-profile-health-auditor.jaggureddy0307.workers.dev/sitemap.xml

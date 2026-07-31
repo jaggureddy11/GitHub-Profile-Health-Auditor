@@ -203,8 +203,22 @@ export default function App() {
     }
   }, []);
 
-  // Save session state to localStorage and sync URL
+  // Save session state to localStorage, sync URL, and update SEO Document Title dynamically
   useEffect(() => {
+    if (view === 'landing') {
+      document.title = "GitHub Profile Health Auditor — Multi-Engine Security & Git Hygiene Audit";
+    } else if (view === 'dashboard') {
+      document.title = activeUsername 
+        ? `@${activeUsername} — Security Profile & Repository Audit | GitHub Auditor`
+        : "Dashboard — GitHub Profile Health Auditor";
+    } else if (view === 'copilot') {
+      document.title = "Security Copilot AI Studio — Remediation & Git Reflog Purging";
+    } else if (view === 'privacy') {
+      document.title = "Privacy Policy & Security Guarantees — GitHub Profile Health Auditor";
+    } else if (view === 'contact') {
+      document.title = "Contact & Developer Support — GitHub Profile Health Auditor";
+    }
+
     if (activeUsername && view === 'dashboard') {
       localStorage.setItem('auditor_username', activeUsername);
       const url = new URL(window.location.href);

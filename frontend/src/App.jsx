@@ -9,6 +9,8 @@ import RepoGrid from './components/RepoGrid';
 import LiveScanTelemetry from './components/LiveScanTelemetry';
 import SingleRepoAuditPage from './components/SingleRepoAuditPage';
 import BulkProfileAuditPage from './components/BulkProfileAuditPage';
+import SecurityCopilot from './components/SecurityCopilot';
+import DashboardTourModal from './components/DashboardTourModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -53,6 +55,17 @@ export default function App() {
   const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState('main'); // 'main', 'history', 'copilot'
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // Trigger onboarding tour for first-time dashboard visitors
+  useEffect(() => {
+    if (view === 'dashboard') {
+      const hasSeenTour = localStorage.getItem('auditor_has_seen_tour');
+      if (!hasSeenTour) {
+        setIsTourOpen(true);
+      }
+    }
+  }, [view]);
 
   // Resizable panel widths (in px)
   const [leftWidth, setLeftWidth] = useState(288);
@@ -872,6 +885,15 @@ export default function App() {
               <span className="hidden sm:inline font-mono">Copilot</span>
             </button>
 
+            <button
+              onClick={() => setIsTourOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono transition"
+              title="Re-open Guided Dashboard Tour"
+            >
+              <Zap className="w-3.5 h-3.5 fill-emerald-400" />
+              <span>Tour</span>
+            </button>
+
             <button 
               onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')}
               className={`hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-white font-bold' : 'text-zinc-400'}`}
@@ -1568,6 +1590,12 @@ export default function App() {
 
           </div>
         )}
+
+        {/* INTERACTIVE ONBOARDING DASHBOARD TOUR MODAL */}
+        <DashboardTourModal 
+          isOpen={isTourOpen} 
+          onClose={() => setIsTourOpen(false)} 
+        />
 
       </div>
     </div>

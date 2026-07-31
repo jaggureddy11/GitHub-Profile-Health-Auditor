@@ -52,7 +52,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
   const [scanHistory, setScanHistory] = useState([]);
-  const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
+  const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState('main'); // 'main', 'history', 'copilot'
   const [isTourOpen, setIsTourOpen] = useState(false);
@@ -867,22 +867,19 @@ export default function App() {
 
           <nav className="hidden md:flex items-center space-x-3 sm:space-x-5 text-sm font-semibold shrink-0">
             <button 
-              onClick={() => handleNavView('copilot')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition text-xs font-bold border ${
-                view === 'copilot'
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/40'
+              onClick={() => {
+                if (view !== 'dashboard') setView('dashboard');
+                setIsCopilotCollapsed(prev => !prev);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition text-xs font-bold font-mono border ${
+                !isCopilotCollapsed && view === 'dashboard'
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-md shadow-emerald-500/10'
+                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
               }`}
-              title="Learn about Security Copilot"
+              title="Toggle AI Security Copilot"
             >
-              {/* VS Code Copilot robot SVG icon */}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.4" />
-                <path d="M5 6.5C5 5.67 5.67 5 6.5 5S8 5.67 8 6.5 7.33 8 6.5 8 5 7.33 5 6.5Z" fill="currentColor"/>
-                <path d="M8 6.5C8 5.67 8.67 5 9.5 5S11 5.67 11 6.5 10.33 8 9.5 8 8 7.33 8 6.5Z" fill="currentColor"/>
-                <path d="M5.5 10c0-.83 1.12-1.5 2.5-1.5s2.5.67 2.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-              <span className="hidden sm:inline font-mono">Copilot</span>
+              <Bot className="w-4 h-4 text-emerald-400" />
+              <span>Ask AI</span>
             </button>
 
             <button 

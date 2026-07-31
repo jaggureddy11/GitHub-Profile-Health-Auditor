@@ -500,12 +500,12 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
 
       {/* ── ENGINE STATUS BAR ── */}
       <div className="px-3 py-1 bg-black/50 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
-        <span className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-mono">
-          <Cpu className="w-2.5 h-2.5 text-cyan-500" />
-          HF Router · Groq fallback
+        <span className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-mono">
+          <Cpu className="w-3 h-3 text-emerald-400" />
+          AI Security Engine
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-emerald-500 font-mono font-semibold">
-          <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           Ready
         </span>
       </div>
@@ -592,14 +592,14 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
       {/* ── INPUT BAR (always at bottom) ── */}
       <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/40 p-2.5 space-y-2">
         
-        {/* Suggested preloaded prompts */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+        {/* Suggested preloaded prompts - fully visible flex wrap */}
+        <div className="flex flex-wrap items-center gap-1.5 py-1">
           {starterPrompts.map((p, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleSendMessage(p.query || p.text)}
-              className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-full text-[10px] whitespace-nowrap transition-all duration-150 active:scale-95 shrink-0"
+              className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-[10px] font-medium transition-all duration-150 active:scale-95"
             >
               {p.text}
             </button>

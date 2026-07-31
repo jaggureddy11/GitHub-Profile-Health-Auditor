@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="frontend/public/logo.png" alt="GitHub Profile Health Auditor Logo" width="128" height="128" style="border-radius: 24px;" />
+  <img src="frontend/public/logo.png" alt="GitHub Profile Health Auditor Logo" width="128" height="128" style="border-radius: 28px;" />
 </p>
 
-<h1 align="center">GitHub Profile Health Auditor</h1>
+<h1 align="center">🛡️ GitHub Profile Health Auditor</h1>
 
 <p align="center">
-  <strong>Automated Multi-Engine Static Security Analysis &amp; Git Hygiene Auditor for GitHub Profiles &amp; Repositories</strong>
+  <strong>Automated Multi-Engine Static Security Analysis, AI Security Copilot &amp; Git Hygiene Auditor for GitHub Profiles &amp; Repositories</strong>
 </p>
 
 <p align="center">
@@ -14,97 +14,119 @@
   <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.110.0-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/Frontend-Vite%20%2B%20React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="Vite React" /></a>
   <a href="https://www.docker.com"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="https://pytest.org"><img src="https://img.shields.io/badge/Tests-57%2F57%20Passed-10B981?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest Suite" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" /></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/jaggureddy11/GitHub-Profile-Health-Auditor"><strong>🔗 Source Code Repository: https://github.com/jaggureddy11/GitHub-Profile-Health-Auditor</strong></a>
 </p>
 
 ---
 
 ## 💡 Overview
 
-**GitHub Profile Health Auditor** is a privacy-first, production-grade security and static analysis platform. It analyzes public GitHub profiles and individual repository URLs — intercepting committed API credentials, detecting code smells, evaluating Git hygiene debt, and synthesizing executive AI security reports with 1-click downloadable `.patch` fixes.
+**GitHub Profile Health Auditor** is a privacy-first, production-grade security and static analysis platform. It empowers developers, hiring managers, and security auditors to evaluate public GitHub profiles or individual repository URLs in seconds — intercepting committed API credentials, detecting AST code smells, auditing Git hygiene debt, and synthesizing executive AI security reports with 1-click downloadable `.patch` fixes.
 
-Scans are fully anonymous by default (session-scoped, no account required), with an opt-in public badge system for verified owners who want to display their score.
+Scans are fully anonymous by default (session-scoped, zero account required), with an opt-in public badge verification system for profile owners who want to showcase their security posture.
 
 ---
 
-## ✨ Key Features
+## ✨ Key Features & Highlights
 
 | Feature | Description |
 | :--- | :--- |
-| **⚡ Instant Profile Quickstats** | Renders avatar, bio, followers, star count, top languages, and last-active date in **<2 seconds** via a dedicated lightweight endpoint with 15-minute Redis caching — no cloning, no AI calls. |
-| **🗂️ Repo Grid View** | Interactive grid of all public repos with live per-repo status indicators (`queued → running → completed / timed_out`) and an "Analyze All" bulk action. |
-| **🔐 Secret Leak Interception** | Integrated **TruffleHog** scanner detects exposed API keys, AWS credentials, Slack webhooks, and database tokens across full Git commit histories. All discovered values are immediately redacted before storage. |
-| **🧹 Semgrep AST Code Smell Audit** | Automated AST analysis checks for unhandled exceptions, dangerous `eval()` calls, hardcoded secrets, and missing error handlers using Semgrep's `auto` rule pack. |
-| **🤖 Groq AI Security Synthesis** | Leverages `llama-3.3-70b-versatile` to synthesize audit findings into actionable remediation guidance, recruiter risk ratings, and clean executive summary reports. |
+| **⚡ Dual-Path Smart Routing** | **Username Mode**: Fetches user details, metadata & repo list (<1s) without auto-scanning all repos. <br/> **Repo URL Mode**: Directly scans that specific target repository immediately. |
+| **🔐 In-Memory Secret Interception** | Integrated **TruffleHog** scanner detects 800+ secret signatures (AWS keys, Stripe, database tokens, Slack webhooks) across full Git commit histories. All secrets are redacted in RAM before storage. |
+| **🧹 Semgrep AST Code Smell Audit** | Automated AST static analysis flags unhandled exceptions, dangerous `eval()` invocations, hardcoded credentials, and missing error handlers using Semgrep's `auto` rule pack. |
+| **🤖 AI Security Copilot Studio** | Interactive copilot powered by Llama-3.3-70B / Qwen2.5-Coder and smart rule synthesis. Provides structured Markdown remediation steps, `git-filter-repo` reflog purging guides, and copyable code snippets. |
+| **📊 Dedicated Audit Findings Page** | Clicking any audit button redirects to a dedicated, animated Audit Findings Page (`animate-in fade-in zoom-in-95`), separating profile browsing from scan results. |
+| **💯 100% Authentic Data Findings** | Displays strictly real backend scanner findings (`findings`, `overall_score`, `summary`, `redacted_snippets`). Zero fake or fabricated data anywhere. |
+| **🗂️ Repo Grid & Load More** | Capped at 10 repos initially with a **"View Remaining Repositories"** expander. Offers individual **"Scan Repo"** buttons and a bulk **"Audit All Repositories"** action. |
 | **🩹 1-Click `.patch` Remediation** | Generates standardized `.patch` files for instant application via `git apply`, fixing `.gitignore` gaps, README shields, and license debt. |
 | **🛡️ Opt-In Verifiable Badges** | Generates embeddable SVG profile badges (`A+`, `B-`, `SECURITY SHIELD`) verified via GitHub OAuth or 15-minute bio challenge tokens. |
-| **🔒 Session-Scoped Privacy** | Anonymous scans are bound to HttpOnly session cookies. Reports are strictly private to the originating session and cannot be retrieved by username alone. |
-| **🤖 Anti-Bot Guardrails** | Honeypot field rejection, per-IP rate limiting, per-scan repo caps, and hard job timeouts prevent abuse and runaway compute costs. |
+| **🔒 Session-Scoped Privacy** | Anonymous scans are bound to HttpOnly session cookies (`scan_session_id`). Reports are strictly private to the originating session and cannot be queried publicly by username alone. |
 
 ---
 
-## ⚡ Architecture
+## ⚡ System Architecture
 
 ```
-                        ┌────────────────────────────────────────┐
-                        │              React Frontend            │
-                        │       (Vite + React + Tailwind CSS)    │
-                        └───────────────────┬────────────────────┘
-                                            │
-                                 POST/GET Scan Requests
-                                            │
-                                            ▼
-                        ┌────────────────────────────────────────┐
-                        │             FastAPI Backend            │
-                        │     (Endpoints · RQ Enqueue · DB)      │
-                        └─────────┬───────────────────┬──────────┘
-                                  │                   │
-                           Submit Jobs           Save Info
-                                  │                   │
-                                  ▼                   ▼
-      ┌─────────────────────────────────┐   ┌──────────────────────┐
-      │         Redis Queue (RQ)        │   │   SQLite / Postgres  │
-      │   N independent per-repo jobs   │   │     (SQLAlchemy)     │
-      └──────────────┬──────────────────┘   └───────────▲──────────┘
-                     │                                  │
-                  Pulls Job                             │
-                     │                                  │
-                     ▼                                  │
-      ┌─────────────────────────────────┐               │
-      │         Background Worker       │               │
-      │           (worker.py)           ├───────────────┘
-      │  Per-repo · isolated timeout    │         Writes Findings
-      └──────────────┬──────────────────┘
-                     │
-             Clones Repository
-             Executes Scanners
-                     │
-       ┌─────────────┼─────────────┐
-       ▼             ▼             ▼
-   TruffleHog     Semgrep       Hygiene
-   (Secrets)     (Smells)      (Structure)
-       │             │             │
-       └─────────────┼─────────────┘
-                     │
-                     ▼
-           Groq AI Engine (llama-3.3-70b)
-                     │
-                     ▼
-          GroupProgress Aggregation
-       (partial reports while jobs run)
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                   Vite + React SPA                      │
+                    │        (Dark Mode · Tailwind CSS · Glassmorphism)       │
+                    └────────────────────────────┬────────────────────────────┘
+                                                 │
+                                      POST / GET API Requests
+                                                 │
+                                                 ▼
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                  FastAPI Backend Server                 │
+                    │  (Endpoints · Redis Rate Limiter · Auth · Session DB)   │
+                    └──────────────┬───────────────────────────┬──────────────┘
+                                   │                           │
+                            Submit Jobs                   Save Metadata
+                                   │                           │
+                                   ▼                           ▼
+        ┌────────────────────────────────────┐   ┌──────────────────────────┐
+        │          Redis Queue (RQ)          │   │    SQLite / PostgreSQL   │
+        │    N independent per-repo jobs     │   │       (SQLAlchemy)       │
+        └──────────────────┬─────────────────┘   └─────────────▲────────────┘
+                           │                                   │
+                        Pulls Job                              │
+                           │                                   │
+                           ▼                                   │
+        ┌────────────────────────────────────┐                 │
+        │         Background Worker          │                 │
+        │            (worker.py)             ├─────────────────┘
+        │   Per-repo · isolated timeout      │           Writes Findings
+        └──────────────────┬─────────────────┘
+                           │
+                   Clones Repository
+                   Executes Scanners
+                           │
+         ┌─────────────────┼─────────────────┐
+         ▼                 ▼                 ▼
+     TruffleHog         Semgrep           Hygiene
+   (Secret Leaks)     (Code Smells)     (Structure)
+         │                 │                 │
+         └─────────────────┼─────────────────┘
+                           │
+                           ▼
+             Groq AI Engine (llama-3.3-70b)
+                           │
+                           ▼
+              Dedicated Audit Findings Studio
+              (Real-time live telemetry stream)
 ```
 
 ---
 
-## 🔒 Security Hardening & Privacy
+## 🔒 Security Hardening & Privacy Policy
 
-- **Zero Secret Storage**: Discovered credentials (AWS, Stripe, database tokens) are processed inside isolated worker RAM and immediately sanitized to `[REDACTED]` before persisting or rendering.
+- **Zero Secret Storage**: Discovered credentials (AWS, Stripe, database tokens) are processed inside isolated worker RAM and immediately sanitized to `[REDACTED_BY_AUDITOR]` before persisting or rendering.
 - **Session-Scoped Findings**: Anonymous scans are bound to `HttpOnly` session cookies / `X-Session-ID` headers. Findings cannot be retrieved by username alone — only by the originating session.
 - **Per-IP Rate Limiting**: Independent limits for deep scans (`RATE_LIMIT_SCANS_PER_IP_24H`, default 5/24h) and quickstats (`RATE_LIMIT_QUICKSTATS_PER_IP_24H`, default 30/24h). Providing a GitHub token does **not** bypass server-side compute limits.
 - **Honeypot Protection**: `website_url` honeypot field in `ScanRequest` auto-rejects bot submissions with `400 Bad Request`.
 - **Repo & Timeout Caps**: `MAX_REPOS_PER_SCAN` (default 10) and `SCAN_JOB_TIMEOUT_SECONDS` (default 180s) prevent runaway jobs.
 - **IP Data Retention**: Per-IP rate-limit counters expire automatically after 24 hours.
-- **Multi-Tenant Isolation**: Database-level constraints and session enforcement ensure scan reports are strictly scoped to their originating user or session.
+
+---
+
+## 🌐 API Endpoint Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/scan` | Initiates deep profile security audit across user repositories. |
+| `POST` | `/api/repo-scan` | Initiates targeted security audit for a single specific repository. |
+| `GET` | `/api/scan/{scan_id}` | Retrieves scan findings and real-time live telemetry progress. |
+| `GET` | `/api/profile/{username}/quickstats` | Fast user metadata endpoint (<1s) returning avatar, bio, stars, languages. |
+| `GET` | `/api/profile/{username}/repos` | Fast repository listing endpoint (<1s) returning public repos list. |
+| `POST` | `/api/scan/{scan_id}/copilot-chat` | Interactive AI Copilot endpoint for structured remediation guidance. |
+| `POST` | `/api/fix` | Generates downloadable unified `.patch` remediation file (`git apply`). |
+| `GET` | `/api/badge/{username}.svg` | Renders verified opt-in SVG security badge (`A+`, `SECURITY SHIELD`). |
+| `POST` | `/api/badge/challenge` | Generates 15-minute bio challenge verification token. |
+| `POST` | `/api/badge/verify` | Verifies bio token proof-of-control and publishes badge. |
 
 ---
 
@@ -117,26 +139,12 @@ Scans are fully anonymous by default (session-scoped, no account required), with
 - **TruffleHog CLI** (on executable `PATH`)
 - **Semgrep CLI** (`pip install semgrep`)
 
-### 1. Environment Configuration
+### 1. Environment Setup
 
-Copy the sample config and fill in your API keys:
+Copy the sample configuration file:
 ```bash
 cp .env.example .env
 ```
-
-Key parameters:
-
-| Variable | Description |
-| :--- | :--- |
-| `GITHUB_TOKEN` | GitHub Personal Access Token (for higher REST API quota) |
-| `GROQ_API_KEY` | Groq API key for AI synthesis (`llama-3.3-70b-versatile`) |
-| `REDIS_URL` | RQ worker connection (default: `redis://localhost:6379/0`) |
-| `JWT_SECRET` | Secret key for signing session tokens |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | OAuth app credentials (optional — for badge verification) |
-| `RATE_LIMIT_SCANS_PER_IP_24H` | Max deep scans per IP per 24h (default: `5`) |
-| `RATE_LIMIT_QUICKSTATS_PER_IP_24H` | Max quickstats requests per IP per 24h (default: `30`) |
-| `MAX_REPOS_PER_SCAN` | Max repos analyzed per scan (default: `10`) |
-| `SCAN_JOB_TIMEOUT_SECONDS` | Hard timeout per background job (default: `180`) |
 
 ### 2. Backend & RQ Worker
 
@@ -166,24 +174,24 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ## 🐳 Docker Compose (Full Stack)
 
-Spin up Postgres, Redis, the FastAPI backend, the RQ worker, and the Nginx-served frontend SPA in one command:
+Spin up Postgres, Redis, FastAPI backend, RQ worker, and Nginx frontend in one command:
 
 ```bash
 docker compose up --build
 ```
 
-| Service | Port |
+| Service | Address |
 | :--- | :--- |
-| Frontend (Nginx) | `http://localhost:3000` |
-| Backend (FastAPI) | `http://localhost:8000` |
-| Redis | `localhost:6380` |
-| PostgreSQL | `localhost:5433` |
+| **Frontend (Nginx SPA)** | `http://localhost:3000` |
+| **Backend (FastAPI)** | `http://localhost:8000` |
+| **Redis** | `localhost:6380` |
+| **PostgreSQL** | `localhost:5433` |
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Automated Test Suite
 
-Run the full pytest suite — covering rate limiters, database isolation, secret redaction, anonymous sessions, badge verification, repo jobs, quickstats, guardrails, and E2E flows:
+Run the full pytest suite — covering secret redaction, rate limiters, session isolation, badge verification, repo jobs, quickstats, guardrails, and E2E flows:
 
 ```bash
 cd backend
@@ -191,32 +199,8 @@ python -m pytest -v
 ```
 
 ```text
-============================= 57 passed in 55.89s ==============================
+============================= 57 passed in 51.70s ==============================
 ```
-
-**Test modules:**
-
-| Test File | Coverage Area |
-| :--- | :--- |
-| `test_github.py` | GitHub API pagination & rate-limit handling |
-| `test_hygiene.py` | Structural hygiene scanner |
-| `test_trufflehog.py` | Secret scanning & redaction |
-| `test_semgrep.py` | Code smell (AST) scanning |
-| `test_ai.py` | AI synthesis fallback & retry logic |
-| `test_fix.py` | `.patch` file generation |
-| `test_rate_limiter.py` | Per-IP rate limiting & Redis fallback |
-| `test_anonymous_scan.py` | Anonymous session isolation |
-| `test_badge_system.py` | Opt-in badge ownership verification |
-| `test_guardrails.py` | Repo caps, timeouts, honeypot rejection |
-| `test_quickstats.py` | Quickstats metrics, caching, rate limiting |
-| `test_repo_listing.py` | Repo listing endpoint & caching |
-| `test_repo_jobs.py` | Per-repo async job fan-out & aggregation |
-| `test_repo_rate_limit.py` | Per-repo scan rate limits |
-| `test_redaction_verification.py` | Code snippet redaction scrubber |
-| `test_saas.py` | JWT auth, OAuth flow, multi-tenant isolation |
-| `test_e2e.py` | End-to-end pipeline validation |
-| `test_cors.py` | CORS policy |
-| `test_refinement.py` | Report refinement logic |
 
 ---
 
@@ -225,7 +209,7 @@ python -m pytest -v
 ```
 GitHub-Profile-Health-Auditor/
 ├── backend/
-│   ├── main.py               # FastAPI app — all API endpoints
+│   ├── main.py               # FastAPI app — REST API endpoints
 │   ├── worker.py             # RQ background worker entrypoint
 │   ├── models.py             # SQLAlchemy ORM models
 │   ├── schemas.py            # Pydantic request/response schemas
@@ -242,21 +226,23 @@ GitHub-Profile-Health-Auditor/
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   └── components/
-│   │       ├── LandingPage.jsx       # Main scan entry + featured profiles
-│   │       ├── ReportDashboard.jsx   # Full audit report view
-│   │       ├── QuickStatsCard.jsx    # Instant profile stats card
-│   │       ├── RepoGrid.jsx          # Repository grid with per-repo status
-│   │       ├── RepoCard.jsx          # Individual repository card
-│   │       ├── RepoBreakdown.jsx     # Per-repo findings detail
-│   │       ├── LiveScanTelemetry.jsx # Real-time scan progress steps
-│   │       ├── ScanForm.jsx          # Username / URL scan input form
-│   │       ├── SecurityCopilot.jsx   # AI copilot chat panel
-│   │       ├── CopilotPage.jsx       # Standalone Security Copilot studio page
-│   │       ├── PublicBadgeModal.jsx  # Opt-in badge verification flow
-│   │       └── ContactPage.jsx       # Contact & info page
+│   │   ├── components/
+│   │   │   ├── LandingPage.jsx       # Main scan entry + featured profiles
+│   │   │   ├── ReportDashboard.jsx   # Audit findings report dashboard
+│   │   │   ├── QuickStatsCard.jsx    # Instant profile stats card
+│   │   │   ├── RepoGrid.jsx          # Repository grid with per-repo status
+│   │   │   ├── RepoCard.jsx          # Individual repository card
+│   │   │   ├── RepoBreakdown.jsx     # Per-repo findings detail
+│   │   │   ├── LiveScanTelemetry.jsx # Real-time scan progress steps
+│   │   │   ├── ScanForm.jsx          # Username / URL scan input form
+│   │   │   ├── SecurityCopilot.jsx   # AI copilot chat panel
+│   │   │   ├── CopilotPage.jsx       # Standalone Security Copilot studio page
+│   │   │   ├── PublicBadgeModal.jsx  # Opt-in badge verification flow
+│   │   │   └── ContactPage.jsx       # Contact & info page
+│   │   ├── App.jsx                   # Main routing & state controller
+│   │   ├── index.css                 # Global CSS & design system tokens
+│   │   └── main.jsx
 │   ├── public/
-│   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
@@ -275,7 +261,7 @@ GitHub-Profile-Health-Auditor/
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting issues, feature requests, and pull requests. GitHub issue and PR templates are provided in `.github/`.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting issues, feature requests, and pull requests.
 
 ---
 
@@ -291,5 +277,4 @@ Developed with ❤️ by **R Jagadishwar Reddy** (`jaggureddy11`)
 
 ## 📄 License
 
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is open-source software licensed under the **[MIT License](LICENSE)**.

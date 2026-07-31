@@ -1067,6 +1067,18 @@ def get_scan_report(
 ):
     db_scan = verify_scan_access(scan_id, db, current_user, session_id)
     
+    # Self-healing check: If single scan is stuck in queued status, trigger direct execution thread
+    if db_scan.scan_type != "group" and db_scan.status in ["queued", "pending"]:
+        repo_name = db_scan.repositories[0].name if db_scan.repositories else db_scan.username
+        repo_url = db_scan.repositories[0].url if db_scan.repositories else f"https://github.com/{db_scan.username}/{repo_name}"
+        try:
+            import threading
+            t = threading.Thread(target=run_single_repo_scan_job, args=(db_scan.id, db_scan.username, repo_name, repo_url))
+            t.daemon = True
+            t.start()
+        except Exception as e:
+            print(f"Self-healing scan trigger notice: {e}")
+
     group_progress = None
     is_partial = False
     all_findings = []
@@ -1074,6 +1086,19 @@ def get_scan_report(
 
     if db_scan.scan_type == "group":
         child_scans = db.query(models.Scan).filter(models.Scan.parent_scan_id == db_scan.id).all()
+        # Self-heal stuck child scans
+        for child in child_scans:
+            if child.status in ["queued", "pending"]:
+                c_repo_name = child.repositories[0].name if child.repositories else child.username
+                c_repo_url = child.repositories[0].url if child.repositories else f"https://github.com/{child.username}/{c_repo_name}"
+                try:
+                    import threading
+                    t = threading.Thread(target=run_single_repo_scan_job, args=(child.id, child.username, c_repo_name, c_repo_url))
+                    t.daemon = True
+                    t.start()
+                except Exception as ex:
+                    print(f"Child scan trigger notice: {ex}")
+
         total_count = len(child_scans)
         queued_c = sum(1 for c in child_scans if c.status == "queued")
         running_c = sum(1 for c in child_scans if c.status == "running")

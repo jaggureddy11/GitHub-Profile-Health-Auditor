@@ -7,9 +7,8 @@ import LandingPage from './components/LandingPage';
 import QuickStatsCard from './components/QuickStatsCard';
 import RepoGrid from './components/RepoGrid';
 import LiveScanTelemetry from './components/LiveScanTelemetry';
-import ContactPage from './components/ContactPage';
-import SecurityCopilot from './components/SecurityCopilot';
-import CopilotPage from './components/CopilotPage';
+import SingleRepoAuditPage from './components/SingleRepoAuditPage';
+import BulkProfileAuditPage from './components/BulkProfileAuditPage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -819,6 +818,9 @@ export default function App() {
     setScanReport(null);
     setCurrentScanId('');
     setErrorMessage('');
+    setRepoStatuses({});
+    setIsBatchScanning(false);
+    setTargetRepoName(null);
   };
 
   return (
@@ -1431,60 +1433,39 @@ export default function App() {
                 </div>
               )}
 
-              {/* VIEW: DEDICATED AUDIT PAGE — LIVE TELEMETRY IN PROGRESS */}
-              {scanState === 'loading' && (
-                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 font-sans">
-                  {/* Dedicated Header Back Navigation Bar */}
-                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl">
-                    <button
-                      onClick={() => setScanState('idle')}
-                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md active:scale-98"
-                    >
-                      <span>← Back to Profile &amp; Repositories</span>
-                    </button>
-                    <div className="flex items-center space-x-3 text-xs font-mono">
-                      <span className="text-zinc-400">Target Profile / Repo: <span className="text-emerald-400 font-bold">@{activeUsername}</span></span>
-                      <span className="px-3 py-1 bg-amber-950/80 text-amber-400 border border-amber-800/80 rounded-lg font-bold flex items-center space-x-1.5 animate-pulse">
-                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                        <span>LIVE AUDIT RUNNING</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <LiveScanTelemetry report={scanReport} />
-                </div>
-              )}
-
-              {/* VIEW: DEDICATED AUDIT PAGE — COMPLETE FINDINGS REPORT */}
-              {scanState === 'completed' && scanReport && (
-                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 font-sans">
-                  {/* Dedicated Header Back Navigation Bar */}
-                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl">
-                    <button
-                      onClick={() => setScanState('idle')}
-                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md active:scale-98"
-                    >
-                      <span>← Back to Profile &amp; Repositories</span>
-                    </button>
-                    <div className="flex items-center space-x-3 text-xs font-mono">
-                      <span className="text-zinc-400">Target Profile / Repo: <span className="text-white font-bold">{scanReport.repo_name ? `@${scanReport.username} / ${scanReport.repo_name}` : `@${scanReport.username}`}</span></span>
-                      <span className="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-lg font-bold flex items-center space-x-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>AUDIT REPORT COMPLETED</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <ReportDashboard 
-                    report={scanReport} 
-                    onReset={() => setScanState('idle')} 
-                    onReRun={(username) => handleStartScan(username, '')}
+              {/* VIEW: DEDICATED AUDIT PAGE VIEWS (SINGLE REPO vs BULK PROFILE) */}
+              {(scanState === 'loading' || scanState === 'completed') && (
+                targetRepoName || scanReport?.repo_name ? (
+                  <SingleRepoAuditPage
+                    scanState={scanState}
+                    scanReport={scanReport}
+                    activeUsername={activeUsername}
+                    onBack={handleReset}
+                    onReset={handleReset}
+                    onReRun={handleStartScan}
                     token={token}
                     quickstats={quickstats}
                     quickstatsLoading={quickstatsLoading}
-                    onOpenCopilot={() => setIsCopilotCollapsed(false)}
+                    isCopilotCollapsed={isCopilotCollapsed}
+                    setIsCopilotCollapsed={setIsCopilotCollapsed}
                   />
-                </div>
+                ) : (
+                  <BulkProfileAuditPage
+                    scanState={scanState}
+                    scanReport={scanReport}
+                    activeUsername={activeUsername}
+                    onBack={handleReset}
+                    onReset={handleReset}
+                    onReRun={handleStartScan}
+                    token={token}
+                    quickstats={quickstats}
+                    quickstatsLoading={quickstatsLoading}
+                    isBatchScanning={isBatchScanning}
+                    batchProgress={batchProgress}
+                    isCopilotCollapsed={isCopilotCollapsed}
+                    setIsCopilotCollapsed={setIsCopilotCollapsed}
+                  />
+                )
               )}
 
               {/* VIEW: ERROR / INTERRUPTED */}

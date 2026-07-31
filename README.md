@@ -191,7 +191,7 @@ python -m pytest -v
 ```
 
 ```text
-============================= 53 passed in 42.24s ==============================
+============================= 57 passed in 55.89s ==============================
 ```
 
 **Test modules:**
@@ -237,7 +237,7 @@ GitHub-Profile-Health-Auditor/
 │   │   ├── trufflehog.py     # TruffleHog secret scanner wrapper
 │   │   ├── semgrep.py        # Semgrep code smell scanner wrapper
 │   │   └── ai_synthesizer.py # Groq AI report synthesizer
-│   ├── tests/                # Full pytest test suite (53 tests)
+│   ├── tests/                # Full pytest test suite (57 tests)
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
@@ -252,6 +252,7 @@ GitHub-Profile-Health-Auditor/
 │   │       ├── LiveScanTelemetry.jsx # Real-time scan progress steps
 │   │       ├── ScanForm.jsx          # Username / URL scan input form
 │   │       ├── SecurityCopilot.jsx   # AI copilot chat panel
+│   │       ├── CopilotPage.jsx       # Standalone Security Copilot studio page
 │   │       ├── PublicBadgeModal.jsx  # Opt-in badge verification flow
 │   │       └── ContactPage.jsx       # Contact & info page
 │   ├── public/

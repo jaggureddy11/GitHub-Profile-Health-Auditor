@@ -262,7 +262,8 @@ async def get_user_repositories(
         "username": username,
         "total_repos": len(repos),
         "capped": capped,
-        "repositories": repos[:max_repos]
+        "repositories": repos[:max_repos],
+        "other_repositories": repos[max_repos:]
     }
 
 async def get_single_repository(

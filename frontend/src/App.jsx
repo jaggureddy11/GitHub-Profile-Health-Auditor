@@ -588,42 +588,47 @@ export default function App() {
     setTimeout(() => clearInterval(pollInterval), 180000);
   };
 
-  const handleStartScan = async (username, githubToken) => {
-    let cleanUsername = username.trim().replace(/^@/, '');
-    if (!cleanUsername) return;
+  const handleStartScan = async (rawInput, githubToken) => {
+    let raw = rawInput.trim().replace(/^@/, '');
+    if (!raw) return;
 
-    setActiveUsername(cleanUsername);
-    setView('dashboard');
-    setScanState('loading');
-    setErrorMessage('');
-    setScanReport(null);
+    // Parse whether input is a specific Repository URL or a Username
+    let cleanUrl = raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/^github\.com\//i, '');
+    let parts = cleanUrl.split('/').filter(Boolean);
 
-    // Concurrently fetch quickstats and repo listing (<1s)
-    fetchQuickStats(cleanUsername, githubToken);
-    fetchUserRepos(cleanUsername, githubToken);
+    if (parts.length >= 2) {
+      // CASE 2: User pasted a specific Repository URL (e.g. github.com/owner/repo)
+      const targetOwner = parts[0];
+      const targetRepo = parts[1];
 
-    // Trigger deep background scan
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/scan`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ username: cleanUsername, github_token: githubToken || undefined })
-      });
+      setActiveUsername(targetOwner);
+      setView('dashboard');
+      setScanState('loading');
+      setErrorMessage('');
+      setScanReport(null);
 
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentScanId(data.scan_id);
-        setScanReport(data);
-        pollFullScanStatus(data.scan_id);
-      } else {
-        const errData = await res.json();
-        console.warn("Scan initiation notice:", errData.detail);
-      }
-    } catch (err) {
-      console.error("Failed to initiate deep scan:", err);
+      // Concurrently fetch quickstats for owner & target repo details
+      fetchQuickStats(targetOwner, githubToken);
+      fetchUserRepos(`${targetOwner}/${targetRepo}`, githubToken);
+
+      // Directly scan that specific repository immediately
+      handleStartSingleRepoScan({ name: targetRepo, owner: { login: targetOwner } });
+    } else {
+      // CASE 1: User entered a GitHub Username (e.g. jaggureddy11)
+      const cleanUsername = parts[0] || raw;
+
+      setActiveUsername(cleanUsername);
+      setView('dashboard');
+      setScanState('idle'); // Display user details, metadata & repo grid immediately!
+      setErrorMessage('');
+      setScanReport(null);
+
+      // Concurrently fetch quickstats & repo listing (capped at 10 repos with load more)
+      fetchQuickStats(cleanUsername, githubToken);
+      fetchUserRepos(cleanUsername, githubToken);
+
+      // Note: We do NOT automatically trigger a deep scan on all repos.
+      // User can view details, load more repos, scan individual repos, or click "Audit All Repositories".
     }
   };
 

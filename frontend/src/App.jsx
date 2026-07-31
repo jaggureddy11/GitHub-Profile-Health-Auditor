@@ -852,12 +852,12 @@ export default function App() {
           <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => handleNavView('landing')}>
             <img 
               src="/logo.png" 
-              alt="GitHub Profile Auditor" 
+              alt="GitHub Profile Health Auditor" 
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
             />
             <div className="flex items-center space-x-3">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-white font-sans">
-                GitHub Profile Auditor
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-white font-sans uppercase">
+                GitHub Profile Health Auditor
               </span>
               <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider">
                 Beta

@@ -8,7 +8,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
 
   const tourSteps = [
     {
-      title: "Welcome to GitHub Profile Auditor",
+      title: "Welcome to GitHub Profile Health Auditor",
       category: "Architecture & Security Overview",
       stepNumber: "Step 1 of 4",
       icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />,

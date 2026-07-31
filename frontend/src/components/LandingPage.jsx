@@ -624,8 +624,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           {/* Brand */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="GitHub Profile Auditor" className="w-8 h-8 rounded-xl object-cover border border-zinc-800 shrink-0" />
-              <span className="font-extrabold text-white text-base tracking-tight">GitHub Profile Auditor</span>
+              <img src="/logo.png" alt="GitHub Profile Health Auditor" className="w-8 h-8 rounded-xl object-cover border border-zinc-800 shrink-0" />
+              <span className="font-extrabold text-white text-base tracking-tight uppercase">GitHub Profile Health Auditor</span>
               <span className="px-2 py-0.5 text-[9px] bg-emerald-950/70 text-emerald-400 font-mono font-bold rounded-full border border-emerald-800/70 uppercase">BETA</span>
             </div>
             <p className="text-zinc-500 text-xs leading-relaxed max-w-sm">

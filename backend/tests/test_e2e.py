@@ -41,7 +41,7 @@ def test_e2e_register_and_dashboard():
 
             page.goto("http://localhost:3000", timeout=15000)
 
-            assert "GitHub Profile Auditor" in page.content()
+            assert "GitHub Profile Health Auditor" in page.content()
             assert "Audit Your GitHub" in page.content()
 
             # Test Privacy Policy Page Navigation

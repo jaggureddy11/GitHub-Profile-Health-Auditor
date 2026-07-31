@@ -76,47 +76,47 @@ export default function QuickStatsCard({ quickstats, isLoading }) {
   };
 
   return (
-    <div className="bg-zinc-950 p-8 sm:p-10 rounded-3xl border border-zinc-800 space-y-8 shadow-2xl relative overflow-hidden font-sans">
+    <div className="bg-zinc-950 p-5 sm:p-10 rounded-3xl border border-zinc-800 space-y-6 sm:space-y-8 shadow-2xl relative overflow-hidden font-sans">
       
       {/* Prominent Enlarged Profile Header */}
       <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6 relative z-10">
-        <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-5 sm:space-y-0 sm:space-x-8 text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-4 sm:space-y-0 sm:space-x-8 text-center sm:text-left w-full">
           
           {/* Enlarged Avatar Image */}
           {avatar_url ? (
             <div className="relative shrink-0 group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <img 
-              src={avatar_url} 
-              alt={username} 
-              className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-2 border-zinc-800 group-hover:border-emerald-500/60 transition-all duration-300 shadow-2xl object-cover" 
-            />
-          </div>
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <img 
+                src={avatar_url} 
+                alt={username} 
+                className="relative w-24 h-24 sm:w-36 sm:h-36 rounded-full border-2 border-zinc-800 group-hover:border-emerald-500/60 transition-all duration-300 shadow-2xl object-cover" 
+              />
+            </div>
           ) : (
-            <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-zinc-900 border-4 border-zinc-800 flex items-center justify-center text-zinc-300 font-bold text-3xl font-mono shrink-0 shadow-2xl">
+            <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center text-zinc-300 font-bold text-2xl font-mono shrink-0 shadow-2xl">
               @{username.slice(0, 2).toUpperCase()}
             </div>
           )}
 
           {/* Enlarged Typography */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-center sm:justify-start space-x-3">
-              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">{name || username}</h2>
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="flex items-center justify-center sm:justify-start space-x-2.5">
+              <h2 className="text-2xl sm:text-5xl font-black text-white tracking-tight break-words">{name || username}</h2>
               <a 
                 href={`https://github.com/${username}`} 
                 target="_blank" 
                 rel="noreferrer"
-                className="text-zinc-500 hover:text-white transition p-2 rounded-xl hover:bg-zinc-900"
+                className="text-zinc-500 hover:text-white transition p-1.5 rounded-xl hover:bg-zinc-900 shrink-0"
                 title="Open GitHub Profile"
               >
-                <ExternalLink className="w-6 h-6 sm:w-7 sm:h-7" />
+                <ExternalLink className="w-5 h-5 sm:w-7 sm:h-7" />
               </a>
             </div>
 
-            <p className="text-base sm:text-lg font-mono text-zinc-300 font-bold">@{username}</p>
+            <p className="text-sm sm:text-lg font-mono text-zinc-300 font-bold">@{username}</p>
 
             {bio && (
-              <p className="text-sm sm:text-base text-zinc-300 max-w-2xl font-normal leading-relaxed pt-1">
+              <p className="text-xs sm:text-base text-zinc-300 max-w-2xl font-normal leading-relaxed pt-1">
                 {bio}
               </p>
             )}

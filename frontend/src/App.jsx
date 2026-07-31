@@ -853,13 +853,13 @@ export default function App() {
             <img 
               src="/logo.png" 
               alt="GitHub Profile Health Auditor" 
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
             />
-            <div className="flex items-center space-x-3">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-white font-sans uppercase">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="font-extrabold text-xs sm:text-base tracking-tight text-white font-sans uppercase">
                 GitHub Profile Health Auditor
               </span>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider">
+              <span className="hidden xs:inline-block px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider">
                 Beta
               </span>
             </div>
@@ -940,29 +940,64 @@ export default function App() {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950 border-b border-zinc-900 shadow-2xl p-4 flex flex-col space-y-4 z-50">
-            <button onClick={() => handleNavView('copilot')} className="text-left font-bold text-emerald-400 flex items-center gap-2">
-              <Bot className="w-4 h-4" /> Copilot
+          <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950 border-b border-zinc-900 shadow-2xl p-5 flex flex-col space-y-4 z-50 animate-fade-in">
+            <button 
+              onClick={() => {
+                if (view !== 'dashboard') setView('dashboard');
+                setIsCopilotCollapsed(false);
+                setActiveMobileTab('copilot');
+                setIsMobileMenuOpen(false);
+              }} 
+              className="text-left font-bold text-emerald-400 flex items-center gap-2 text-sm"
+            >
+              <Bot className="w-4 h-4 text-emerald-400" /> Ask AI
             </button>
-            <button onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4" /> Dashboard
+            <button 
+              onClick={() => {
+                setIsTourOpen(true);
+                setIsMobileMenuOpen(false);
+              }} 
+              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+            >
+              <Target className="w-4 h-4 text-zinc-400" /> Guide
             </button>
-            <button onClick={() => handleNavView('privacy')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Privacy &amp; Security
+            <button 
+              onClick={() => {
+                handleNavView(activeUsername ? 'dashboard' : 'landing');
+                setIsMobileMenuOpen(false);
+              }} 
+              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+            >
+              <LayoutDashboard className="w-4 h-4 text-zinc-400" /> Dashboard
             </button>
-            <button onClick={() => handleNavView('contact')} className="text-left text-zinc-300 font-semibold flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" /> Contact
+            <button 
+              onClick={() => {
+                handleNavView('privacy');
+                setIsMobileMenuOpen(false);
+              }} 
+              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+            >
+              <Shield className="w-4 h-4 text-zinc-400" /> Privacy &amp; Security
+            </button>
+            <button 
+              onClick={() => {
+                handleNavView('contact');
+                setIsMobileMenuOpen(false);
+              }} 
+              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+            >
+              <MessageSquare className="w-4 h-4 text-zinc-400" /> Contact
             </button>
             <div className="pt-4 border-t border-zinc-800 flex flex-col gap-3">
               {token ? (
                 <>
                   <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
-                  <button onClick={handleLogout} className="py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl font-bold text-center border border-zinc-800">
+                  <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl font-bold text-center border border-zinc-800 text-xs">
                     Logout
                   </button>
                 </>
               ) : (
-                <button onClick={() => { handleNavView('auth'); setAuthMode('login'); }} className="py-2 bg-white text-black rounded-xl font-bold text-center">
+                <button onClick={() => { handleNavView('auth'); setAuthMode('login'); setIsMobileMenuOpen(false); }} className="py-2.5 bg-white text-black rounded-xl font-bold text-center text-xs shadow-md">
                   Sign In
                 </button>
               )}
@@ -1545,8 +1580,8 @@ export default function App() {
             )}
 
             {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL (Only shown when Ask AI is open) */}
-            {!isCopilotCollapsed && (
-              <div className={`${activeMobileTab === 'copilot' ? 'absolute inset-0 z-40 flex pb-16 bg-black' : 'hidden md:flex'}`}>
+            {(!isCopilotCollapsed || activeMobileTab === 'copilot') && (
+              <div className={`${activeMobileTab === 'copilot' ? 'fixed inset-0 z-50 flex flex-col pb-16 bg-black' : 'hidden md:flex'}`}>
                 <SecurityCopilot 
                   scanId={currentScanId || scanReport?.scan_id || 'guest'} 
                   token={token} 
@@ -1554,7 +1589,10 @@ export default function App() {
                   score={scanReport?.overall_score || 100} 
                   onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
                   isCollapsed={false}
-                  onToggleCollapse={() => setIsCopilotCollapsed(true)}
+                  onToggleCollapse={() => {
+                    setIsCopilotCollapsed(true);
+                    setActiveMobileTab('main');
+                  }}
                   width={copilotWidth}
                   isMobileOpen={activeMobileTab === 'copilot'}
                 />
@@ -1562,27 +1600,30 @@ export default function App() {
             )}
 
             {/* Mobile Bottom Tab Bar */}
-            <div className="md:hidden absolute bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-900 flex items-center justify-around p-2 z-50">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-900 flex items-center justify-around p-2 z-50 shadow-2xl">
               <button 
                 onClick={() => setActiveMobileTab('history')} 
-                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'history' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'history' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
               >
                 <History className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">History</span>
+                <span className="text-[10px]">History</span>
               </button>
               <button 
                 onClick={() => setActiveMobileTab('main')} 
-                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'main' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'main' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
               >
                 <LayoutDashboard className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">Dashboard</span>
+                <span className="text-[10px]">Dashboard</span>
               </button>
               <button 
-                onClick={() => setActiveMobileTab('copilot')} 
-                className={`flex flex-col items-center p-2 rounded-lg ${activeMobileTab === 'copilot' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-500'}`}
+                onClick={() => {
+                  setIsCopilotCollapsed(false);
+                  setActiveMobileTab('copilot');
+                }} 
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'copilot' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
               >
-                <Bot className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-bold">Copilot</span>
+                <Bot className="w-5 h-5 mb-1 text-emerald-400" />
+                <span className="text-[10px]">Ask AI</span>
               </button>
             </div>
 

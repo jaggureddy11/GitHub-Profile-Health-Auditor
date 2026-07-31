@@ -25,7 +25,7 @@ export default function CopilotPage({ onBackToDashboard }) {
   const [messages, setMessages] = useState([
     {
       sender: 'copilot',
-      text: "### 💡 Welcome to Security Copilot\nHi! I'm your **Security Copilot AI**. I analyze your GitHub repositories for exposed API tokens, build debt, and code hygiene gaps.\n\nClick any quick query on the left or type below to see how I generate real-time remediation steps and **1-Click .patch** fixes!",
+      text: "### Welcome to Security Copilot\nHi! I'm your **Security Copilot AI**. I analyze your GitHub repositories for exposed API tokens, build debt, and code hygiene gaps.\n\nClick any quick query on the left or type below to see how I generate real-time remediation steps and **1-Click .patch** fixes!",
       time: 'Just now'
     }
   ]);
@@ -37,19 +37,19 @@ export default function CopilotPage({ onBackToDashboard }) {
   const sampleQuestions = [
     {
       q: "How do I fix the AWS credential leak?",
-      a: "### 💡 Overview & Diagnosis\nCommitted AWS Access Keys (`AKIA...`) in Git repositories remain permanently exposed in past commit history even if deleted in latest commits.\n\n### 🚨 Security Risk\n- Automated bots scan public commits within 2 seconds of push.\n- Severe penalty (-40 pts) on your Profile Health rating.\n\n### 🛠️ Step-by-Step Remediation\n1. **Revoke Key**: Immediately deactivate the key in your AWS IAM Console.\n2. **Purge Commit History**: Install and run `git-filter-repo`.\n3. **Force Push**: Push clean history back to origin.\n\n### 💻 Command Snippet\n```bash\npip install git-filter-repo\ngit filter-repo --invert-paths --path path/to/aws-credentials.json\ngit push origin main --force --all\n```"
+      a: "### Overview & Diagnosis\nCommitted AWS Access Keys (`AKIA...`) in Git repositories remain permanently exposed in past commit history even if deleted in latest commits.\n\n### Security Risk\n- Automated bots scan public commits within 2 seconds of push.\n- Severe penalty (-40 pts) on your Profile Health rating.\n\n### Step-by-Step Remediation\n1. **Revoke Key**: Immediately deactivate the key in your AWS IAM Console.\n2. **Purge Commit History**: Install and run `git-filter-repo`.\n3. **Force Push**: Push clean history back to origin.\n\n### Command Snippet\n```bash\npip install git-filter-repo\ngit filter-repo --invert-paths --path path/to/aws-credentials.json\ngit push origin main --force --all\n```"
     },
     {
       q: "What does Hygiene Score mean?",
-      a: "### 💡 Overview & Diagnosis\nThe **Hygiene Score** assesses open-source documentation standards and repository hygiene across your profile.\n\n### 📉 Point Cost Breakdown\n- **Missing `.gitignore`**: -15 pts (exposes `node_modules/`, `.env`, and build debt)\n- **Missing `LICENSE`**: -10 pts (prevents legal open-source reuse)\n- **Missing `README.md`**: -15 pts (prevents recruiter & developer onboarding)\n\n### 🛠️ Quick Remediation\nDownload 1-Click `.patch` files from your auditor dashboard to auto-generate missing root files."
+      a: "### Overview & Diagnosis\nThe **Hygiene Score** assesses open-source documentation standards and repository hygiene across your profile.\n\n### Point Cost Breakdown\n- **Missing `.gitignore`**: -15 pts (exposes `node_modules/`, `.env`, and build debt)\n- **Missing `LICENSE`**: -10 pts (prevents legal open-source reuse)\n- **Missing `README.md`**: -15 pts (prevents recruiter & developer onboarding)\n\n### Quick Remediation\nDownload 1-Click `.patch` files from your auditor dashboard to auto-generate missing root files."
     },
     {
       q: "How does in-memory redaction work?",
-      a: "### 💡 Overview & Diagnosis\nOur static analysis pipeline operates with **Strict In-Memory Zero-Storage Safeguards**.\n\n### 🔒 Security Principles\n1. **Ephemeral RAM Scanning**: Cloned repository files are held only in temporary RAM during analysis.\n2. **TruffleHog Interception**: Secret signatures are matched and immediately redacted with `[REDACTED_BY_AUDITOR]`.\n3. **Zero Credential Persistence**: Raw API tokens never touch disk, database logs, or persistent cache."
+      a: "### Overview & Diagnosis\nOur static analysis pipeline operates with **Strict In-Memory Zero-Storage Safeguards**.\n\n### Security Principles\n1. **Ephemeral RAM Scanning**: Cloned repository files are held only in temporary RAM during analysis.\n2. **TruffleHog Interception**: Secret signatures are matched and immediately redacted with `[REDACTED_BY_AUDITOR]`.\n3. **Zero Credential Persistence**: Raw API tokens never touch disk, database logs, or persistent cache."
     },
     {
       q: "How to raise profile score to 95+?",
-      a: "### 💡 Overview & Diagnosis\nTo reach a **95+ Gold Rating** for your GitHub profile:\n\n### 🛠️ 4-Step Action Plan\n1. **Purge Leaked Secrets**: Remove all exposed credentials from Git history.\n2. **Add Root `.gitignore`**: Exclude `.env` and node dependencies.\n3. **Add Open-Source `LICENSE`**: Add MIT or Apache-2.0 licenses.\n4. **Create `README.md`**: Include setup instructions and badges.\n\n### 💻 Apply 1-Click Fixes\n```bash\ngit apply repository-hygiene-fix.patch\ngit add . && git commit -m 'fix(security): apply auditor hygiene patch'\n```"
+      a: "### Overview & Diagnosis\nTo reach a **95+ Gold Rating** for your GitHub profile:\n\n### 4-Step Action Plan\n1. **Purge Leaked Secrets**: Remove all exposed credentials from Git history.\n2. **Add Root `.gitignore`**: Exclude `.env` and node dependencies.\n3. **Add Open-Source `LICENSE`**: Add MIT or Apache-2.0 licenses.\n4. **Create `README.md`**: Include setup instructions and badges.\n\n### Apply 1-Click Fixes\n```bash\ngit apply repository-hygiene-fix.patch\ngit add . && git commit -m 'fix(security): apply auditor hygiene patch'\n```"
     }
   ];
 

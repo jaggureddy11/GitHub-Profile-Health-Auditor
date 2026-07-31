@@ -1,4 +1,5 @@
 import React from 'react';
+import { Zap } from 'lucide-react';
 import LiveScanTelemetry from './LiveScanTelemetry';
 import ReportDashboard from './ReportDashboard';
 import SecurityCopilot from './SecurityCopilot';
@@ -65,7 +66,7 @@ export default function BulkProfileAuditPage({
               <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-xl space-y-4">
                 <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-lg">
-                    ⚡
+                    <Zap className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-white">Full Profile &amp; Multi-Repository Audit</h2>

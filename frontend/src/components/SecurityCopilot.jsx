@@ -68,12 +68,12 @@ export default function SecurityCopilot({
   };
 
   const starterPrompts = [
-    { text: '🔒 Purge Secrets', query: 'Purge Git secret history' },
-    { text: '📈 Raise Score 95+', query: 'Raise score to 95+' },
-    { text: '🛠️ Patch Guide', query: 'How do .patch fixes work?' },
-    { text: '📄 README Template', query: 'Generate README template' },
-    { text: '🛡️ Hygiene Rules', query: 'What are the hygiene rules?' },
-    { text: '👔 Recruiter Rank', query: 'How to improve recruiter rank?' }
+    { text: 'Purge Secrets', query: 'Purge Git secret history' },
+    { text: 'Raise Score 95+', query: 'Raise score to 95+' },
+    { text: 'Patch Guide', query: 'How do .patch fixes work?' },
+    { text: 'README Template', query: 'Generate README template' },
+    { text: 'Hygiene Rules', query: 'What are the hygiene rules?' },
+    { text: 'Recruiter Rank', query: 'How to improve recruiter rank?' }
   ];
 
   const handleSendMessage = async (msgText) => {
@@ -98,10 +98,10 @@ export default function SecurityCopilot({
       
       // Greetings
       if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('who are you') || q.includes('who is this')) {
-        return `### 💡 Overview & Diagnosis
-Hello! I am your **Security Copilot AI Assistant** 🤖 for GitHub Profile Health Auditor.
+        return `### Overview & Diagnosis
+Hello! I am your **Security Copilot AI Assistant** for GitHub Profile Health Auditor.
 
-### 🛠️ Capabilities
+### Capabilities
 - **Secret Detection & Reflog Purging**: Step-by-step guides for removing leaked API keys via \`git-filter-repo\`.
 - **Git Hygiene Optimization**: Audit root \`.gitignore\`, \`LICENSE\`, and \`README.md\` documentation gaps.
 - **1-Click .patch Fixes**: Guidance on applying automated unified git patch files.
@@ -113,29 +113,29 @@ Ask me any question about your scan results!`;
       // Developer jokes
       if (q.includes('joke') || q.includes('funny')) {
         const jokes = [
-          "Why do programmers wear glasses? Because they can't C#! 🤓",
-          "There are 10 types of people in this world: Those who understand binary, and those who don't. 🔢",
-          "How many programmers does it take to change a light bulb? None, that's a hardware problem! 💡",
-          "A SQL query goes into a bar, walks up to two tables and asks: 'Can I join you?' 📊"
+          "Why do programmers wear glasses? Because they can't C#!",
+          "There are 10 types of people in this world: Those who understand binary, and those who don't.",
+          "How many programmers does it take to change a light bulb? None, that's a hardware problem!",
+          "A SQL query goes into a bar, walks up to two tables and asks: 'Can I join you?'"
         ];
-        return `### 💡 Dev Humor\n${jokes[Math.floor(Math.random() * jokes.length)]}`;
+        return `### Dev Humor\n${jokes[Math.floor(Math.random() * jokes.length)]}`;
       }
 
       // Git secret history
       if (q.includes('purge') || q.includes('secret') || q.includes('history') || q.includes('leak') || q.includes('key') || q.includes('aws') || q.includes('stripe') || q.includes('token')) {
-        return `### 💡 Overview & Diagnosis
+        return `### Overview & Diagnosis
 Committed API tokens or credentials remain stored permanently in your Git reflog commit history even if deleted in a later commit.
 
-### 🚨 Security Risk
+### Security Risk
 - **Impact**: Exposed AWS/Stripe keys can be exploited by automated scanners within seconds of push.
 - **Score Deduction**: Exposed secrets penalize profile health by **-40 to -50 pts**.
 
-### 🛠️ Remediation Workflow
+### Remediation Workflow
 1. **Revoke Token Immediately**: Deactivate the secret in your provider console.
 2. **Purge Commit Reflog**: Install and run \`git-filter-repo\` to strip the file from history.
 3. **Force Push**: Update remote repositories cleanly.
 
-### 💻 Command Snippet
+### Command Snippet
 \`\`\`bash
 # 1. Install git-filter-repo tool
 pip install git-filter-repo
@@ -150,16 +150,16 @@ git push origin main --force --all
 
       // Raising score
       if (q.includes('score') || q.includes('raise') || q.includes('95') || q.includes('improve') || q.includes('100') || q.includes('rank')) {
-        return `### 💡 Overview & Diagnosis
+        return `### Overview & Diagnosis
 Steps to raise **@${username || 'profile'}**'s Profile Health Rating to **95+ (Gold Security Shield)**.
 
-### 🛠️ Actionable Checklist
+### Actionable Checklist
 1. **Remediate Exposed Secrets (-40 pts)**: Revoke and purge committed credentials from Git history.
 2. **Add Root \`.gitignore\` (-15 pts)**: Ensure build artifacts (\`node_modules/\`, \`dist/\`, \`.env\`) are excluded.
 3. **Add Open-Source \`LICENSE\` (-10 pts)**: Include standard MIT or Apache-2.0 license files.
 4. **Write Comprehensive \`README.md\` (-15 pts)**: Add project overviews, setup commands, and health badges.
 
-### 💻 Fast Remediation Command
+### Fast Remediation Command
 \`\`\`bash
 # Apply 1-Click patch file from your Auditor Dashboard
 git apply hygiene-fix.patch
@@ -169,15 +169,15 @@ git add . && git commit -m "fix(security): resolve auditor findings"
 
       // Patches
       if (q.includes('patch') || q.includes('fixes') || q.includes('apply')) {
-        return `### 💡 Overview & Diagnosis
+        return `### Overview & Diagnosis
 **1-Click Unified \`.patch\` Fixes** automatically generate Git-compliant diffs for missing hygiene files across your repositories.
 
-### 🛠️ How to Apply
+### How to Apply
 1. Select any repository card in your **Repo Breakdown** tab.
 2. Click **Download .patch** to download the generated patch file.
 3. Apply the patch in your project repository directory.
 
-### 💻 Command Snippet
+### Command Snippet
 \`\`\`bash
 # Check patch statistics
 git apply --stat repo-fix.patch
@@ -194,10 +194,10 @@ git push origin main
 
       // README template & templates
       if (q.includes('readme') || q.includes('template') || q.includes('documentation') || q.includes('env') || q.includes('gitignore') || q.includes('license')) {
-        return `### 💡 Overview & Diagnosis
+        return `### Overview & Diagnosis
 Standardized \`.env.example\` & \`README.md\` templates for **@${username || 'profile'}**'s repositories.
 
-### 💻 \`.env.example\` Template
+### \`.env.example\` Template
 \`\`\`bash
 # Environment Configuration (DO NOT commit real keys)
 PORT=8000
@@ -205,7 +205,7 @@ DATABASE_URL=postgresql://localhost:5432/app_db
 GROQ_API_TOKEN=your_groq_api_token_here
 \`\`\`
 
-### 💻 Production \`README.md\` Template
+### Production \`README.md\` Template
 \`\`\`markdown
 # Project Name
 
@@ -227,23 +227,23 @@ npm run dev
 
       // Hygiene rules explanation
       if (q.includes('hygiene') || q.includes('rule') || q.includes('semgrep') || q.includes('trufflehog')) {
-        return `### 💡 Overview & Diagnosis
+        return `### Overview & Diagnosis
 **GitHub Profile Health Auditor** uses 3 static analysis engines to calculate profile safety:
 
-### 🛡️ Scanning Engines
+### Scanning Engines
 - **TruffleHog**: Scans git commit diffs for 800+ secret signatures (AWS keys, Stripe, GitHub PATs, RSA private keys).
 - **Semgrep AST**: Intercepts code smells, dangerous \`eval()\` usage, hardcoded endpoints, and insecure HTTP URLs.
 - **Hygiene Checker**: Verifies root \`.gitignore\`, open-source \`LICENSE\`, and project \`README.md\` files.
 
-### 🔒 Privacy Promise
+### Privacy Promise
 All scans execute in ephemeral RAM. Credentials are **redacted in-memory** before logging.`;
       }
 
       // Generic help
-      return `### 💡 Overview & Diagnosis
+      return `### Overview & Diagnosis
 I'm your **Security Copilot AI**. Ask me anything about securing your GitHub profile!
 
-### 🛠️ Sample Questions
+### Sample Questions
 - *"How do I purge leaked AWS keys from git history?"*
 - *"What steps raise my score to 95+?"*
 - *"How do 1-Click .patch fixes work?"*

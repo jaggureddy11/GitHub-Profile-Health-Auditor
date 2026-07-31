@@ -94,10 +94,10 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
           </button>
 
           <div className="flex items-center space-x-2 mb-3">
-            <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/20 rounded-full">
+            <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/20 rounded-full">
               {step.stepNumber}
             </span>
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
+            <span className="text-xs text-slate-700 dark:text-zinc-400 font-mono font-bold">
               • {step.category}
             </span>
           </div>
@@ -108,21 +108,21 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{step.title}</h2>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">{step.description}</p>
+              <p className="text-xs text-slate-800 dark:text-zinc-300 mt-1 leading-relaxed font-medium">{step.description}</p>
             </div>
           </div>
         </div>
 
         {/* Modal Body / Highlights */}
         <div className="p-6 space-y-3 bg-white dark:bg-zinc-950">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block font-mono">
+          <span className="text-[11px] font-extrabold text-slate-800 dark:text-zinc-300 uppercase tracking-wider block font-mono">
             Key Capabilities
           </span>
           <div className="space-y-2.5">
             {step.highlights.map((item, idx) => (
               <div key={idx} className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-zinc-900/40 border border-slate-200 dark:border-zinc-800/60 rounded-xl">
                 <div className="mt-0.5 shrink-0">{item.icon}</div>
-                <span className="text-xs text-slate-700 dark:text-zinc-300 font-normal leading-relaxed">{item.text}</span>
+                <span className="text-xs text-slate-900 dark:text-zinc-200 font-medium leading-relaxed">{item.text}</span>
               </div>
             ))}
           </div>

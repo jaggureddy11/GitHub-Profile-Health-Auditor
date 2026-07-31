@@ -323,29 +323,29 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               {demoTab === 'scorecard' && (
                 <div className="space-y-4 animate-fade-in">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-black border border-zinc-800 p-5 rounded-xl text-center space-y-2 flex flex-col items-center">
+                    <div className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-800 p-5 rounded-xl text-center space-y-2 flex flex-col items-center">
                       <div className="relative w-20 h-20 flex items-center justify-center rounded-full border-4 border-emerald-500 shadow-lg shadow-emerald-500/20">
                         <div className="text-center">
-                          <span className="text-2xl font-extrabold text-white block">88</span>
-                          <span className="text-[9px] text-zinc-500 font-mono">/100</span>
+                          <span className="text-2xl font-black text-slate-900 dark:text-white block">88</span>
+                          <span className="text-[9px] text-slate-600 dark:text-zinc-400 font-mono font-bold">/100</span>
                         </div>
                       </div>
-                      <span className="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-950/60 text-emerald-300 rounded-full border border-emerald-800 uppercase">
+                      <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 rounded-full border border-emerald-300 dark:border-emerald-800 uppercase">
                         Strong Profile
                       </span>
                     </div>
-                    <div className="md:col-span-2 bg-black border border-zinc-800 p-4 rounded-xl space-y-2">
-                      <h4 className="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
+                    <div className="md:col-span-2 bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-800 p-4 rounded-xl space-y-2">
+                      <h4 className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-1.5">
                         <Cpu className="w-4 h-4" />AI Recruiter Assessment
                       </h4>
-                      <p className="text-zinc-300 text-[11px] leading-relaxed">
+                      <p className="text-slate-800 dark:text-zinc-200 text-xs leading-relaxed font-medium">
                         "Candidate demonstrates excellent commit consistency, clean documentation structure, and strong modularity across 6 repositories. Resolving 1 committed AWS credential and adding a missing LICENSE file will bring profile health to 96/100."
                       </p>
                     </div>
                   </div>
-                  <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-between text-[11px]">
-                    <span className="text-zinc-400">Recruiter Damage Index: <strong className="text-amber-400">Low (1 minor patch needed)</strong></span>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <div className="p-3.5 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                    <span className="text-slate-800 dark:text-zinc-300 font-bold">Recruiter Damage Index: <strong className="text-amber-700 dark:text-amber-400 font-extrabold">Low (1 minor patch needed)</strong></span>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />Verified Audit Shield Generated
                     </span>
                   </div>
@@ -443,14 +443,14 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                     type="button"
                     onClick={() => toggleRiskItem(key)}
                     className={`w-full p-3.5 rounded-xl border text-left text-xs font-bold transition-all duration-200 flex items-center justify-between ${
-                      isOn ? activeClass : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      isOn ? activeClass : 'bg-slate-100 dark:bg-zinc-900/50 border-slate-300 dark:border-zinc-800 text-slate-900 dark:text-zinc-300 hover:border-slate-400 dark:hover:border-zinc-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 shrink-0 ${isOn ? 'opacity-100' : 'opacity-40'}`} />
-                      <span>{label} ({penalty} pts)</span>
+                      <Icon className={`w-4 h-4 shrink-0 ${isOn ? 'opacity-100' : 'opacity-60'}`} />
+                      <span className="text-slate-900 dark:text-zinc-200">{label} ({penalty} pts)</span>
                     </div>
-                    <span className={`text-[9px] px-2 py-0.5 rounded font-mono font-bold ${isOn ? badgeActive : badgeInactive}`}>
+                    <span className={`text-[9px] px-2 py-0.5 rounded font-mono font-bold ${isOn ? badgeActive : 'bg-slate-200 text-slate-800 dark:bg-zinc-800 dark:text-zinc-400'}`}>
                       {isOn ? badge[0] : badge[1]}
                     </span>
                   </button>
@@ -558,8 +558,8 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       <section className="px-4 pb-24">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400">Common Questions</span>
-            <h2 className="text-3xl font-extrabold text-white">Frequently Asked Questions</h2>
+            <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Common Questions</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">Frequently Asked Questions</h2>
           </div>
 
           <div className="space-y-3">
@@ -569,16 +569,16 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
               { id: 3, q: 'Do you access or clone my private repositories?', a: 'By default, the auditor only enumerates public, non-fork repositories accessible on GitHub. Private repositories are never touched or scanned.' },
               { id: 4, q: 'How are the 1-Click Auto-Fix patches generated?', a: 'When a missing file (such as a LICENSE or .gitignore) is flagged, the system creates a standard unified .patch file. Download and apply it with: git apply patchfile.patch' },
             ].map(({ id, q, a }) => (
-              <div key={id} className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden hover:border-zinc-700 transition-colors">
+              <div key={id} className="bg-white dark:bg-zinc-950 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden hover:border-slate-300 dark:hover:border-zinc-700 transition-colors shadow-sm">
                 <button
                   onClick={() => setActiveFaq(activeFaq === id ? null : id)}
-                  className="w-full p-5 text-left font-semibold text-sm text-white flex items-center justify-between gap-3"
+                  className="w-full p-5 text-left font-extrabold text-base text-slate-900 dark:text-white flex items-center justify-between gap-3"
                 >
                   <span>{q}</span>
-                  <ChevronDown className={`w-4 h-4 text-zinc-500 shrink-0 transition-transform duration-200 ${activeFaq === id ? 'rotate-180 text-emerald-400' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-slate-600 dark:text-zinc-500 shrink-0 transition-transform duration-200 ${activeFaq === id ? 'rotate-180 text-emerald-700 dark:text-emerald-400' : ''}`} />
                 </button>
                 {activeFaq === id && (
-                  <div className="px-5 pb-5 text-sm text-zinc-400 leading-relaxed border-t border-zinc-900 pt-4">
+                  <div className="px-5 pb-5 text-sm sm:text-base text-slate-800 dark:text-zinc-300 leading-relaxed border-t border-slate-200 dark:border-zinc-900 pt-4 font-medium">
                     {a}
                   </div>
                 )}
@@ -618,31 +618,31 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────── */}
-      <footer className="border-t border-zinc-900 bg-black px-4 pt-14 pb-10">
+      <footer className="border-t border-slate-200 dark:border-zinc-900 bg-slate-100 dark:bg-black px-6 pt-14 pb-12 transition-colors duration-200">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10">
           
           {/* Brand */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="GitHub Profile Health Auditor" className="w-8 h-8 rounded-xl object-cover border border-zinc-800 shrink-0" />
-              <span className="font-extrabold text-white text-base tracking-tight uppercase">GitHub Profile Health Auditor</span>
-              <span className="px-2 py-0.5 text-[9px] bg-emerald-950/70 text-emerald-400 font-mono font-bold rounded-full border border-emerald-800/70 uppercase">BETA</span>
+              <img src="/logo.png" alt="GitHub Profile Health Auditor" className="w-8 h-8 rounded-xl object-cover border border-slate-300 dark:border-zinc-800 shrink-0" />
+              <span className="font-black text-slate-900 dark:text-white text-lg tracking-tight uppercase">GitHub Profile Health Auditor</span>
+              <span className="px-2.5 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-400 font-mono font-extrabold rounded-full border border-emerald-300 dark:border-emerald-800/70 uppercase">BETA</span>
             </div>
-            <p className="text-zinc-500 text-xs leading-relaxed max-w-sm">
+            <p className="text-slate-800 dark:text-zinc-300 text-sm sm:text-base leading-relaxed max-w-md font-medium">
               Automated multi-engine static analysis for public GitHub profiles. Intercept committed credentials, clean repository hygiene debt, and boost your recruiter hiring rank.
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               {[
-                { href: 'https://www.linkedin.com/in/jaggureddy/', icon: <LinkedinIcon className="w-3.5 h-3.5 text-cyan-400" />, label: 'LinkedIn' },
-                { href: 'https://github.com/jaggureddy11', icon: <GithubIcon className="w-3.5 h-3.5 text-zinc-300" />, label: 'GitHub' },
-                { href: 'mailto:jaggureddy2004@gmail.com', icon: <Mail className="w-3.5 h-3.5 text-emerald-400" />, label: 'Email' },
+                { href: 'https://www.linkedin.com/in/jaggureddy/', icon: <LinkedinIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />, label: 'LinkedIn' },
+                { href: 'https://github.com/jaggureddy11', icon: <GithubIcon className="w-4 h-4 text-slate-800 dark:text-zinc-300" />, label: 'GitHub' },
+                { href: 'mailto:jaggureddy2004@gmail.com', icon: <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />, label: 'Email' },
               ].map(({ href, icon, label }) => (
                 <a
                   key={label}
                   href={href}
                   target={href.startsWith('mailto') ? undefined : '_blank'}
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 text-[11px] font-semibold"
+                  className="px-3.5 py-2 bg-white dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white transition-all flex items-center gap-2 text-xs sm:text-sm font-bold shadow-sm"
                 >
                   {icon}<span>{label}</span>
                 </a>
@@ -652,11 +652,11 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Engine Features */}
           <div className="md:col-span-3 space-y-3">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Analysis Engines</h4>
-            <ul className="space-y-2 text-zinc-500 text-[11px]">
+            <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Analysis Engines</h4>
+            <ul className="space-y-2.5 text-slate-800 dark:text-zinc-300 text-xs sm:text-sm font-semibold">
               {['TruffleHog Redaction', 'Semgrep AST Hygiene', 'AI Recruiter Score', 'Unified .patch Fixes', 'README Health Shield'].map((item, i) => (
-                <li key={item} className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors">
-                  <CheckCircle2 className={`w-3 h-3 shrink-0 ${['text-emerald-400', 'text-cyan-400', 'text-purple-400', 'text-amber-400', 'text-emerald-400'][i]}`} />
+                <li key={item} className="flex items-center gap-2 hover:text-slate-950 dark:hover:text-white transition-colors">
+                  <CheckCircle2 className={`w-4 h-4 shrink-0 ${['text-emerald-600 dark:text-emerald-400', 'text-cyan-600 dark:text-cyan-400', 'text-purple-600 dark:text-purple-400', 'text-amber-600 dark:text-amber-400', 'text-emerald-600 dark:text-emerald-400'][i]}`} />
                   {item}
                 </li>
               ))}
@@ -665,31 +665,31 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
           {/* Security Architecture */}
           <div className="md:col-span-4 space-y-3">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Security Architecture</h4>
-            <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl space-y-2.5">
+            <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Security Architecture</h4>
+            <div className="p-5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl space-y-3 shadow-sm">
               {[
-                { label: 'Clone RAM Wiping', value: '100% In-Memory', vc: 'text-emerald-400' },
-                { label: 'Stored Credentials', value: '0 Secrets Saved', vc: 'text-emerald-400' },
-                { label: 'Scanner Queue', value: 'Redis Ephemeral', vc: 'text-cyan-400' },
+                { label: 'Clone RAM Wiping', value: '100% In-Memory', vc: 'text-emerald-700 dark:text-emerald-400' },
+                { label: 'Stored Credentials', value: '0 Secrets Saved', vc: 'text-emerald-700 dark:text-emerald-400' },
+                { label: 'Scanner Queue', value: 'Redis Ephemeral', vc: 'text-cyan-700 dark:text-cyan-400' },
               ].map(({ label, value, vc }) => (
-                <div key={label} className="flex items-center justify-between text-[11px]">
-                  <span className="text-zinc-500">{label}:</span>
-                  <span className={`${vc} font-bold`}>{value}</span>
+                <div key={label} className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-slate-700 dark:text-zinc-400 font-bold">{label}:</span>
+                  <span className={`${vc} font-extrabold`}>{value}</span>
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-zinc-600 leading-relaxed">
+            <p className="text-xs text-slate-700 dark:text-zinc-400 leading-relaxed font-medium">
               Designed for software engineers, security auditors, and recruiters.
             </p>
           </div>
         </div>
 
         {/* Sub-footer */}
-        <div className="max-w-6xl mx-auto mt-10 pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-600">
+        <div className="max-w-6xl mx-auto mt-10 pt-6 border-t border-slate-300 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-800 dark:text-zinc-400 font-semibold">
           <p>© {new Date().getFullYear()} R Jagadishwar R (jaggureddy11). All rights reserved.</p>
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-zinc-500 font-semibold">All Engines Operational</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-slate-900 dark:text-zinc-300 font-extrabold">All Engines Operational</span>
           </div>
         </div>
       </footer>

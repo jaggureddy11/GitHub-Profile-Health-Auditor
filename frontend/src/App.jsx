@@ -891,7 +891,7 @@ export default function App() {
 
             <button 
               onClick={() => setIsTourOpen(true)}
-              className="hover:text-slate-900 dark:hover:text-white transition text-sm text-slate-600 dark:text-zinc-400 font-medium"
+              className="hover:text-slate-950 dark:hover:text-white transition text-sm text-slate-800 dark:text-zinc-300 font-bold"
               title="Open Guided Dashboard Tour"
             >
               Guide
@@ -899,19 +899,19 @@ export default function App() {
 
             <button 
               onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')}
-              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
+              className={`hover:text-slate-950 dark:hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-slate-800 dark:text-zinc-300 font-bold'}`}
             >
               Dashboard
             </button>
             <button 
               onClick={() => handleNavView('privacy')}
-              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'privacy' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
+              className={`hover:text-slate-950 dark:hover:text-white transition text-sm ${view === 'privacy' ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-slate-800 dark:text-zinc-300 font-bold'}`}
             >
               Privacy &amp; Security
             </button>
             <button 
               onClick={() => handleNavView('contact')}
-              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'contact' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
+              className={`hover:text-slate-950 dark:hover:text-white transition text-sm ${view === 'contact' ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-slate-800 dark:text-zinc-300 font-bold'}`}
             >
               Contact
             </button>
@@ -1194,40 +1194,40 @@ export default function App() {
           <div className="flex-1 overflow-y-auto no-scrollbar">
           <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-10 px-4">
             <div className="space-y-3">
-              <h2 className="text-3xl font-bold font-mono">What We Do With Your Data</h2>
-              <p className="text-xs text-zinc-400">Last updated: July 2026</p>
+              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono">What We Do With Your Data</h2>
+              <p className="text-xs text-slate-700 dark:text-zinc-400 font-semibold">Last updated: July 2026</p>
             </div>
 
-            <div className="space-y-6 text-sm text-zinc-300 leading-relaxed font-mono">
-              <section className="space-y-2">
-                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">1. Scanning Pipeline Security</h3>
-                <p>
+            <div className="space-y-6 text-sm sm:text-base text-slate-800 dark:text-zinc-300 leading-relaxed font-mono font-medium">
+              <section className="space-y-2 bg-slate-50 dark:bg-zinc-950 p-5 rounded-2xl border border-slate-200 dark:border-zinc-850">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base border-b border-slate-200 dark:border-zinc-850 pb-2">1. Scanning Pipeline Security</h3>
+                <p className="text-slate-700 dark:text-zinc-300">
                   When you initiate a scan, our background Redis Queue (RQ) workers clone your repository branch securely into an ephemeral temp directory. Once static scan checks (Hygiene, TruffleHog, Semgrep) complete, the temporary directory is deleted immediately.
                 </p>
               </section>
 
-              <section className="space-y-2">
-                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">2. Absolute Secrets Redaction</h3>
-                <p>
+              <section className="space-y-2 bg-slate-50 dark:bg-zinc-950 p-5 rounded-2xl border border-slate-200 dark:border-zinc-850">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base border-b border-slate-200 dark:border-zinc-850 pb-2">2. Absolute Secrets Redaction</h3>
+                <p className="text-slate-700 dark:text-zinc-300">
                   Any credentials extracted during the scan are parsed locally in temporary worker files. Once the exact file paths and line numbers are identified, the raw secret value is wiped and deleted from memory. Only file locations, rules, and severities are saved in the database.
                 </p>
               </section>
 
-              <section className="space-y-2">
-                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">3. Anonymous Privacy & Opt-In Public Badges</h3>
-                <p>
+              <section className="space-y-2 bg-slate-50 dark:bg-zinc-950 p-5 rounded-2xl border border-slate-200 dark:border-zinc-850">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base border-b border-slate-200 dark:border-zinc-850 pb-2">3. Anonymous Privacy &amp; Opt-In Public Badges</h3>
+                <p className="text-slate-700 dark:text-zinc-300">
                   All scans are anonymous and session-scoped by default using HttpOnly session cookies. Scan findings are private to your session and are never queryable or exposed publicly by username.
                 </p>
-                <p className="pt-1">
+                <p className="pt-2 text-slate-700 dark:text-zinc-300">
                   Public score badges are strictly optional and require explicit proof-of-ownership (such as adding a challenge token to your GitHub bio or logging in with GitHub OAuth). You can deactivate or revoke your public badge at any time using your revocation access token.
                 </p>
               </section>
             </div>
 
-            <div className="pt-6 border-t border-zinc-900 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="pt-6 border-t border-slate-200 dark:border-zinc-900 flex flex-col sm:flex-row justify-between items-center gap-4">
               <button 
                 onClick={() => setView(token ? 'dashboard' : 'landing')}
-                className="px-6 py-2 bg-white text-black font-bold rounded-lg text-xs hover:bg-zinc-200 transition"
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold rounded-xl text-xs transition shadow-md active:scale-95"
               >
                 Go Back
               </button>
@@ -1235,9 +1235,9 @@ export default function App() {
               {token && (
                 <button 
                   onClick={handleDeleteAccount}
-                  className="px-4 py-2 border border-red-950 bg-red-950/20 hover:bg-red-950/40 text-red-400 text-xs font-bold rounded-lg transition"
+                  className="px-4 py-2 border border-red-300 dark:border-red-950 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 text-xs font-bold rounded-xl transition"
                 >
-                  Delete My Account & Data
+                  Delete My Account &amp; Data
                 </button>
               )}
             </div>
@@ -1496,21 +1496,21 @@ export default function App() {
                       batchProgress={batchProgress}
                     />
                   ) : (
-                    <div className="border border-dashed border-zinc-800 p-20 rounded-3xl text-center space-y-4 font-sans bg-zinc-950/30">
+                    <div className="border border-dashed border-slate-300 dark:border-zinc-800 p-12 sm:p-20 rounded-3xl text-center space-y-4 font-sans bg-slate-50/80 dark:bg-zinc-950/30">
                       <div className="flex justify-center">
-                        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                          <Search className="w-8 h-8 text-zinc-500" />
+                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 flex items-center justify-center shadow-sm">
+                          <Search className="w-8 h-8 text-slate-700 dark:text-zinc-400" />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <h4 className="font-bold text-lg text-zinc-200">Ready to audit a GitHub profile</h4>
-                        <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                        <h4 className="font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">Ready to audit a GitHub profile</h4>
+                        <p className="text-sm sm:text-base text-slate-700 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed font-medium">
                           Enter a public GitHub username in the left panel, or pick a sample target to get started.
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-center gap-2 pt-2">
                         {['octocat', 'torvalds', 'gaearon'].map(u => (
-                          <button key={u} onClick={() => handleStartScan(u, '')} className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl text-zinc-300 hover:text-white text-xs font-mono font-bold transition">@{u}</button>
+                          <button key={u} onClick={() => handleStartScan(u, '')} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-300 dark:border-zinc-800 rounded-xl text-slate-900 dark:text-zinc-200 text-xs font-mono font-extrabold transition shadow-sm">@{u}</button>
                         ))}
                       </div>
                     </div>

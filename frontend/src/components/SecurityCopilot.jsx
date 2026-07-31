@@ -499,25 +499,25 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
       </div>
 
       {/* ── ENGINE STATUS BAR ── */}
-      <div className="px-3 py-1 bg-slate-100/80 dark:bg-black/50 border-b border-slate-200 dark:border-zinc-800/80 flex items-center justify-between shrink-0">
-        <span className="flex items-center gap-1.5 text-[10px] text-slate-600 dark:text-zinc-400 font-mono">
+      <div className="px-3 py-1 bg-slate-100 dark:bg-black/50 border-b border-slate-200 dark:border-zinc-800/80 flex items-center justify-between shrink-0">
+        <span className="flex items-center gap-1.5 text-[10px] text-slate-700 dark:text-zinc-400 font-mono font-bold">
           <Cpu className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
           AI Security Engine
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
+        <span className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-mono font-extrabold">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
           Ready
         </span>
       </div>
 
       {/* ── CHAT MESSAGES (scrollable, flex-1) ── */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0" style={{ overscrollBehavior: 'contain' }}>
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0 bg-white dark:bg-zinc-950" style={{ overscrollBehavior: 'contain' }}>
 
         {/* Guest Mode Banner */}
         {!token && (
-          <div className="p-3 bg-zinc-900 border border-zinc-850 rounded-xl space-y-1 text-center">
-            <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full font-mono">GUEST SANDBOX</span>
-            <p className="text-[11px] text-zinc-400 leading-normal pt-1">
+          <div className="p-3 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-850 rounded-xl space-y-1 text-center">
+            <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/50 px-2 py-0.5 rounded-full font-mono">GUEST SANDBOX</span>
+            <p className="text-[11px] text-slate-700 dark:text-zinc-400 leading-normal pt-1 font-medium">
               Ask questions, get guides, or request a dev joke. Log in to sync logs.
             </p>
           </div>
@@ -527,10 +527,10 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
         {messages.length === 0 && (
           <div className="text-center py-6 space-y-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-              <Bot className="w-5 h-5 text-emerald-400" />
+              <Bot className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <h4 className="font-bold text-white text-[13px]">Security Copilot Active</h4>
-            <p className="text-[11px] text-zinc-500 max-w-[210px] mx-auto leading-relaxed">
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-[13px]">Security Copilot Active</h4>
+            <p className="text-[11px] text-slate-700 dark:text-zinc-500 max-w-[210px] mx-auto leading-relaxed font-medium">
               Ask about findings, Git history sanitization, or request a funny dev joke.
             </p>
           </div>
@@ -543,8 +543,8 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
             className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mb-0.5">
-                <Bot className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex items-center justify-center shrink-0 mb-0.5">
+                <Bot className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </div>
             )}
 
@@ -552,14 +552,14 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
               max-w-[85%] rounded-2xl px-3 py-2 text-[11px] leading-relaxed
               ${msg.role === 'user'
                 ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-semibold rounded-br-sm shadow-sm'
-                : 'bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-bl-sm whitespace-pre-wrap'
+                : 'bg-slate-100 dark:bg-zinc-900 text-slate-900 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-bl-sm whitespace-pre-wrap font-medium'
               }
             `}>
               {msg.role === 'assistant'
                 ? renderFormattedMessage(msg.content, msg.id)
                 : msg.content
               }
-              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-100 dark:text-emerald-950/70 text-right' : 'text-slate-500 dark:text-zinc-500'}`}>
+              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-100 dark:text-emerald-950/70 text-right' : 'text-slate-600 dark:text-zinc-500 font-medium'}`}>
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -599,7 +599,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
               key={idx}
               type="button"
               onClick={() => handleSendMessage(p.query || p.text)}
-              className="px-2.5 py-1 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-lg text-[10px] font-medium transition-all duration-150 active:scale-95"
+              className="px-2.5 py-1 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 text-slate-800 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white rounded-lg text-[10px] font-bold transition-all duration-150 active:scale-95 shadow-sm"
             >
               {p.text}
             </button>
@@ -632,18 +632,18 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
           </div>
 
           <div className="flex items-center justify-between px-0.5">
-            <span className="text-[9px] text-slate-500 dark:text-zinc-550 font-mono">⏎ Send · ⇧⏎ New line</span>
+            <span className="text-[9px] text-slate-600 dark:text-zinc-550 font-mono font-medium">⏎ Send · ⇧⏎ New line</span>
             {!token ? (
               <button 
                 type="button"
                 onClick={handleSignInRedirect}
-                className="flex items-center gap-1.5 text-[9px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-bold font-mono transition"
+                className="flex items-center gap-1.5 text-[9px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 font-bold font-mono transition"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in to start chatting
               </button>
             ) : (
-              <span className="text-[9px] text-slate-500 dark:text-zinc-550 font-mono flex items-center gap-1">
+              <span className="text-[9px] text-slate-600 dark:text-zinc-550 font-mono flex items-center gap-1 font-semibold">
                 <Cpu className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
                 Llama-3.3-70B
               </span>

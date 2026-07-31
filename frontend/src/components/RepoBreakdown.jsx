@@ -237,23 +237,23 @@ export default function RepoBreakdown({ findings, token, scanId }) {
       </div>
 
       {/* Beginner Guidance Box */}
-      <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-5 rounded-2xl space-y-3">
-        <div className="flex items-center space-x-2 text-zinc-300 font-bold text-xs">
-          <Lightbulb className="w-4 h-4" />
+      <div className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-5 rounded-2xl space-y-3">
+        <div className="flex items-center space-x-2 text-slate-900 dark:text-zinc-300 font-bold text-xs">
+          <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           <span>Beginner's Action Plan</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-zinc-300 font-sans">
-          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
-            <span className="font-bold text-red-400 block">1. Fix Secret Leaks First</span>
-            <p className="text-zinc-400 text-[11px] leading-relaxed">Rotate active API keys immediately on provider dashboards (AWS, GitHub, Slack) and remove keys from source code.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-800 dark:text-zinc-300 font-sans font-medium">
+          <div className="bg-white dark:bg-black/60 border border-slate-200 dark:border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-extrabold text-red-700 dark:text-red-400 block">1. Fix Secret Leaks First</span>
+            <p className="text-slate-700 dark:text-zinc-400 text-[11px] leading-relaxed">Rotate active API keys immediately on provider dashboards (AWS, GitHub, Slack) and remove keys from source code.</p>
           </div>
-          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
-            <span className="font-bold text-amber-300 block">2. Add Missing Files</span>
-            <p className="text-zinc-400 text-[11px] leading-relaxed">Add a README.md, LICENSE, and .gitignore file to show recruiters professional repository management.</p>
+          <div className="bg-white dark:bg-black/60 border border-slate-200 dark:border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-extrabold text-amber-700 dark:text-amber-300 block">2. Add Missing Files</span>
+            <p className="text-slate-700 dark:text-zinc-400 text-[11px] leading-relaxed">Add a README.md, LICENSE, and .gitignore file to show recruiters professional repository management.</p>
           </div>
-          <div className="bg-black/60 border border-zinc-850 p-3 rounded-xl space-y-1">
-            <span className="font-bold text-zinc-300 block">3. Use 1-Click Patches</span>
-            <p className="text-zinc-400 text-[11px] leading-relaxed">Click the "1-Click Auto-Fix Patch" button on any issue card below to download or copy ready-to-use fixes.</p>
+          <div className="bg-white dark:bg-black/60 border border-slate-200 dark:border-zinc-850 p-3 rounded-xl space-y-1">
+            <span className="font-extrabold text-slate-900 dark:text-zinc-300 block">3. Use 1-Click Patches</span>
+            <p className="text-slate-700 dark:text-zinc-400 text-[11px] leading-relaxed">Click the "1-Click Auto-Fix Patch" button on any issue card below to download or copy ready-to-use fixes.</p>
           </div>
         </div>
       </div>
@@ -264,10 +264,10 @@ export default function RepoBreakdown({ findings, token, scanId }) {
           filteredFindings.map((finding, idx) => {
             const exp = getBeginnerExplanation(finding);
             return (
-              <div key={idx} className="border border-zinc-850 bg-black hover:border-zinc-750 p-5 sm:p-6 rounded-2xl space-y-4 transition duration-200 shadow-md">
+              <div key={idx} className="border border-slate-200 dark:border-zinc-850 bg-white dark:bg-black hover:border-slate-300 dark:hover:border-zinc-750 p-5 sm:p-6 rounded-2xl space-y-4 transition duration-200 shadow-md">
                 
                 {/* Header & Badges */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-900 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-900 pb-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`px-3 py-1 text-xs font-black rounded-lg border ${getTypeBadgeClass(finding.type)}`}>
                       {finding.type === 'secret' ? 'SECRET LEAK' : finding.type === 'structural' ? 'REPO HYGIENE' : 'CODE SMELL'}
@@ -275,7 +275,7 @@ export default function RepoBreakdown({ findings, token, scanId }) {
                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${getSeverityBadgeClass(finding.severity)}`}>
                       {finding.severity ? finding.severity.toUpperCase() : 'INFO'}
                     </span>
-                    <span className="font-mono text-xs font-bold text-white bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg break-all max-w-full">
+                    <span className="font-mono text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1 rounded-lg break-all max-w-full">
                       {finding.file_path} {finding.line_number ? `: Line ${finding.line_number}` : ''}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ export default function RepoBreakdown({ findings, token, scanId }) {
                   {canAutoFix(finding) && (
                     <button
                       onClick={() => handleOpenFixModal(finding)}
-                      className="py-1.5 px-3.5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-lg text-xs transition duration-150 flex items-center space-x-1.5 shadow-md active:scale-95 shrink-0 font-sans"
+                      className="py-1.5 px-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold rounded-lg text-xs transition duration-150 flex items-center space-x-1.5 shadow-md active:scale-95 shrink-0 font-sans"
                     >
                       <Wrench className="w-3.5 h-3.5" />
                       <span>1-Click Auto-Fix Patch</span>
@@ -294,18 +294,18 @@ export default function RepoBreakdown({ findings, token, scanId }) {
                 {/* Plain English Explanation Grid */}
                 <div className="space-y-3">
                   <div>
-                    <h4 className="text-sm font-extrabold text-white">{exp.title}</h4>
-                    <p className="text-xs text-zinc-300 mt-1 leading-relaxed">{exp.what}</p>
+                    <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">{exp.title}</h4>
+                    <p className="text-xs sm:text-sm text-slate-800 dark:text-zinc-300 mt-1 leading-relaxed font-medium">{exp.what}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
-                    <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-900 space-y-1">
-                      <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Why this matters:</span>
-                      <p className="text-zinc-400 leading-relaxed text-[11px]">{exp.why}</p>
+                    <div className="bg-slate-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-slate-200 dark:border-zinc-900 space-y-1">
+                      <span className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold uppercase tracking-wider block">Why this matters:</span>
+                      <p className="text-slate-800 dark:text-zinc-300 leading-relaxed text-xs font-medium">{exp.why}</p>
                     </div>
-                    <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-900 space-y-1">
-                      <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider block">How to fix it:</span>
-                      <p className="text-zinc-400 leading-relaxed text-[11px]">{exp.fix}</p>
+                    <div className="bg-slate-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-slate-200 dark:border-zinc-900 space-y-1">
+                      <span className="text-[10px] text-slate-900 dark:text-zinc-300 font-extrabold uppercase tracking-wider block">How to fix it:</span>
+                      <p className="text-slate-800 dark:text-zinc-300 leading-relaxed text-xs font-medium">{exp.fix}</p>
                     </div>
                   </div>
                 </div>

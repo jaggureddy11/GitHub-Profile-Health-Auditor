@@ -527,7 +527,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
         {messages.length === 0 && (
           <div className="text-center py-6 space-y-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
+              <Bot className="w-5 h-5 text-emerald-400" />
             </div>
             <h4 className="font-bold text-white text-[13px]">Security Copilot Active</h4>
             <p className="text-[11px] text-zinc-500 max-w-[210px] mx-auto leading-relaxed">
@@ -644,7 +644,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
               </button>
             ) : (
               <span className="text-[9px] text-zinc-650 font-mono flex items-center gap-1">
-                <Zap className="w-2.5 h-2.5 text-yellow-500" />
+                <Cpu className="w-2.5 h-2.5 text-emerald-400" />
                 Llama-3.3-70B
               </span>
             )}

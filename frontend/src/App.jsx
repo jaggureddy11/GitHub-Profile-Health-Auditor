@@ -1301,7 +1301,7 @@ export default function App() {
                 {/* Scan Form Panel */}
                 <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-3 shadow-lg">
                   <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center font-mono">
-                    <Zap className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> New Repository Scan
+                    <Search className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> New Repository Scan
                   </h3>
                   <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
                 </div>

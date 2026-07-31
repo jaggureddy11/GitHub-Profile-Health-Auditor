@@ -14,7 +14,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
       icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />,
       description: "An enterprise-grade static security auditing platform engineered to inspect public GitHub profiles and repositories for credential leaks, AST code vulnerabilities, and Git documentation gaps.",
       highlights: [
-        { icon: <Zap className="w-4 h-4 text-emerald-400" />, text: "Multi-Engine Scans: TruffleHog secret detection & Semgrep AST rule checks" },
+        { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, text: "Multi-Engine Scans: TruffleHog secret detection & Semgrep AST rule checks" },
         { icon: <Bot className="w-4 h-4 text-emerald-400" />, text: "AI Security Copilot Studio: Instant analysis and executable .patch generation" },
         { icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />, text: "Live Telemetry & Reporting: Real-time SSE streaming and PDF export support" }
       ]
@@ -38,7 +38,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
       icon: <FolderSearch className="w-6 h-6 text-emerald-400" />,
       description: "Repositories are presented in a structured grid. Audit individual projects or execute parallel batch security scans across entire developer portfolios.",
       highlights: [
-        { icon: <Zap className="w-4 h-4 text-emerald-400" />, text: "Single Repo Page: Dedicated workspace with live log telemetry & copilot" },
+        { icon: <FolderSearch className="w-4 h-4 text-emerald-400" />, text: "Single Repo Page: Dedicated workspace with live log telemetry & copilot" },
         { icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />, text: "Batch Scan: Concurrent repository inspection with progress tracking" },
         { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, text: "Verified Results: All findings are calculated dynamically from clone trees" }
       ]

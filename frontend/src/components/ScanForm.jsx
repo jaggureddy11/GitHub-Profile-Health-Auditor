@@ -58,7 +58,7 @@ export default function ScanForm({ user, onScanStart, isLoading, defaultUser = '
             onClick={handleAnalyzeSelf}
             className="w-full py-3 px-4 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 hover:from-emerald-300 hover:to-teal-300 text-black font-extrabold text-xs rounded-lg shadow-md transition duration-200 hover:scale-[1.01] active:scale-95 flex items-center justify-center space-x-2 shrink-0"
           >
-            <Zap className="w-3.5 h-3.5 fill-black text-black" />
+            <Play className="w-3.5 h-3.5 fill-black text-black" />
             <span>Analyze @{loggedInGithubUser} Now</span>
           </button>
         </div>

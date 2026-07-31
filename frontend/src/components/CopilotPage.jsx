@@ -286,7 +286,7 @@ export default function CopilotPage({ onBackToDashboard }) {
               <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl flex items-center justify-between">
                 <span className="text-zinc-400">Processing Latency</span>
                 <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <Zap className="w-3 h-3" />
+                  <Cpu className="w-3 h-3 text-emerald-400" />
                   &lt; 1.5s (High Speed)
                 </span>
               </div>

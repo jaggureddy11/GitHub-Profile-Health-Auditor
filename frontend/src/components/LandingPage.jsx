@@ -278,7 +278,7 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                   <p className="text-purple-400">&gt; Executing Semgrep Rule Pack (auto)...</p>
                   <p className="text-amber-300 flex items-center gap-1.5"><AlertTriangle className="w-3 h-3 shrink-0" />frontend-app: Hardcoded localhost binding in production build</p>
                   <p className="text-white font-bold bg-zinc-900/80 p-3 rounded-lg border border-zinc-800 flex items-center gap-2 shadow-lg mt-2">
-                    <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" />
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                     Profile Health Score: <span className="text-emerald-400 text-sm ml-1">88 / 100</span> — Strong Senior Profile, 1 Security Risk
                     <span className="inline-block w-2 h-4 bg-emerald-400 ml-1 animate-cursor" />
                   </p>

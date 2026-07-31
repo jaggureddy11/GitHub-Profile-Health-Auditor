@@ -103,7 +103,7 @@ export default function RepoGrid({
               className="w-full py-4 px-6 bg-zinc-900/90 hover:bg-zinc-850 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl text-zinc-200 hover:text-white font-bold text-xs sm:text-sm flex items-center justify-between transition shadow-xl group"
             >
               <div className="flex items-center gap-3">
-                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Layers className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>View Remaining {otherRepositories.length} Repositories of @{activeUsername || 'user'}</span>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 group-hover:text-emerald-400">

@@ -185,7 +185,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
               : 'bg-red-950/60 text-red-300 border-red-800/60'
           }`}>
             {overall_score >= 90 ? (
-              <><Sparkles className="w-3.5 h-3.5" /><span>Excellent Standing</span></>
+              <><ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /><span>Excellent Standing</span></>
             ) : overall_score >= 70 ? (
               <><AlertTriangle className="w-3.5 h-3.5" /><span>Fair — Action Recommended</span></>
             ) : (
@@ -221,7 +221,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
                   className="flex-1 @[480px]:flex-initial py-2.5 px-4 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold transition duration-150 rounded-xl flex items-center justify-center space-x-1.5 shadow-md active:scale-95"
                   title="Generate AI Profile README.md"
                 >
-                  <Sparkles className="w-4 h-4 text-black" />
+                  <FileText className="w-4 h-4 text-black" />
                   <span>AI README</span>
                 </button>
                 <button
@@ -340,7 +340,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
       {(summary?.architecture_summary || summary?.readme_evaluation) && (
         <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-2xl shadow-xl space-y-4 font-sans animate-slide-up-3">
           <div className="flex items-center space-x-3 border-b border-zinc-900 pb-3">
-            <Sparkles className="w-5 h-5 text-zinc-300" />
+            <FileText className="w-5 h-5 text-zinc-300" />
             <h3 className="text-base font-bold text-white">AI Architecture & Documentation Evaluation</h3>
           </div>
           <div className="grid grid-cols-1 @[560px]:grid-cols-2 gap-4 text-xs font-mono">
@@ -415,7 +415,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
           <div className="space-y-4">
             <div className="flex items-center space-x-3 border-b border-zinc-900 pb-4">
               <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <Bot className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center">
@@ -433,11 +433,11 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
             <div className="grid grid-cols-1 gap-2 pt-1 font-mono text-[11px]">
               <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
                 <span>Ask about secret revocation &amp; history purging</span>
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               </div>
               <div className="p-2.5 bg-black border border-zinc-850 rounded-xl text-zinc-300 flex items-center justify-between">
                 <span>Get custom terminal commands &amp; code fixes</span>
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
               </div>
             </div>
           </div>
@@ -465,7 +465,7 @@ export default function ReportDashboard({ report, onReset, onReRun, token, quick
             <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-emerald-400">
-                  <Sparkles className="w-5 h-5 text-emerald-400" />
+                  <FileText className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
                   <h3 className="text-xl font-extrabold text-white tracking-tight">AI Profile README.md Generator</h3>

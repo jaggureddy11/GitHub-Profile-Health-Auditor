@@ -189,6 +189,15 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
                 <GithubIcon className="w-3.5 h-3.5" />
                 Log in with GitHub
               </button>
+              <a
+                href="https://github.com/jaggureddy11/GitHub-Profile-Health-Auditor"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors duration-150 font-semibold underline underline-offset-2 ml-2"
+              >
+                <GithubIcon className="w-3.5 h-3.5" />
+                Source Code
+              </a>
             </div>
           </div>
         </div>

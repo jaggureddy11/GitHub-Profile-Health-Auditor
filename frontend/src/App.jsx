@@ -365,7 +365,7 @@ export default function App() {
         }
       }
 
-      setView((prevView) => prevView === 'landing' || prevView === 'auth' ? 'dashboard' : prevView);
+      setView((prevView) => prevView === 'auth' ? 'dashboard' : prevView);
     } else {
       localStorage.removeItem('token');
       setUser(null);

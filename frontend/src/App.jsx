@@ -1407,64 +1407,58 @@ export default function App() {
                 </div>
               )}
 
-              {/* VIEW: LOADING REPO SCAN — REAL LIVE TELEMETRY */}
+              {/* VIEW: DEDICATED AUDIT PAGE — LIVE TELEMETRY IN PROGRESS */}
               {scanState === 'loading' && (
-                <div className="space-y-8">
+                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 font-sans">
+                  {/* Dedicated Header Back Navigation Bar */}
+                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl">
+                    <button
+                      onClick={() => setScanState('idle')}
+                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md active:scale-98"
+                    >
+                      <span>← Back to Profile &amp; Repositories</span>
+                    </button>
+                    <div className="flex items-center space-x-3 text-xs font-mono">
+                      <span className="text-zinc-400">Target Profile / Repo: <span className="text-emerald-400 font-bold">@{activeUsername}</span></span>
+                      <span className="px-3 py-1 bg-amber-950/80 text-amber-400 border border-amber-800/80 rounded-lg font-bold flex items-center space-x-1.5 animate-pulse">
+                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span>LIVE AUDIT RUNNING</span>
+                      </span>
+                    </div>
+                  </div>
+
                   <LiveScanTelemetry report={scanReport} />
-                  <QuickStatsCard quickstats={quickstats} isLoading={quickstatsLoading} />
-                  
-                  {userRepos && userRepos.length > 0 && (
-                    <RepoGrid 
-                      repositories={userRepos} 
-                      repoStatuses={repoStatuses} 
-                      isLoading={userReposLoading}
-                      onAnalyzeRepo={handleStartSingleRepoScan}
-                      onAuditAll={handleAuditAllRepos}
-                      isBatchScanning={isBatchScanning}
-                      batchProgress={batchProgress}
-                    />
-                  )}
                 </div>
               )}
 
-              {/* VIEW: COMPLETED AUDIT REPORT */}
+              {/* VIEW: DEDICATED AUDIT PAGE — COMPLETE FINDINGS REPORT */}
               {scanState === 'completed' && scanReport && (
-                <div className="space-y-8 animate-fade-in font-sans">
-                  {/* Top Navigation Bar back to Repositories list */}
-                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-lg">
+                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 font-sans">
+                  {/* Dedicated Header Back Navigation Bar */}
+                  <div className="flex items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl">
                     <button
-                      onClick={handleReset}
-                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md"
+                      onClick={() => setScanState('idle')}
+                      className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md active:scale-98"
                     >
-                      <span>← Back to Repositories Grid</span>
+                      <span>← Back to Profile &amp; Repositories</span>
                     </button>
                     <div className="flex items-center space-x-3 text-xs font-mono">
-                      <span className="text-zinc-400">Target Repo: <span className="text-white font-bold">{scanReport.repo_name || activeUsername}</span></span>
-                      <span className="text-zinc-200 font-bold bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-800">
-                        Audit Complete
+                      <span className="text-zinc-400">Target Profile / Repo: <span className="text-white font-bold">{scanReport.repo_name ? `@${scanReport.username} / ${scanReport.repo_name}` : `@${scanReport.username}`}</span></span>
+                      <span className="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-lg font-bold flex items-center space-x-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>AUDIT REPORT COMPLETED</span>
                       </span>
                     </div>
                   </div>
 
                   <ReportDashboard 
                     report={scanReport} 
-                    onReset={handleReset} 
+                    onReset={() => setScanState('idle')} 
                     onReRun={(username) => handleStartScan(username, '')}
                     token={token}
                     quickstats={quickstats}
                     quickstatsLoading={quickstatsLoading}
                     onOpenCopilot={() => setIsCopilotCollapsed(false)}
-                  />
-
-                  {/* Public Repositories Grid View */}
-                  <RepoGrid 
-                    repositories={userRepos.length > 0 ? userRepos : scanReport.repositories} 
-                    repoStatuses={repoStatuses} 
-                    isLoading={userReposLoading}
-                    onAnalyzeRepo={handleStartSingleRepoScan}
-                    onAuditAll={handleAuditAllRepos}
-                    isBatchScanning={isBatchScanning}
-                    batchProgress={batchProgress}
                   />
                 </div>
               )}

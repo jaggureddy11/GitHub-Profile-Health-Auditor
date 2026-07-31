@@ -485,7 +485,7 @@ export default function App() {
       if (githubToken) {
         url += `?github_token=${encodeURIComponent(githubToken)}`;
       }
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setQuickstats(data);
@@ -508,7 +508,7 @@ export default function App() {
       if (githubToken) {
         url += `?github_token=${encodeURIComponent(githubToken)}`;
       }
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setUserRepos(data.repositories || []);

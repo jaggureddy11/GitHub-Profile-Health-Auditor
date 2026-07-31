@@ -133,7 +133,7 @@ async def get_user_quickstats(username: str, token: Optional[str] = None) -> Dic
         profile = user_res.json()
 
         repos_data = []
-        if isinstance(repos_res, httpx.Response) and repos_res.status_code == 200:
+        if hasattr(repos_res, "status_code") and repos_res.status_code == 200:
             repos_data = repos_res.json()
 
     total_stars = 0

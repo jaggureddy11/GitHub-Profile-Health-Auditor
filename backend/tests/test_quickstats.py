@@ -36,8 +36,9 @@ def test_quickstats_returns_aggregated_metrics():
     async def mock_get(*args, **kwargs):
         url = ""
         for a in args:
-            if isinstance(a, str):
-                url = a
+            s = str(a)
+            if "api.github.com" in s or "/users/" in s:
+                url = s
                 break
         if not url:
             url = str(kwargs.get("url", ""))

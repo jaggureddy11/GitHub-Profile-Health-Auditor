@@ -449,15 +449,15 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
   return (
     <aside
       style={isMobileOpen ? {} : { width: width || 340, minWidth: 260 }}
-      className={`bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0 ${isMobileOpen ? 'w-full h-full' : ''}`}
+      className={`bg-white dark:bg-zinc-950 border-l border-slate-200 dark:border-zinc-800 flex flex-col shrink-0 transition-colors duration-200 ${isMobileOpen ? 'w-full h-full' : ''}`}
     >
 
       {/* ── HEADER ── */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-800 bg-zinc-900 shrink-0">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 shrink-0">
         <div className="flex items-center gap-2.5">
           {/* VS Code Copilot robot icon */}
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-emerald-400">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-emerald-600 dark:text-emerald-400">
               <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.5" />
               <path d="M5 6.5C5 5.67 5.67 5 6.5 5S8 5.67 8 6.5 7.33 8 6.5 8 5 7.33 5 6.5Z" fill="currentColor"/>
               <path d="M8 6.5C8 5.67 8.67 5 9.5 5S11 5.67 11 6.5 10.33 8 9.5 8 8 7.33 8 6.5Z" fill="currentColor"/>
@@ -466,12 +466,12 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-white font-bold text-[13px] leading-none">Security Copilot</span>
-              <span className="px-1 py-px rounded text-[8px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 uppercase tracking-wider">AI</span>
+              <span className="text-slate-900 dark:text-white font-bold text-[13px] leading-none">Security Copilot</span>
+              <span className="px-1 py-px rounded text-[8px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60 uppercase tracking-wider">AI</span>
             </div>
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] text-zinc-500 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono">
                 {username ? `@${username}` : 'No profile'} · {score ?? 100}/100
               </span>
             </div>
@@ -483,7 +483,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
             <button
               onClick={() => setMessages([])}
               title="Clear chat"
-              className="p-1.5 hover:bg-zinc-800 text-zinc-600 hover:text-zinc-300 rounded-lg transition"
+              className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-600 hover:text-slate-800 dark:hover:text-zinc-300 rounded-lg transition"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -491,7 +491,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
           <button
             onClick={onToggleCollapse}
             title="Collapse panel"
-            className="p-1.5 hover:bg-zinc-800 text-zinc-600 hover:text-zinc-300 rounded-lg transition"
+            className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-600 hover:text-slate-800 dark:hover:text-zinc-300 rounded-lg transition"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -499,13 +499,13 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
       </div>
 
       {/* ── ENGINE STATUS BAR ── */}
-      <div className="px-3 py-1 bg-black/50 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
-        <span className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-mono">
-          <Cpu className="w-3 h-3 text-emerald-400" />
+      <div className="px-3 py-1 bg-slate-100/80 dark:bg-black/50 border-b border-slate-200 dark:border-zinc-800/80 flex items-center justify-between shrink-0">
+        <span className="flex items-center gap-1.5 text-[10px] text-slate-600 dark:text-zinc-400 font-mono">
+          <Cpu className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
           AI Security Engine
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
           Ready
         </span>
       </div>
@@ -551,22 +551,22 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
             <div className={`
               max-w-[85%] rounded-2xl px-3 py-2 text-[11px] leading-relaxed
               ${msg.role === 'user'
-                ? 'bg-emerald-500 text-white font-semibold rounded-br-sm shadow-sm'
-                : 'bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-bl-sm whitespace-pre-wrap'
+                ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-semibold rounded-br-sm shadow-sm'
+                : 'bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-bl-sm whitespace-pre-wrap'
               }
             `}>
               {msg.role === 'assistant'
                 ? renderFormattedMessage(msg.content, msg.id)
                 : msg.content
               }
-              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-950/70 text-right' : 'text-zinc-650'}`}>
+              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-emerald-100 dark:text-emerald-950/70 text-right' : 'text-slate-500 dark:text-zinc-500'}`}>
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
 
             {msg.role === 'user' && (
-              <div className="w-6 h-6 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 mb-0.5">
-                <User className="w-3.5 h-3.5 text-zinc-300" />
+              <div className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 flex items-center justify-center shrink-0 mb-0.5">
+                <User className="w-3.5 h-3.5 text-slate-700 dark:text-zinc-300" />
               </div>
             )}
           </div>
@@ -575,13 +575,13 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
         {/* Typing indicator */}
         {loading && (
           <div className="flex items-end gap-2 justify-start">
-            <div className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
-              <Bot className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
+              <Bot className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         )}
@@ -590,7 +590,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
       </div>
 
       {/* ── INPUT BAR (always at bottom) ── */}
-      <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/40 p-2.5 space-y-2">
+      <div className="shrink-0 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/40 p-2.5 space-y-2">
         
         {/* Suggested preloaded prompts - fully visible flex wrap */}
         <div className="flex flex-wrap items-center gap-1.5 py-1">
@@ -599,7 +599,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
               key={idx}
               type="button"
               onClick={() => handleSendMessage(p.query || p.text)}
-              className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-[10px] font-medium transition-all duration-150 active:scale-95"
+              className="px-2.5 py-1 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white rounded-lg text-[10px] font-medium transition-all duration-150 active:scale-95"
             >
               {p.text}
             </button>
@@ -610,7 +610,7 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
           onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
           className="flex flex-col gap-2"
         >
-          <div className="relative flex items-end bg-zinc-900 border border-zinc-800 focus-within:border-emerald-500/60 rounded-xl transition overflow-hidden">
+          <div className="relative flex items-end bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 focus-within:border-emerald-500/60 rounded-xl transition overflow-hidden">
             <textarea
               ref={textareaRef}
               rows={1}
@@ -619,32 +619,32 @@ I'm your **Security Copilot AI**. Ask me anything about securing your GitHub pro
               onChange={(e) => setInputMsg(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              className="flex-1 resize-none bg-transparent text-white placeholder-zinc-600 text-xs leading-relaxed px-3 pt-2.5 pb-2 focus:outline-none font-sans min-h-[38px] max-h-[120px]"
+              className="flex-1 resize-none bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 text-xs leading-relaxed px-3 pt-2.5 pb-2 focus:outline-none font-sans min-h-[38px] max-h-[120px]"
               style={{ scrollbarWidth: 'none' }}
             />
             <button
               type="submit"
               disabled={loading || !inputMsg.trim()}
-              className="m-1.5 w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-850 disabled:text-zinc-650 text-black flex items-center justify-center transition shrink-0 self-end"
+              className="m-1.5 w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-200 dark:disabled:bg-zinc-850 disabled:text-slate-400 dark:disabled:text-zinc-650 text-black flex items-center justify-center transition shrink-0 self-end"
             >
               <ArrowUp className="w-4 h-4 text-black" />
             </button>
           </div>
 
           <div className="flex items-center justify-between px-0.5">
-            <span className="text-[9px] text-zinc-650 font-mono">⏎ Send · ⇧⏎ New line</span>
+            <span className="text-[9px] text-slate-500 dark:text-zinc-550 font-mono">⏎ Send · ⇧⏎ New line</span>
             {!token ? (
               <button 
                 type="button"
                 onClick={handleSignInRedirect}
-                className="flex items-center gap-1.5 text-[9px] text-emerald-400 hover:text-emerald-300 font-bold font-mono transition"
+                className="flex items-center gap-1.5 text-[9px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-bold font-mono transition"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in to start chatting
               </button>
             ) : (
-              <span className="text-[9px] text-zinc-650 font-mono flex items-center gap-1">
-                <Cpu className="w-2.5 h-2.5 text-emerald-400" />
+              <span className="text-[9px] text-slate-500 dark:text-zinc-550 font-mono flex items-center gap-1">
+                <Cpu className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
                 Llama-3.3-70B
               </span>
             )}

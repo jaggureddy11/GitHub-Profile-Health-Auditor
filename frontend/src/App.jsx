@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target, Menu, X, LayoutDashboard, MessageSquare, History } from 'lucide-react';
+import { Zap, FolderOpen, Search, AlertTriangle, ShieldCheck, Bot, ChevronLeft, ChevronRight, Shield, Clock, Target, Menu, X, LayoutDashboard, MessageSquare, History, Sun, Moon } from 'lucide-react';
 import ScanForm from './components/ScanForm';
 import ReportDashboard from './components/ReportDashboard';
 import RepoBreakdown from './components/RepoBreakdown';
@@ -32,6 +32,21 @@ export default function App() {
   
   // Theme state: 'dark' or 'light'
   const [theme, setTheme] = useState(localStorage.getItem('auditor_theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+    localStorage.setItem('auditor_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Navigation & view states: 'landing', 'auth', 'dashboard', 'privacy'
   const [view, setView] = useState('landing');
@@ -265,15 +280,7 @@ export default function App() {
     }
   }, [activeUsername, view, quickstats, userRepos, repoStatuses, scanReport]);
 
-  // Enforce Dark Mode
-  useEffect(() => {
-    localStorage.setItem('auditor_theme', 'dark');
-    document.documentElement.classList.remove('light');
-  }, []);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
 
   const handleGitHubOAuth = async () => {
     try {
@@ -844,22 +851,22 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col overflow-hidden selection:bg-white/20 font-sans">
+    <div className="h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col overflow-hidden selection:bg-emerald-500/20 font-sans transition-colors duration-200">
       
       {/* Global Header / Navbar */}
-      <header className="border-b border-zinc-900 bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 py-4">
+      <header className="border-b border-slate-200 dark:border-zinc-900 bg-white/80 dark:bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-4 sm:px-8 lg:px-12 py-3.5 transition-colors duration-200">
         <div className="max-w-[1536px] mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => handleNavView('landing')}>
             <img 
               src="/logo.png" 
               alt="GitHub Profile Health Auditor" 
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shrink-0 group-hover:border-emerald-500/50 transition"
             />
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <span className="font-extrabold text-xs sm:text-base tracking-tight text-white font-sans uppercase">
+              <span className="font-extrabold text-xs sm:text-base tracking-tight text-slate-900 dark:text-white font-sans uppercase">
                 GitHub Profile Health Auditor
               </span>
-              <span className="hidden xs:inline-block px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-800/80 uppercase tracking-wider">
+              <span className="hidden xs:inline-block px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-300 dark:border-emerald-800/80 uppercase tracking-wider">
                 Beta
               </span>
             </div>
@@ -873,18 +880,18 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition text-xs font-bold font-mono border ${
                 !isCopilotCollapsed && view === 'dashboard'
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-md shadow-emerald-500/10'
-                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-600 dark:text-emerald-400 shadow-md shadow-emerald-500/10'
+                  : 'bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
               }`}
               title="Toggle AI Security Copilot"
             >
-              <Bot className="w-4 h-4 text-emerald-400" />
+              <Bot className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Ask AI</span>
             </button>
 
             <button 
               onClick={() => setIsTourOpen(true)}
-              className="hover:text-white transition text-sm text-zinc-400"
+              className="hover:text-slate-900 dark:hover:text-white transition text-sm text-slate-600 dark:text-zinc-400 font-medium"
               title="Open Guided Dashboard Tour"
             >
               Guide
@@ -892,29 +899,38 @@ export default function App() {
 
             <button 
               onClick={() => handleNavView(activeUsername ? 'dashboard' : 'landing')}
-              className={`hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-white font-bold' : 'text-zinc-400'}`}
+              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'dashboard' || view === 'landing' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
             >
               Dashboard
             </button>
             <button 
               onClick={() => handleNavView('privacy')}
-              className={`hover:text-white transition text-sm ${view === 'privacy' ? 'text-white font-bold' : 'text-zinc-400'}`}
+              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'privacy' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
             >
               Privacy &amp; Security
             </button>
             <button 
               onClick={() => handleNavView('contact')}
-              className={`hover:text-white transition text-sm ${view === 'contact' ? 'text-white font-bold' : 'text-zinc-400'}`}
+              className={`hover:text-slate-900 dark:hover:text-white transition text-sm ${view === 'contact' ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
             >
               Contact
             </button>
 
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl transition bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center shadow-sm active:scale-95"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-600" />}
+            </button>
+
             {token ? (
-              <div className="flex items-center space-x-3 pl-2 border-l border-zinc-850">
-                <span className="text-xs text-zinc-400 font-mono hidden md:inline">{user?.email}</span>
+              <div className="flex items-center space-x-3 pl-2 border-l border-slate-200 dark:border-zinc-850">
+                <span className="text-xs text-slate-600 dark:text-zinc-400 font-mono hidden md:inline">{user?.email}</span>
                 <button 
                   onClick={handleLogout}
-                  className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl border border-zinc-800 transition font-mono text-xs font-bold"
+                  className="px-3.5 py-1.5 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-200 rounded-xl border border-slate-200 dark:border-zinc-800 transition font-mono text-xs font-bold"
                 >
                   Logout
                 </button>
@@ -922,25 +938,34 @@ export default function App() {
             ) : (
               <button 
                 onClick={() => { handleNavView('auth'); setAuthMode('login'); }}
-                className="px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-xl font-bold transition text-xs shadow-md"
+                className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-zinc-200 rounded-xl font-bold transition text-xs shadow-md"
               >
                 Sign In
               </button>
             )}
           </nav>
 
-          {/* Mobile Nav Toggle */}
-          <button 
-            className="md:hidden p-2 text-zinc-400 hover:text-white focus:outline-none -mr-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Theme Toggle & Menu Button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl transition bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-600" />}
+            </button>
+            <button 
+              className="p-2 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white focus:outline-none -mr-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-zinc-950 border-b border-zinc-900 shadow-2xl p-5 flex flex-col space-y-4 z-50 animate-fade-in">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-900 shadow-2xl p-5 flex flex-col space-y-4 z-50 animate-fade-in">
             <button 
               onClick={() => {
                 if (view !== 'dashboard') setView('dashboard');
@@ -948,56 +973,56 @@ export default function App() {
                 setActiveMobileTab('copilot');
                 setIsMobileMenuOpen(false);
               }} 
-              className="text-left font-bold text-emerald-400 flex items-center gap-2 text-sm"
+              className="text-left font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2 text-sm"
             >
-              <Bot className="w-4 h-4 text-emerald-400" /> Ask AI
+              <Bot className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Ask AI
             </button>
             <button 
               onClick={() => {
                 setIsTourOpen(true);
                 setIsMobileMenuOpen(false);
               }} 
-              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+              className="text-left text-slate-700 dark:text-zinc-300 font-semibold flex items-center gap-2 text-sm"
             >
-              <Target className="w-4 h-4 text-zinc-400" /> Guide
+              <Target className="w-4 h-4 text-slate-500 dark:text-zinc-400" /> Guide
             </button>
             <button 
               onClick={() => {
                 handleNavView(activeUsername ? 'dashboard' : 'landing');
                 setIsMobileMenuOpen(false);
               }} 
-              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+              className="text-left text-slate-700 dark:text-zinc-300 font-semibold flex items-center gap-2 text-sm"
             >
-              <LayoutDashboard className="w-4 h-4 text-zinc-400" /> Dashboard
+              <LayoutDashboard className="w-4 h-4 text-slate-500 dark:text-zinc-400" /> Dashboard
             </button>
             <button 
               onClick={() => {
                 handleNavView('privacy');
                 setIsMobileMenuOpen(false);
               }} 
-              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+              className="text-left text-slate-700 dark:text-zinc-300 font-semibold flex items-center gap-2 text-sm"
             >
-              <Shield className="w-4 h-4 text-zinc-400" /> Privacy &amp; Security
+              <Shield className="w-4 h-4 text-slate-500 dark:text-zinc-400" /> Privacy &amp; Security
             </button>
             <button 
               onClick={() => {
                 handleNavView('contact');
                 setIsMobileMenuOpen(false);
               }} 
-              className="text-left text-zinc-300 font-semibold flex items-center gap-2 text-sm"
+              className="text-left text-slate-700 dark:text-zinc-300 font-semibold flex items-center gap-2 text-sm"
             >
-              <MessageSquare className="w-4 h-4 text-zinc-400" /> Contact
+              <MessageSquare className="w-4 h-4 text-slate-500 dark:text-zinc-400" /> Contact
             </button>
-            <div className="pt-4 border-t border-zinc-800 flex flex-col gap-3">
+            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 flex flex-col gap-3">
               {token ? (
                 <>
-                  <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
-                  <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-xl font-bold text-center border border-zinc-800 text-xs">
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{user?.email}</span>
+                  <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="py-2.5 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-200 rounded-xl font-bold text-center border border-slate-200 dark:border-zinc-800 text-xs">
                     Logout
                   </button>
                 </>
               ) : (
-                <button onClick={() => { handleNavView('auth'); setAuthMode('login'); setIsMobileMenuOpen(false); }} className="py-2.5 bg-white text-black rounded-xl font-bold text-center text-xs shadow-md">
+                <button onClick={() => { handleNavView('auth'); setAuthMode('login'); setIsMobileMenuOpen(false); }} className="py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-center text-xs shadow-md">
                   Sign In
                 </button>
               )}
@@ -1323,32 +1348,32 @@ export default function App() {
 
         {/* VIEW: DASHBOARD (AUTHENTICATED / 3-COLUMN IDE BLOCK LAYOUT) */}
         {view === 'dashboard' && (
-          <div className="flex-1 flex overflow-hidden w-full font-sans bg-black border-0 rounded-none">
+          <div className="flex-1 flex overflow-hidden w-full font-sans bg-slate-50 dark:bg-black border-0 rounded-none transition-colors duration-200">
             
             {/* COLUMN 1: LEFT SIDEBAR (Resizable) */}
             <aside
               style={{ '--left-width': `${leftWidth}px` }}
-              className={`border-r border-zinc-800 bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex-col justify-between 
+              className={`border-r border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-5 overflow-y-auto no-scrollbar shrink-0 rounded-none flex-col justify-between 
                 ${activeMobileTab === 'history' ? 'absolute inset-0 z-40 flex w-full pb-20' : 'hidden md:flex md:w-[var(--left-width)] md:min-w-[200px] md:max-w-[480px]'}`}
             >
               <div className="space-y-5">
                 
                 {/* Scan Form Panel */}
-                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-3 shadow-lg">
-                  <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center font-mono">
-                    <Search className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> New Repository Scan
+                <div className="border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-black p-4 rounded-xl space-y-3 shadow-lg">
+                  <h3 className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider flex items-center font-mono">
+                    <Search className="w-3.5 h-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400" /> New Repository Scan
                   </h3>
                   <ScanForm user={user} onScanStart={handleStartScan} isLoading={scanState === 'loading'} />
                 </div>
 
                 {/* Scan History list */}
-                <div className="border border-zinc-800 bg-black p-4 rounded-xl space-y-3 shadow-lg">
-                  <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center justify-between font-mono">
+                <div className="border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-black p-4 rounded-xl space-y-3 shadow-lg">
+                  <h3 className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider flex items-center justify-between font-mono">
                     <span className="flex items-center space-x-1.5">
-                      <FolderOpen className="w-3.5 h-3.5 text-zinc-400" />
+                      <FolderOpen className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                       <span>Scan History</span>
                     </span>
-                    <span className="text-[10px] text-zinc-500">({scanHistory.length})</span>
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-500">({scanHistory.length})</span>
                   </h3>
                   
                   {scanHistory.length > 0 ? (
@@ -1359,21 +1384,21 @@ export default function App() {
                           onClick={() => scanState !== 'loading' && handleSelectPastScan(pastScan.scan_id)}
                           className={`p-2.5 rounded-lg border text-left cursor-pointer transition select-none flex items-center justify-between ${
                             currentScanId === pastScan.scan_id 
-                              ? 'bg-zinc-900 border-zinc-700' 
-                              : 'bg-zinc-950 border-zinc-850 hover:border-zinc-750'
+                              ? 'bg-emerald-50 dark:bg-zinc-900 border-emerald-300 dark:border-zinc-700' 
+                              : 'bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-850 hover:border-slate-300 dark:hover:border-zinc-750'
                           } ${scanState === 'loading' ? 'opacity-50 pointer-events-none' : ''}`}
                         >
                           <div className="space-y-0.5 min-w-0">
-                            <p className="font-bold text-xs text-white truncate font-mono">@{pastScan.username}</p>
-                            <p className="text-[10px] text-zinc-500 font-mono">
+                            <p className="font-bold text-xs text-slate-900 dark:text-white truncate font-mono">@{pastScan.username}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono">
                               {new Date(pastScan.created_at).toLocaleDateString()}
                             </p>
                           </div>
                           
                           <span className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase border font-mono ${
                             pastScan.status === 'completed' 
-                              ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/80' 
-                              : (pastScan.status === 'failed' ? 'bg-red-950/40 text-red-400 border-red-900' : 'bg-zinc-900 text-zinc-400 border-zinc-800')
+                              ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/80' 
+                              : (pastScan.status === 'failed' ? 'bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400 border-red-300 dark:border-red-900' : 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-800')
                           }`}>
                             {pastScan.status}
                           </span>
@@ -1600,17 +1625,17 @@ export default function App() {
             )}
 
             {/* Mobile Bottom Tab Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-900 flex items-center justify-around p-2 z-50 shadow-2xl">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 border-t border-slate-200 dark:border-zinc-900 flex items-center justify-around p-2 z-50 shadow-2xl">
               <button 
                 onClick={() => setActiveMobileTab('history')} 
-                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'history' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'history' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
               >
                 <History className="w-5 h-5 mb-1" />
                 <span className="text-[10px]">History</span>
               </button>
               <button 
                 onClick={() => setActiveMobileTab('main')} 
-                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'main' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'main' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
               >
                 <LayoutDashboard className="w-5 h-5 mb-1" />
                 <span className="text-[10px]">Dashboard</span>
@@ -1620,9 +1645,9 @@ export default function App() {
                   setIsCopilotCollapsed(false);
                   setActiveMobileTab('copilot');
                 }} 
-                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'copilot' ? 'text-emerald-400 bg-emerald-500/10 font-bold' : 'text-zinc-400'}`}
+                className={`flex flex-col items-center p-2 rounded-lg transition ${activeMobileTab === 'copilot' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 font-bold' : 'text-slate-600 dark:text-zinc-400'}`}
               >
-                <Bot className="w-5 h-5 mb-1 text-emerald-400" />
+                <Bot className="w-5 h-5 mb-1 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-[10px]">Ask AI</span>
               </button>
             </div>

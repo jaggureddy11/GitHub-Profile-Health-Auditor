@@ -93,40 +93,40 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
   const scoreTier = score >= 80 ? 'Optimal (Top Profile)' : score >= 50 ? 'Moderate Risk' : 'Critical Risk';
 
   return (
-    <div className="w-full text-white relative font-sans">
+    <div className="w-full text-slate-900 dark:text-white relative font-sans transition-colors duration-200">
 
       {/* ── HERO ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-28 pb-24 px-4">
         {/* Background */}
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-emerald-900/10 via-zinc-900/5 to-transparent blur-[140px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-emerald-500/10 via-slate-200/20 dark:via-zinc-900/5 to-transparent blur-[140px] rounded-full pointer-events-none" />
         
         {/* Watermark octocat */}
         <div className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[480px] pointer-events-none z-0 flex items-center justify-center opacity-[0.06] select-none">
           <img
             src="/octocat-user-outline.png"
             alt=""
-            className="w-[500px] sm:w-[700px] max-w-none object-contain"
+            className="w-[500px] sm:w-[700px] max-w-none object-contain dark:invert-0 invert"
           />
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 text-xs font-mono font-bold tracking-widest uppercase animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-400 text-xs font-mono font-bold tracking-widest uppercase animate-fade-in">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
             Multi-engine Static Security Analysis
           </div>
 
           {/* Headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.06] font-display animate-fade-in">
-            <span className="text-white block">Uncover Leaked Secrets.</span>
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent block pt-1">
+            <span className="text-slate-900 dark:text-white block">Uncover Leaked Secrets.</span>
+            <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400 bg-clip-text text-transparent block pt-1">
               Elevate Profile Security.
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed tracking-tight animate-slide-up-1">
+          <p className="text-base sm:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed tracking-tight animate-slide-up-1">
             Automated static analysis across public GitHub repositories. Intercept committed API credentials, fix Git hygiene debt, and generate 1-click auto-fix patches.
           </p>
 
@@ -134,26 +134,26 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
           <div className="max-w-2xl mx-auto space-y-4 animate-slide-up-1">
             <form
               onSubmit={handleQuickSubmit}
-              className="flex flex-col sm:flex-row items-stretch gap-2.5 bg-zinc-950/90 border border-zinc-800 rounded-2xl p-2 shadow-2xl focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/15 transition-all duration-300 backdrop-blur-xl"
+              className="flex flex-col sm:flex-row items-stretch gap-2.5 bg-white/90 dark:bg-zinc-950/90 border border-slate-200 dark:border-zinc-800 rounded-2xl p-2 shadow-xl dark:shadow-2xl focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/15 transition-all duration-300 backdrop-blur-xl"
             >
               <div className="flex items-center flex-1 px-3 gap-2.5 min-w-0">
-                <Search className="w-4 h-4 text-zinc-500 shrink-0" />
-                <span className="text-zinc-600 font-mono text-xs sm:text-sm font-semibold select-none shrink-0">github.com/</span>
+                <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 shrink-0" />
+                <span className="text-slate-500 dark:text-zinc-600 font-mono text-xs sm:text-sm font-semibold select-none shrink-0">github.com/</span>
                 <input
                   type="text"
                   id="hero-username-input"
                   placeholder="username or full repo URL"
                   value={quickUsername}
                   onChange={(e) => setQuickUsername(e.target.value)}
-                  className="flex-1 min-w-0 py-3 bg-transparent text-white placeholder-zinc-600 focus:outline-none font-mono text-xs sm:text-sm"
+                  className="flex-1 min-w-0 py-3 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono text-xs sm:text-sm"
                 />
               </div>
               <button
                 type="submit"
-                className="shrink-0 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm rounded-xl shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                className="shrink-0 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white dark:text-black font-extrabold text-sm rounded-xl shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
               >
                 <span>Audit Profile</span>
-                <ArrowRight className="w-4 h-4 text-black" />
+                <ArrowRight className="w-4 h-4 text-white dark:text-black" />
               </button>
             </form>
 

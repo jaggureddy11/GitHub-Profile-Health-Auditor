@@ -537,6 +537,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -566,6 +567,7 @@ export default function App() {
     const pollInterval = setInterval(async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+          credentials: 'include',
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         if (!res.ok) return;
@@ -636,6 +638,7 @@ export default function App() {
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+          credentials: 'include',
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         if (!response.ok) return;
@@ -669,7 +672,8 @@ export default function App() {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
           });
           if (res.ok) {
             const report = await res.json();
@@ -708,7 +712,11 @@ export default function App() {
       try {
         const res = await fetch(`${API_BASE_URL}/api/repo-scan`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
           body: JSON.stringify({
             username: targetUsername,
             repo_name: repoName
@@ -744,7 +752,8 @@ export default function App() {
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (!response.ok) {
         throw new Error("Failed to load past report.");
@@ -762,9 +771,10 @@ export default function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/fix`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           scan_id: currentScanId,

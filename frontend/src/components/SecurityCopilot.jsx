@@ -68,12 +68,12 @@ export default function SecurityCopilot({
   };
 
   const starterPrompts = [
-    { text: 'Purge Git secret history' },
-    { text: 'Raise score to 95+' },
-    { text: 'How do .patch fixes work?' },
-    { text: 'Generate README template' },
-    { text: 'Who are you?' },
-    { text: 'Tell me a dev joke' }
+    { text: '🔒 Purge Secrets', query: 'Purge Git secret history' },
+    { text: '📈 Raise Score 95+', query: 'Raise score to 95+' },
+    { text: '🛠️ Patch Guide', query: 'How do .patch fixes work?' },
+    { text: '📄 README Template', query: 'Generate README template' },
+    { text: '🛡️ Hygiene Rules', query: 'What are the hygiene rules?' },
+    { text: '👔 Recruiter Rank', query: 'How to improve recruiter rank?' }
   ];
 
   const handleSendMessage = async (msgText) => {
@@ -98,9 +98,18 @@ export default function SecurityCopilot({
       
       // Greetings
       if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('who are you') || q.includes('who is this')) {
-        return `Hello! I'm your **Security Copilot**. 🤖\n\nI can analyze your GitHub repositories for exposed API tokens, build debt, and formatting smells. I also generate automated Git patches. How can I help you improve your codebase safety today?`;
+        return `### 💡 Overview & Diagnosis
+Hello! I am your **Security Copilot AI Assistant** 🤖 for GitHub Profile Health Auditor.
+
+### 🛠️ Capabilities
+- **Secret Detection & Reflog Purging**: Step-by-step guides for removing leaked API keys via \`git-filter-repo\`.
+- **Git Hygiene Optimization**: Audit root \`.gitignore\`, \`LICENSE\`, and \`README.md\` documentation gaps.
+- **1-Click .patch Fixes**: Guidance on applying automated unified git patch files.
+- **Recruiter Hiring Rank**: Recommendations to boost your developer profile health score.
+
+Ask me any question about your scan results!`;
       }
-      
+
       // Developer jokes
       if (q.includes('joke') || q.includes('funny')) {
         const jokes = [
@@ -109,31 +118,136 @@ export default function SecurityCopilot({
           "How many programmers does it take to change a light bulb? None, that's a hardware problem! 💡",
           "A SQL query goes into a bar, walks up to two tables and asks: 'Can I join you?' 📊"
         ];
-        return jokes[Math.floor(Math.random() * jokes.length)];
+        return `### 💡 Dev Humor\n${jokes[Math.floor(Math.random() * jokes.length)]}`;
       }
 
       // Git secret history
-      if (q.includes('purge') || q.includes('secret') || q.includes('history') || q.includes('leak') || q.includes('key') || q.includes('aws') || q.includes('stripe')) {
-        return `**How to Purge Exposed Secrets from Git Commit History:**\n\nRemoving a file or line in your latest commit is not enough since the secret remains in the Git reflog history. Use these steps:\n\n1. **Revoke the key** in the provider dashboard (AWS, Stripe, GitHub, etc.) immediately.\n2. Install \`git-filter-repo\` and run:\n\`\`\`bash\ngit filter-repo --path path/to/leaked-file.json --invert-paths\n\`\`\`\n3. Push the clean history back to origin:\n\`\`\`bash\ngit push origin main --force --all\n\`\`\``;
+      if (q.includes('purge') || q.includes('secret') || q.includes('history') || q.includes('leak') || q.includes('key') || q.includes('aws') || q.includes('stripe') || q.includes('token')) {
+        return `### 💡 Overview & Diagnosis
+Committed API tokens or credentials remain stored permanently in your Git reflog commit history even if deleted in a later commit.
+
+### 🚨 Security Risk
+- **Impact**: Exposed AWS/Stripe keys can be exploited by automated scanners within seconds of push.
+- **Score Deduction**: Exposed secrets penalize profile health by **-40 to -50 pts**.
+
+### 🛠️ Remediation Workflow
+1. **Revoke Token Immediately**: Deactivate the secret in your provider console.
+2. **Purge Commit Reflog**: Install and run \`git-filter-repo\` to strip the file from history.
+3. **Force Push**: Update remote repositories cleanly.
+
+### 💻 Command Snippet
+\`\`\`bash
+# 1. Install git-filter-repo tool
+pip install git-filter-repo
+
+# 2. Filter out file containing the leaked credential
+git filter-repo --invert-paths --path path/to/leaked-file.env
+
+# 3. Force push cleaned refs to origin
+git push origin main --force --all
+\`\`\``;
       }
 
       // Raising score
-      if (q.includes('score') || q.includes('raise') || q.includes('95') || q.includes('improve')) {
-        return `**Steps to Raise @${username || 'profile'}'s Score to 95+:**\n\n1. **Purge committed credentials** (exposures in commit history decrease score by **40 pts**).\n2. **Git Hygiene**: Ensure each repository contains a root \`.gitignore\` file (missing: -15 pts), an open-source \`LICENSE\` file (missing: -10 pts), and a descriptive \`README.md\` (missing: -15 pts).\n3. **Smells**: Replace hardcoded development endpoints (e.g. \`http://localhost:3000\`) with configuration variables.`;
+      if (q.includes('score') || q.includes('raise') || q.includes('95') || q.includes('improve') || q.includes('100') || q.includes('rank')) {
+        return `### 💡 Overview & Diagnosis
+Steps to raise **@${username || 'profile'}**'s Profile Health Rating to **95+ (Gold Security Shield)**.
+
+### 🛠️ Actionable Checklist
+1. **Remediate Exposed Secrets (-40 pts)**: Revoke and purge committed credentials from Git history.
+2. **Add Root \`.gitignore\` (-15 pts)**: Ensure build artifacts (\`node_modules/\`, \`dist/\`, \`.env\`) are excluded.
+3. **Add Open-Source \`LICENSE\` (-10 pts)**: Include standard MIT or Apache-2.0 license files.
+4. **Write Comprehensive \`README.md\` (-15 pts)**: Add project overviews, setup commands, and health badges.
+
+### 💻 Fast Remediation Command
+\`\`\`bash
+# Apply 1-Click patch file from your Auditor Dashboard
+git apply hygiene-fix.patch
+git add . && git commit -m "fix(security): resolve auditor findings"
+\`\`\``;
       }
 
       // Patches
       if (q.includes('patch') || q.includes('fixes') || q.includes('apply')) {
-        return `**Applying 1-Click .patch Security Fixes:**\n\nWhen a missing hygiene file (like a LICENSE or .gitignore) is identified, we generate a unified patch file. To apply it:\n\n1. Click **Download .patch** on the repository findings panel.\n2. In your local repository terminal, run:\n\`\`\`bash\ngit apply name-of-file.patch\n\`\`\`\n3. Add, commit, and push the changes to GitHub.`;
+        return `### 💡 Overview & Diagnosis
+**1-Click Unified \`.patch\` Fixes** automatically generate Git-compliant diffs for missing hygiene files across your repositories.
+
+### 🛠️ How to Apply
+1. Select any repository card in your **Repo Breakdown** tab.
+2. Click **Download .patch** to download the generated patch file.
+3. Apply the patch in your project repository directory.
+
+### 💻 Command Snippet
+\`\`\`bash
+# Check patch statistics
+git apply --stat repo-fix.patch
+
+# Apply patch to local workspace
+git apply repo-fix.patch
+
+# Commit and push changes
+git add .
+git commit -m "fix: apply security auditor hygiene patch"
+git push origin main
+\`\`\``;
       }
 
-      // README template
-      if (q.includes('readme') || q.includes('template') || q.includes('documentation')) {
-        return `Here is a **security-optimized README.md template** for your repositories:\n\n\`\`\`markdown\n# Project Title\n\n## Security & Environment Variables\nNever commit plaintext API keys. Copy \`.env.example\` to \`.env\` and define config values there.\n\n## Getting Started\n1. Install dependencies: npm install\n2. Run development build: npm run dev\n\`\`\``;
+      // README template & templates
+      if (q.includes('readme') || q.includes('template') || q.includes('documentation') || q.includes('env') || q.includes('gitignore') || q.includes('license')) {
+        return `### 💡 Overview & Diagnosis
+Standardized \`.env.example\` & \`README.md\` templates for **@${username || 'profile'}**'s repositories.
+
+### 💻 \`.env.example\` Template
+\`\`\`bash
+# Environment Configuration (DO NOT commit real keys)
+PORT=8000
+DATABASE_URL=postgresql://localhost:5432/app_db
+GROQ_API_TOKEN=your_groq_api_token_here
+\`\`\`
+
+### 💻 Production \`README.md\` Template
+\`\`\`markdown
+# Project Name
+
+[![Profile Health](https://img.shields.io/badge/Profile_Health-95%2F100-10B981?style=for-the-badge&logo=github)](https://github.com)
+
+## Security & Setup
+Copy \`.env.example\` to \`.env\` and configure environment variables:
+\`\`\`bash
+cp .env.example .env
+\`\`\`
+
+## Installation
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+\`\`\``;
+      }
+
+      // Hygiene rules explanation
+      if (q.includes('hygiene') || q.includes('rule') || q.includes('semgrep') || q.includes('trufflehog')) {
+        return `### 💡 Overview & Diagnosis
+**GitHub Profile Health Auditor** uses 3 static analysis engines to calculate profile safety:
+
+### 🛡️ Scanning Engines
+- **TruffleHog**: Scans git commit diffs for 800+ secret signatures (AWS keys, Stripe, GitHub PATs, RSA private keys).
+- **Semgrep AST**: Intercepts code smells, dangerous \`eval()\` usage, hardcoded endpoints, and insecure HTTP URLs.
+- **Hygiene Checker**: Verifies root \`.gitignore\`, open-source \`LICENSE\`, and project \`README.md\` files.
+
+### 🔒 Privacy Promise
+All scans execute in ephemeral RAM. Credentials are **redacted in-memory** before logging.`;
       }
 
       // Generic help
-      return `I'm a helper chatbot focused on securing GitHub profiles. You can ask me:\n- "How do I fix the AWS credential leak?"\n- "Top steps to raise my score?"\n- "Tell me a developer joke!"\n- "Generate a secure README template."`;
+      return `### 💡 Overview & Diagnosis
+I'm your **Security Copilot AI**. Ask me anything about securing your GitHub profile!
+
+### 🛠️ Sample Questions
+- *"How do I purge leaked AWS keys from git history?"*
+- *"What steps raise my score to 95+?"*
+- *"How do 1-Click .patch fixes work?"*
+- *"Show me a secure README template."*`;
     };
 
     // If authenticated, attempt backend call
@@ -171,30 +285,36 @@ export default function SecurityCopilot({
     }, 850);
   };
 
-  // Format messages with code blocks and inline bold
+  // Enhanced Organized Markdown Renderer for Copilot Output
   const renderFormattedMessage = (content, msgId) => {
     if (!content) return null;
-    const parts = content.split(/(```[\s\S]*?```)/g);
-    return parts.map((part, index) => {
+    const codeBlockParts = content.split(/(```[\s\S]*?```)/g);
+
+    return codeBlockParts.map((part, index) => {
+      // Code Block Handling
       if (part.startsWith('```') && part.endsWith('```')) {
         const lines = part.slice(3, -3).trim().split('\n');
         const firstLine = lines[0].trim();
-        const language = ['bash', 'javascript', 'python', 'json', 'yaml', 'sh', 'ts'].includes(firstLine) ? firstLine : '';
+        const language = ['bash', 'javascript', 'python', 'json', 'yaml', 'sh', 'ts', 'markdown', 'sql'].includes(firstLine)
+          ? firstLine
+          : '';
         const codeText = language ? lines.slice(1).join('\n') : lines.join('\n');
         const snippetId = `${msgId}-${index}`;
+
         return (
-          <div key={index} className="my-2 rounded-lg bg-zinc-950 border border-zinc-700/60 overflow-hidden text-[11px] font-mono">
-            <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900 border-b border-zinc-700/60">
-              <span className="flex items-center text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                <Terminal className="w-3 h-3 text-emerald-400 mr-1.5" />
+          <div key={index} className="my-2.5 rounded-xl bg-zinc-950 border border-zinc-800 overflow-hidden text-[11px] font-mono shadow-md">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900/90 border-b border-zinc-800">
+              <span className="flex items-center text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                <Terminal className="w-3 h-3 text-emerald-400 mr-1.5 shrink-0" />
                 {language || 'code'}
               </span>
               <button
+                type="button"
                 onClick={() => handleCopySnippet(codeText, snippetId)}
-                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white transition"
               >
                 {copiedCodeId === snippetId
-                  ? <><Check className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400">Copied</span></>
+                  ? <><Check className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400 font-semibold">Copied</span></>
                   : <><Copy className="w-3 h-3" /><span>Copy</span></>
                 }
               </button>
@@ -206,29 +326,84 @@ export default function SecurityCopilot({
         );
       }
 
-      // Handle bullet lists starting with -
+      // Markdown Text Line-by-Line Processing
       const lines = part.split('\n');
       return (
-        <span key={index}>
+        <div key={index} className="space-y-1 my-1">
           {lines.map((line, lIdx) => {
-            const isBullet = line.trimStart().startsWith('- ');
-            const inlineParts = line.split(/(\*\*.*?\*\*|`[^`]+`)/g);
-            const rendered = inlineParts.map((sub, sIdx) => {
-              if (sub.startsWith('**') && sub.endsWith('**'))
-                return <strong key={sIdx} className="font-bold text-white">{sub.slice(2, -2)}</strong>;
-              if (sub.startsWith('`') && sub.endsWith('`'))
-                return <code key={sIdx} className="px-1 py-0.5 rounded bg-zinc-800 text-emerald-300 font-mono text-[10px]">{sub.slice(1, -1)}</code>;
-              return sub;
-            });
+            const trimmed = line.trim();
+            if (!trimmed) return <div key={lIdx} className="h-1.5" />;
+
+            // Headings (###, ##, #)
+            if (line.startsWith('### ')) {
+              return (
+                <h4 key={lIdx} className="font-bold text-emerald-400 text-[12px] pt-2 pb-0.5 border-b border-zinc-800/60 flex items-center gap-1.5 tracking-tight">
+                  {renderInlineFormatting(line.slice(4))}
+                </h4>
+              );
+            }
+            if (line.startsWith('## ') || line.startsWith('# ')) {
+              const text = line.startsWith('## ') ? line.slice(3) : line.slice(2);
+              return (
+                <h3 key={lIdx} className="font-extrabold text-white text-[13px] pt-2.5 pb-1 border-b border-zinc-700/80 flex items-center gap-1.5 tracking-tight">
+                  {renderInlineFormatting(text)}
+                </h3>
+              );
+            }
+
+            // Callout blockquote (> )
+            if (trimmed.startsWith('> ')) {
+              return (
+                <div key={lIdx} className="pl-3 py-1 my-1 border-l-2 border-emerald-500 bg-emerald-950/20 text-emerald-300 rounded-r text-[11px] italic">
+                  {renderInlineFormatting(line.replace(/^>\s*/, ''))}
+                </div>
+              );
+            }
+
+            // Bullet List Items (- or * or •)
+            if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+              const bulletText = trimmed.replace(/^[-*•]\s*/, '');
+              return (
+                <div key={lIdx} className="flex items-start gap-1.5 ml-1 text-[11px]">
+                  <span className="text-emerald-400 font-bold mt-0.5 shrink-0">•</span>
+                  <span className="flex-1">{renderInlineFormatting(bulletText)}</span>
+                </div>
+              );
+            }
+
+            // Numbered List Items (1. 2. 3.)
+            const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+            if (numMatch) {
+              return (
+                <div key={lIdx} className="flex items-start gap-1.5 ml-1 text-[11px]">
+                  <span className="px-1.5 py-0.2 bg-zinc-800 text-emerald-400 font-mono font-bold rounded text-[9px] mt-0.5 shrink-0">
+                    {numMatch[1]}
+                  </span>
+                  <span className="flex-1">{renderInlineFormatting(numMatch[2])}</span>
+                </div>
+              );
+            }
+
+            // Regular text
             return (
-              <span key={lIdx}>
-                {isBullet ? <span className="flex items-start gap-1.5 my-0.5"><span className="text-emerald-400 mt-0.5 shrink-0">•</span><span>{rendered}</span></span> : rendered}
-                {lIdx < lines.length - 1 && !isBullet && '\n'}
-              </span>
+              <p key={lIdx} className="text-[11px] leading-relaxed">
+                {renderInlineFormatting(line)}
+              </p>
             );
           })}
-        </span>
+        </div>
       );
+    });
+  };
+
+  const renderInlineFormatting = (text) => {
+    const parts = text.split(/(\*\*.*?\*\*|`[^`]+`)/g);
+    return parts.map((sub, sIdx) => {
+      if (sub.startsWith('**') && sub.endsWith('**'))
+        return <strong key={sIdx} className="font-bold text-white">{sub.slice(2, -2)}</strong>;
+      if (sub.startsWith('`') && sub.endsWith('`'))
+        return <code key={sIdx} className="px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-300 font-mono text-[10px] border border-zinc-700/50">{sub.slice(1, -1)}</code>;
+      return sub;
     });
   };
 
@@ -423,7 +598,7 @@ export default function SecurityCopilot({
             <button
               key={idx}
               type="button"
-              onClick={() => handleSendMessage(p.text)}
+              onClick={() => handleSendMessage(p.query || p.text)}
               className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-full text-[10px] whitespace-nowrap transition-all duration-150 active:scale-95 shrink-0"
             >
               {p.text}

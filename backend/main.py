@@ -1707,18 +1707,39 @@ async def post_copilot_chat(
     db.add(user_msg)
     db.commit()
 
-    findings_summary = [f"{f.type.upper()}: {f.repo_name} -> {f.description} ({f.severity})" for f in scan.findings[:8]]
-    findings_text = "\n".join(findings_summary) if findings_summary else "No severe security leaks found."
+    critical_cnt = sum(1 for f in scan.findings if f.severity == "critical")
+    high_cnt = sum(1 for f in scan.findings if f.severity == "high")
+    med_cnt = sum(1 for f in scan.findings if f.severity == "medium")
+    low_cnt = sum(1 for f in scan.findings if f.severity == "low")
 
-    prompt = f"""You are the Security Copilot AI assistant for GitHub Profile Health Auditor.
-Target Profile: @{scan.username}
-Profile Health Score: {scan.overall_score}/100
-Key Audit Findings:
+    findings_summary = [
+        f"- [{f.severity.upper()}] Repo `{f.repo_name}` -> {f.description} (`{f.file_path or 'root'}`)"
+        for f in scan.findings[:10]
+    ]
+    findings_text = "\n".join(findings_summary) if findings_summary else "No severe security leaks or hygiene violations found."
+
+    prompt = f"""You are the Security Copilot AI Assistant for GitHub Profile Health Auditor.
+You are an expert Application Security Engineer & Git Hygiene Strategist.
+
+PROFILE AUDIT CONTEXT:
+- Target Profile: @{scan.username}
+- Current Profile Health Score: {scan.overall_score}/100
+- Severity Counts: {critical_cnt} Critical | {high_cnt} High | {med_cnt} Medium | {low_cnt} Low
+- Audit Findings Summary:
 {findings_text}
 
-User Question: {user_msg_text}
+USER QUERY:
+"{user_msg_text}"
 
-Provide a concise, expert, and actionable answer. Explain any security risks or git purge steps clearly with code snippets if applicable.
+RESPONSE FORMAT & GUIDELINES:
+1. Provide an authoritative, structured, and easy-to-read answer.
+2. Organize your response into clear Markdown sections using `###` headers:
+   - `### 💡 Overview & Diagnosis`
+   - `### 🚨 Security Impact & Risk` (if applicable)
+   - `### 🛠️ Step-by-Step Remediation`
+   - `### 💻 Command / Code Snippet` (use ```bash or appropriate code block)
+   - `### 📈 Score & Hiring Rank Boost`
+3. Use bolding (`**term**`), bullet points (`- `), and clean syntax-highlighted code blocks for all commands.
 """
 
     hf_token = os.getenv("HF_API_TOKEN", "")
@@ -1740,17 +1761,126 @@ Provide a concise, expert, and actionable answer. Explain any security risks or 
         except Exception as e:
             print(f"[Copilot] Groq LLM call notice: {e}")
 
-    # 3. Tertiary Engine: Smart Rule Synthesizer (Ensures 100% reliability with zero errors)
+    # 3. Tertiary Engine: Advanced Smart Rule Synthesizer (100% structured & reliable)
     if not reply_text or len(reply_text.strip()) < 5:
         lowered = user_msg_text.lower()
-        if "secret" in lowered or "key" in lowered or "aws" in lowered or "purge" in lowered or "trufflehog" in lowered:
-            reply_text = f"To completely remove a leaked secret or key from git commit history in **@{scan.username}**, use `git-filter-repo`:\n\n```bash\n# 1. Revoke the key immediately on your provider dashboard\n# 2. Purge file from history\ngit filter-repo --invert-paths --path <file_path>\n# 3. Force push clean history\ngit push origin main --force\n```"
-        elif "score" in lowered or "raise" in lowered or "improve" in lowered or "95" in lowered:
-            reply_text = f"To raise @{scan.username}'s Profile Health score from **{scan.overall_score}/100**:\n1. Add missing LICENSE files across repositories.\n2. Ensure root `.gitignore` ignores `node_modules/` and `.env`.\n3. Add concise `README.md` overviews to empty repositories."
-        elif "patch" in lowered or "fix" in lowered:
-            reply_text = f"To apply automated 1-Click fixes for @{scan.username}'s repositories:\n- Select any flagged repository card in the dashboard.\n- Click **Download .patch** to generate a git-compatible patch file.\n- Run `git apply <patch-file>` locally to fix issues instantly."
+        if any(k in lowered for k in ["secret", "key", "aws", "stripe", "purge", "leak", "history", "trufflehog"]):
+            reply_text = f"""### 💡 Overview & Diagnosis
+Exposed credentials in **@{scan.username}**'s Git reflog history present a severe security risk. Deleting the file in a new commit does **not** erase it from past Git commit objects.
+
+### 🚨 Security Impact & Risk
+- **Exposure Threat**: Automated crawlers harvest leaked AWS/Stripe/GitHub keys within seconds of commit.
+- **Score Impact**: Exposed secrets penalize profile health by **-40 to -50 points**.
+
+### 🛠️ Step-by-Step Remediation
+1. **Revoke Immediately**: Deactivate the leaked token in your provider dashboard (AWS IAM, Stripe Dashboard, etc.).
+2. **Purge Commit Reflog**: Remove the file containing the secret from all historic commits using `git-filter-repo`.
+3. **Force Push Clean State**: Update remote branches securely.
+
+### 💻 Command / Code Snippet
+```bash
+# Install git-filter-repo
+pip install git-filter-repo
+
+# Remove file from all commits & tags
+git filter-repo --invert-paths --path path/to/leaked-file.env
+
+# Force push cleaned main branch to origin
+git push origin main --force --all
+```
+
+### 📈 Score & Hiring Rank Boost
+Purging exposed keys will restore your score towards **95+/100** and clear high-severity security warnings for tech recruiters."""
+
+        elif any(k in lowered for k in ["score", "raise", "improve", "95", "100", "boost", "rank"]):
+            reply_text = f"""### 💡 Overview & Diagnosis
+Target profile **@{scan.username}** currently has a Profile Health Score of **{scan.overall_score}/100**.
+
+### 🛠️ Step-by-Step Remediation Plan
+1. **Remediate Committed Secrets (-40 pts)**: Purge any exposed API keys or `.env` files from Git history.
+2. **Standardize Root `.gitignore` (-15 pts)**: Ensure every repository ignores `node_modules/`, `.env`, and build artifacts (`dist/`, `build/`).
+3. **Add Open-Source `LICENSE` (-10 pts)**: Include an MIT or Apache-2.0 license file in all public repositories.
+4. **Draft Comprehensive `README.md` (-15 pts)**: Provide project title, setup instructions, architecture overview, and badges.
+
+### 💻 Automated Fix Command
+Use 1-Click `.patch` downloads from your dashboard, or run:
+```bash
+# Apply auto-generated patch file
+git apply repository-hygiene-fix.patch
+git add . && git commit -m "fix(security): resolve profile health auditor findings"
+```
+
+### 📈 Score Impact
+Following these 4 steps guarantees reaching a **95+ Health Rating** (Gold Security Shield)."""
+
+        elif any(k in lowered for k in ["patch", "fix", "apply", "1-click", "download"]):
+            reply_text = f"""### 💡 Overview & Diagnosis
+**1-Click Unified `.patch` Fixes** allow you to remediate hygiene debt across **@{scan.username}**'s repositories instantly without writing manual code.
+
+### 🛠️ How to Generate & Apply Patches
+1. **Select Flagged Repo**: Click any repository card in your auditor dashboard.
+2. **Download Patch**: Click **Download .patch** on the repository findings panel.
+3. **Apply Locally**: Run the unified git patch command in your local project root.
+
+### 💻 Command / Code Snippet
+```bash
+# Verify patch contents
+git apply --stat patch_file.patch
+
+# Apply patch to local workspace
+git apply patch_file.patch
+
+# Commit and push
+git add .
+git commit -m "fix: apply security auditor hygiene patch"
+git push origin main
+```"""
+
+        elif any(k in lowered for k in ["readme", "template", "license", "gitignore", "env"]):
+            reply_text = f"""### 💡 Overview & Diagnosis
+Here is an organized, production-grade **`.env.example`** & **`README.md`** template for **@{scan.username}**'s repositories.
+
+### 💻 `.env.example` Template
+```bash
+# API Credentials (NEVER commit actual secret keys)
+PORT=8000
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+GROQ_API_TOKEN=your_groq_api_token_here
+```
+
+### 💻 Secure `README.md` Template
+```markdown
+# Project Name
+
+[![Profile Health](https://img.shields.io/badge/Profile_Health-95%2F100-10B981?style=for-the-badge&logo=github)](https://github.com)
+
+## Security & Environment Setup
+Copy `.env.example` to `.env` and fill in local development keys:
+```bash
+cp .env.example .env
+```
+
+## Getting Started
+```bash
+npm install
+npm run dev
+```
+```"""
+
         else:
-            reply_text = f"Regarding @{scan.username}'s profile audit (Score: **{scan.overall_score}/100**): All findings have been scanned in memory with 0 credentials stored. You can download 1-Click `.patch` fixes from the Repo Breakdown tab or generate an AI README.md profile template."
+            reply_text = f"""### 💡 Overview & Diagnosis
+Analyzing profile **@{scan.username}** (Current Score: **{scan.overall_score}/100**).
+
+### 🛠️ Key Recommendations
+- **In-Memory Redaction**: All scans run in ephemeral RAM; zero raw secrets are stored.
+- **Git Hygiene**: Ensure `.gitignore`, `LICENSE`, and `README.md` exist across all public repositories.
+- **Auto-Fixes**: Click **Download .patch** on any flagged repository card to apply fixes in seconds.
+
+### 💻 Quick Assist
+Ask me specific questions like:
+- *"How do I purge leaked AWS keys from git history?"*
+- *"What steps raise my score to 95+?"*
+- *"Show me a secure README template."*"""
 
     assistant_msg = models.CopilotMessage(
         scan_id=scan_id,

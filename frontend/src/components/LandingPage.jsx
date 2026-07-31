@@ -205,16 +205,16 @@ export default function LandingPage({ onStartRegister, onGitHubOAuth, onStartQui
 
       {/* ── METRICS TRUST BANNER ─────────────────────────────────── */}
       <section className="px-4 pb-20">
-        <div className="max-w-5xl mx-auto border border-zinc-800/80 bg-zinc-950 rounded-2xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center shadow-xl animate-slide-up-1">
+        <div className="max-w-5xl mx-auto border border-slate-200 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950 rounded-2xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center shadow-xl animate-slide-up-1 backdrop-blur-xl">
           {[
-            { value: '100%', label: 'In-Memory Redaction', color: 'text-emerald-400' },
-            { value: '< 10s', label: 'Average Scan Runtime', color: 'text-cyan-400' },
-            { value: '3 Engines', label: 'TruffleHog · Semgrep · Hygiene', color: 'text-white' },
-            { value: '0', label: 'Credentials Stored', color: 'text-amber-400' },
+            { value: '100%', label: 'In-Memory Redaction', color: 'text-emerald-600 dark:text-emerald-400' },
+            { value: '< 10s', label: 'Average Scan Runtime', color: 'text-cyan-600 dark:text-cyan-400' },
+            { value: '3 Engines', label: 'TruffleHog · Semgrep · Hygiene', color: 'text-purple-600 dark:text-purple-400' },
+            { value: '0', label: 'Credentials Stored', color: 'text-amber-600 dark:text-amber-400' },
           ].map(({ value, label, color }) => (
             <div key={label} className="space-y-1.5">
               <span className={`text-3xl sm:text-4xl font-black block font-mono ${color}`}>{value}</span>
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">{label}</span>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-wider block">{label}</span>
             </div>
           ))}
         </div>

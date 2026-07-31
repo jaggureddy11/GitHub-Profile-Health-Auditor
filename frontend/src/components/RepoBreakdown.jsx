@@ -275,7 +275,7 @@ export default function RepoBreakdown({ findings, token, scanId }) {
                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${getSeverityBadgeClass(finding.severity)}`}>
                       {finding.severity ? finding.severity.toUpperCase() : 'INFO'}
                     </span>
-                    <span className="font-mono text-xs font-bold text-white bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg">
+                    <span className="font-mono text-xs font-bold text-white bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg break-all max-w-full">
                       {finding.file_path} {finding.line_number ? `: Line ${finding.line_number}` : ''}
                     </span>
                   </div>

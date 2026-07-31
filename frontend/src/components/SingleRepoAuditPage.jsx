@@ -27,22 +27,22 @@ export default function SingleRepoAuditPage({
     <div className="min-h-screen space-y-6 font-sans animate-in fade-in zoom-in-95 duration-300">
       
       {/* Dedicated Header Back Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950 p-4 px-4 sm:px-6 rounded-2xl border border-zinc-800 shadow-xl gap-4">
         <button
           onClick={onBack}
-          className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center space-x-2 shadow-md active:scale-98 cursor-pointer"
+          className="w-full sm:w-auto py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs font-sans transition flex items-center justify-center space-x-2 shadow-md active:scale-98 cursor-pointer shrink-0"
         >
           <span>← Back to Profile &amp; Repositories</span>
         </button>
-        <div className="flex items-center space-x-3 text-xs font-mono">
-          <span className="text-zinc-400">Target Repository: <span className="text-emerald-400 font-bold">{fullTargetName}</span></span>
+        <div className="flex flex-wrap items-center justify-between sm:justify-end w-full sm:w-auto gap-2 text-xs font-mono">
+          <span className="text-zinc-400 break-all">Target: <span className="text-emerald-400 font-bold">{fullTargetName}</span></span>
           {scanState === 'loading' ? (
-            <span className="px-3 py-1 bg-amber-950/80 text-amber-400 border border-amber-800/80 rounded-lg font-bold flex items-center space-x-1.5 animate-pulse">
+            <span className="px-3 py-1 bg-amber-950/80 text-amber-400 border border-amber-800/80 rounded-lg font-bold flex items-center space-x-1.5 animate-pulse shrink-0">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
               <span>LIVE AUDIT RUNNING</span>
             </span>
           ) : (
-            <span className="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-lg font-bold flex items-center space-x-1.5">
+            <span className="px-3 py-1 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-lg font-bold flex items-center space-x-1.5 shrink-0">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               <span>AUDIT COMPLETED</span>
             </span>

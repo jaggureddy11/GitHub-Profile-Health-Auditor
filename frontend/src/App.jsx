@@ -1544,20 +1544,22 @@ export default function App() {
               </div>
             )}
 
-            {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL */}
-            <div className={`${activeMobileTab === 'copilot' ? 'absolute inset-0 z-40 flex pb-16 bg-black' : 'hidden md:flex'}`}>
-              <SecurityCopilot 
-                scanId={currentScanId || scanReport?.scan_id || 'guest'} 
-                token={token} 
-                username={activeUsername || scanReport?.username || user?.github_username || 'guest'} 
-                score={scanReport?.overall_score || 100} 
-                onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
-                isCollapsed={isCopilotCollapsed}
-                onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
-                width={isCopilotCollapsed ? 44 : copilotWidth}
-                isMobileOpen={activeMobileTab === 'copilot'}
-              />
-            </div>
+            {/* COLUMN 3: RIGHT SIDEBAR — SECURITY COPILOT PANEL (Only shown when Ask AI is open) */}
+            {!isCopilotCollapsed && (
+              <div className={`${activeMobileTab === 'copilot' ? 'absolute inset-0 z-40 flex pb-16 bg-black' : 'hidden md:flex'}`}>
+                <SecurityCopilot 
+                  scanId={currentScanId || scanReport?.scan_id || 'guest'} 
+                  token={token} 
+                  username={activeUsername || scanReport?.username || user?.github_username || 'guest'} 
+                  score={scanReport?.overall_score || 100} 
+                  onRequireAuth={() => { setView('auth'); setAuthMode('login'); }} 
+                  isCollapsed={false}
+                  onToggleCollapse={() => setIsCopilotCollapsed(true)}
+                  width={copilotWidth}
+                  isMobileOpen={activeMobileTab === 'copilot'}
+                />
+              </div>
+            )}
 
             {/* Mobile Bottom Tab Bar */}
             <div className="md:hidden absolute bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-900 flex items-center justify-around p-2 z-50">

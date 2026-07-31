@@ -80,56 +80,56 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-sans">
-      <div className="relative max-w-lg w-full bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-left flex flex-col transition-all duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in font-sans">
+      <div className="relative max-w-lg w-full bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-left flex flex-col transition-all duration-300">
         
         {/* Modal Header */}
-        <div className="p-6 bg-zinc-900/60 border-b border-zinc-800/80 relative">
+        <div className="p-6 bg-slate-50 dark:bg-zinc-900/60 border-b border-slate-200 dark:border-zinc-800/80 relative">
           <button
             onClick={finishTour}
-            className="absolute top-5 right-5 p-1.5 rounded-lg text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition"
+            className="absolute top-5 right-5 p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 transition"
             title="Close Tour"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-center space-x-2 mb-3">
-            <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+            <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/20 rounded-full">
               {step.stepNumber}
             </span>
-            <span className="text-xs text-zinc-400 font-mono">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
               • {step.category}
             </span>
           </div>
 
           <div className="flex items-start space-x-3.5">
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0 text-emerald-400">
+            <div className="p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shrink-0 text-emerald-600 dark:text-emerald-400 shadow-sm">
               {step.icon}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">{step.title}</h2>
-              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{step.description}</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{step.title}</h2>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">{step.description}</p>
             </div>
           </div>
         </div>
 
         {/* Modal Body / Highlights */}
-        <div className="p-6 space-y-3 bg-zinc-950">
-          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block font-mono">
+        <div className="p-6 space-y-3 bg-white dark:bg-zinc-950">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block font-mono">
             Key Capabilities
           </span>
           <div className="space-y-2.5">
             {step.highlights.map((item, idx) => (
-              <div key={idx} className="flex items-start space-x-3 p-3 bg-zinc-900/40 border border-zinc-800/60 rounded-xl">
+              <div key={idx} className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-zinc-900/40 border border-slate-200 dark:border-zinc-800/60 rounded-xl">
                 <div className="mt-0.5 shrink-0">{item.icon}</div>
-                <span className="text-xs text-zinc-300 font-normal leading-relaxed">{item.text}</span>
+                <span className="text-xs text-slate-700 dark:text-zinc-300 font-normal leading-relaxed">{item.text}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="p-4 bg-zinc-900/80 border-t border-zinc-800/80 flex items-center justify-between">
+        <div className="p-4 bg-slate-50 dark:bg-zinc-900/80 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between">
           
           {/* Progress Indicators */}
           <div className="flex items-center space-x-1.5 pl-2">
@@ -140,7 +140,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
                 className={`h-2 rounded-full transition-all ${
                   currentStep === idx 
                     ? 'w-6 bg-emerald-500' 
-                    : 'w-2 bg-zinc-700 hover:bg-zinc-600'
+                    : 'w-2 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400 dark:hover:bg-zinc-600'
                 }`}
                 title={`Go to step ${idx + 1}`}
               />
@@ -152,7 +152,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-                className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300 transition flex items-center gap-1.5"
+                className="px-3.5 py-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-semibold text-slate-700 dark:text-zinc-300 transition flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back</span>
@@ -161,7 +161,7 @@ export default function DashboardTourModal({ isOpen, onClose, onComplete }) {
 
             <button
               onClick={handleNext}
-              className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-500/10"
+              className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white dark:text-black font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-500/10"
             >
               <span>{currentStep === tourSteps.length - 1 ? "Complete Tour" : "Next Step"}</span>
               <ArrowRight className="w-3.5 h-3.5" />

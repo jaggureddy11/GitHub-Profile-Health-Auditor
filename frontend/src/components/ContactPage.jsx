@@ -26,28 +26,28 @@ export default function ContactPage({ onBackToDashboard }) {
     <div className="max-w-5xl mx-auto w-full space-y-8 py-6 animate-fade-in font-sans">
       
       {/* Navigation Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-950 p-4 px-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-md dark:shadow-xl transition-colors duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950 p-4 px-6 rounded-2xl border border-zinc-800 shadow-xl">
         <button
           onClick={onBackToDashboard}
-          className="py-2.5 px-5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold rounded-xl text-xs transition flex items-center justify-center space-x-2 shadow-md shrink-0"
+          className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black font-extrabold rounded-xl text-xs transition flex items-center justify-center space-x-2 shadow-md shrink-0"
         >
           <span>← Back to Dashboard</span>
         </button>
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
-          <ShieldCheck className="w-4 h-4 text-slate-600 dark:text-zinc-300" />
+        <div className="flex items-center space-x-2 text-xs font-mono text-zinc-400">
+          <ShieldCheck className="w-4 h-4 text-zinc-300" />
           <span>Verified Developer &amp; Creator Profile</span>
         </div>
       </div>
 
       {/* Developer Profile Main Card */}
-      <div className="border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 rounded-3xl space-y-10 shadow-xl dark:shadow-2xl relative overflow-hidden transition-colors duration-200">
+      <div className="border border-zinc-800 bg-zinc-950 p-8 sm:p-12 rounded-3xl space-y-10 shadow-2xl relative overflow-hidden">
         
         {/* Profile Intro with Avatar Image */}
         <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-6 sm:space-y-0 sm:space-x-8 text-center sm:text-left">
           <img 
             src="https://github.com/jaggureddy11.png" 
             alt="R Jagadishwar Reddy" 
-            className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-600 transition-all duration-300 shadow-xl object-cover shrink-0" 
+            className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-zinc-800 hover:border-zinc-600 transition-all duration-300 shadow-2xl object-cover shrink-0" 
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = 'https://avatars.githubusercontent.com/u/152912448?v=4';
@@ -55,13 +55,13 @@ export default function ContactPage({ onBackToDashboard }) {
           />
           <div className="space-y-2.5">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-              <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">R Jagadishwar Reddy</h2>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 w-fit mx-auto sm:mx-0">
+              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">R Jagadishwar Reddy</h2>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold bg-zinc-900 border border-zinc-800 text-zinc-300 w-fit mx-auto sm:mx-0">
                 Lead Developer
               </span>
             </div>
-            <p className="text-base sm:text-lg font-mono text-slate-600 dark:text-zinc-300 font-bold">Software Developer</p>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 max-w-2xl leading-relaxed font-normal pt-1">
+            <p className="text-base sm:text-lg font-mono text-zinc-300 font-bold">Software Developer</p>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed font-normal pt-1">
               Creator of GitHub Profile Health Auditor. Specialized in high-performance web architecture, static code analysis engines, and security auditing tools.
             </p>
           </div>
@@ -71,22 +71,22 @@ export default function ContactPage({ onBackToDashboard }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
           
           {/* LinkedIn Card */}
-          <div className="bg-slate-50 dark:bg-black p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition shadow-inner">
+          <div className="bg-black p-6 rounded-2xl border border-zinc-850 space-y-4 hover:border-zinc-700 transition shadow-inner">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5 text-slate-900 dark:text-white min-w-0">
-                <div className="p-3 rounded-xl bg-slate-200 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 shrink-0">
-                  <LinkedinIcon className="w-6 h-6 text-slate-700 dark:text-zinc-200" />
+              <div className="flex items-center space-x-3.5 text-white min-w-0">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0">
+                  <LinkedinIcon className="w-6 h-6 text-zinc-200" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-base block text-slate-900 dark:text-white">LinkedIn Profile</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono block truncate">linkedin.com/in/jaggureddy</span>
+                  <span className="font-bold text-base block text-white">LinkedIn Profile</span>
+                  <span className="text-xs text-zinc-400 font-mono block truncate">linkedin.com/in/jaggureddy</span>
                 </div>
               </div>
               <a
                 href="https://www.linkedin.com/in/jaggureddy/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow shrink-0"
+                className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow shrink-0"
               >
                 <span>Connect</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -95,22 +95,22 @@ export default function ContactPage({ onBackToDashboard }) {
           </div>
 
           {/* GitHub Card */}
-          <div className="bg-slate-50 dark:bg-black p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition shadow-inner">
+          <div className="bg-black p-6 rounded-2xl border border-zinc-850 space-y-4 hover:border-zinc-700 transition shadow-inner">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5 text-slate-900 dark:text-white min-w-0">
-                <div className="p-3 rounded-xl bg-slate-200 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 shrink-0">
-                  <GithubIcon className="w-6 h-6 text-slate-700 dark:text-zinc-200" />
+              <div className="flex items-center space-x-3.5 text-white min-w-0">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0">
+                  <GithubIcon className="w-6 h-6 text-zinc-200" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-base block text-slate-900 dark:text-white">GitHub Profile</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono block truncate">github.com/jaggureddy11</span>
+                  <span className="font-bold text-base block text-white">GitHub Profile</span>
+                  <span className="text-xs text-zinc-400 font-mono block truncate">github.com/jaggureddy11</span>
                 </div>
               </div>
               <a
                 href="https://github.com/jaggureddy11"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow shrink-0"
+                className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold rounded-xl transition flex items-center justify-center space-x-2 shadow shrink-0"
               >
                 <span>Follow</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -119,15 +119,15 @@ export default function ContactPage({ onBackToDashboard }) {
           </div>
 
           {/* Email Card (No Overflow) */}
-          <div className="bg-slate-50 dark:bg-black p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition shadow-inner">
+          <div className="bg-black p-6 rounded-2xl border border-zinc-850 space-y-4 hover:border-zinc-700 transition shadow-inner">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5 text-slate-900 dark:text-white min-w-0">
-                <div className="p-3 rounded-xl bg-slate-200 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 shrink-0">
-                  <Mail className="w-6 h-6 text-slate-700 dark:text-zinc-200" />
+              <div className="flex items-center space-x-3.5 text-white min-w-0">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0">
+                  <Mail className="w-6 h-6 text-zinc-200" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-base block text-slate-900 dark:text-white">Email Address</span>
-                  <span className="text-xs text-slate-700 dark:text-zinc-300 font-mono block truncate">
+                  <span className="font-bold text-base block text-white">Email Address</span>
+                  <span className="text-xs text-zinc-300 font-mono block truncate">
                     jaggureddy2004@gmail.com
                   </span>
                 </div>
@@ -135,14 +135,14 @@ export default function ContactPage({ onBackToDashboard }) {
               <div className="flex items-center space-x-2 shrink-0 justify-end sm:justify-start">
                 <button
                   onClick={() => handleCopy('jaggureddy2004@gmail.com', 'email')}
-                  className="p-2.5 bg-slate-200 dark:bg-zinc-900 hover:bg-slate-300 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl border border-slate-300 dark:border-zinc-800 transition"
+                  className="p-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl border border-zinc-800 transition"
                   title="Copy email address to clipboard"
                 >
-                  {copiedField === 'email' ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedField === 'email' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <a
                   href="mailto:jaggureddy2004@gmail.com"
-                  className="py-2.5 px-5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-extrabold rounded-xl transition flex items-center space-x-2 shadow"
+                  className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold rounded-xl transition flex items-center space-x-2 shadow"
                 >
                   <span>Send</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -152,15 +152,15 @@ export default function ContactPage({ onBackToDashboard }) {
           </div>
 
           {/* Phone Card */}
-          <div className="bg-slate-50 dark:bg-black p-6 rounded-2xl border border-slate-200 dark:border-zinc-850 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition shadow-inner">
+          <div className="bg-black p-6 rounded-2xl border border-zinc-850 space-y-4 hover:border-zinc-700 transition shadow-inner">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3.5 text-slate-900 dark:text-white min-w-0">
-                <div className="p-3 rounded-xl bg-slate-200 dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 shrink-0">
-                  <Phone className="w-6 h-6 text-slate-700 dark:text-zinc-200" />
+              <div className="flex items-center space-x-3.5 text-white min-w-0">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0">
+                  <Phone className="w-6 h-6 text-zinc-200" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-base block text-slate-900 dark:text-white">Phone Number</span>
-                  <span className="text-xs text-slate-700 dark:text-zinc-300 font-mono block">
+                  <span className="font-bold text-base block text-white">Phone Number</span>
+                  <span className="text-xs text-zinc-300 font-mono block">
                     +91 9110300509
                   </span>
                 </div>
@@ -168,14 +168,14 @@ export default function ContactPage({ onBackToDashboard }) {
               <div className="flex items-center space-x-2 shrink-0 justify-end sm:justify-start">
                 <button
                   onClick={() => handleCopy('9110300509', 'phone')}
-                  className="p-2.5 bg-slate-200 dark:bg-zinc-900 hover:bg-slate-300 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl border border-slate-300 dark:border-zinc-800 transition"
+                  className="p-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl border border-zinc-800 transition"
                   title="Copy phone number to clipboard"
                 >
-                  {copiedField === 'phone' ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedField === 'phone' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <a
                   href="tel:9110300509"
-                  className="py-2.5 px-5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black text-xs font-extrabold rounded-xl transition flex items-center space-x-2 shadow"
+                  className="py-2.5 px-5 bg-white hover:bg-zinc-200 text-black text-xs font-extrabold rounded-xl transition flex items-center space-x-2 shadow"
                 >
                   <span>Call</span>
                   <ExternalLink className="w-3.5 h-3.5" />

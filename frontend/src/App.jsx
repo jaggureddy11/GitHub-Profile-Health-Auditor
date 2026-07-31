@@ -1194,27 +1194,27 @@ export default function App() {
           <div className="flex-1 overflow-y-auto no-scrollbar">
           <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-10 px-4">
             <div className="space-y-3">
-              <h2 className="text-3xl font-bold font-mono text-slate-900 dark:text-white">What We Do With Your Data</h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">Last updated: July 2026</p>
+              <h2 className="text-3xl font-bold font-mono">What We Do With Your Data</h2>
+              <p className="text-xs text-zinc-400">Last updated: July 2026</p>
             </div>
 
-            <div className="space-y-6 text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-mono">
+            <div className="space-y-6 text-sm text-zinc-300 leading-relaxed font-mono">
               <section className="space-y-2">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200 dark:border-zinc-850 pb-1">1. Scanning Pipeline Security</h3>
+                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">1. Scanning Pipeline Security</h3>
                 <p>
                   When you initiate a scan, our background Redis Queue (RQ) workers clone your repository branch securely into an ephemeral temp directory. Once static scan checks (Hygiene, TruffleHog, Semgrep) complete, the temporary directory is deleted immediately.
                 </p>
               </section>
 
               <section className="space-y-2">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200 dark:border-zinc-850 pb-1">2. Absolute Secrets Redaction</h3>
+                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">2. Absolute Secrets Redaction</h3>
                 <p>
                   Any credentials extracted during the scan are parsed locally in temporary worker files. Once the exact file paths and line numbers are identified, the raw secret value is wiped and deleted from memory. Only file locations, rules, and severities are saved in the database.
                 </p>
               </section>
 
               <section className="space-y-2">
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200 dark:border-zinc-850 pb-1">3. Anonymous Privacy &amp; Opt-In Public Badges</h3>
+                <h3 className="font-bold text-white text-sm border-b border-zinc-850 pb-1">3. Anonymous Privacy & Opt-In Public Badges</h3>
                 <p>
                   All scans are anonymous and session-scoped by default using HttpOnly session cookies. Scan findings are private to your session and are never queryable or exposed publicly by username.
                 </p>
@@ -1224,10 +1224,10 @@ export default function App() {
               </section>
             </div>
 
-            <div className="pt-6 border-t border-slate-200 dark:border-zinc-900 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="pt-6 border-t border-zinc-900 flex flex-col sm:flex-row justify-between items-center gap-4">
               <button 
                 onClick={() => setView(token ? 'dashboard' : 'landing')}
-                className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-lg text-xs hover:bg-slate-800 dark:hover:bg-zinc-200 transition font-mono"
+                className="px-6 py-2 bg-white text-black font-bold rounded-lg text-xs hover:bg-zinc-200 transition"
               >
                 Go Back
               </button>
@@ -1235,9 +1235,9 @@ export default function App() {
               {token && (
                 <button 
                   onClick={handleDeleteAccount}
-                  className="px-4 py-2 border border-red-300 dark:border-red-950 bg-red-100 dark:bg-red-950/20 hover:bg-red-200 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 text-xs font-bold rounded-lg transition font-mono"
+                  className="px-4 py-2 border border-red-950 bg-red-950/20 hover:bg-red-950/40 text-red-400 text-xs font-bold rounded-lg transition"
                 >
-                  Delete My Account &amp; Data
+                  Delete My Account & Data
                 </button>
               )}
             </div>

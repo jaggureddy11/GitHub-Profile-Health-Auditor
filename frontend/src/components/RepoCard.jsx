@@ -1,7 +1,7 @@
 import React from 'react';
 import { GitFork, Star, ExternalLink, Play, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 
-export default function RepoCard({ repo, status = 'idle', onAnalyze }) {
+export default function RepoCard({ repo, status = 'idle', onAnalyze, onViewReport }) {
   const formattedDate = repo.pushed_at
     ? new Date(repo.pushed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : null;
@@ -65,7 +65,7 @@ export default function RepoCard({ repo, status = 'idle', onAnalyze }) {
           {status === 'idle' && (
             <button
               onClick={() => onAnalyze(repo)}
-              className="w-full py-2.5 px-4 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
+              className="w-full py-2.5 px-4 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-zinc-200 text-white dark:text-black font-extrabold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-white dark:fill-black shrink-0" />
               <span>Audit Repo</span>
@@ -91,8 +91,8 @@ export default function RepoCard({ repo, status = 'idle', onAnalyze }) {
 
           {status === 'completed' && (
             <button
-              onClick={() => onAnalyze(repo)}
-              className="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition shadow-sm"
+              onClick={() => (onViewReport || onAnalyze)(repo)}
+              className="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4 text-zinc-300" />
               <span>View Report</span>

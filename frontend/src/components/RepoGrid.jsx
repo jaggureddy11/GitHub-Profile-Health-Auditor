@@ -9,6 +9,7 @@ export default function RepoGrid({
   activeUsername = '',
   repoStatuses = {}, 
   onAnalyzeRepo, 
+  onViewRepoReport,
   onAuditAll,
   isBatchScanning = false,
   batchProgress = { current: 0, total: 0 },
@@ -90,6 +91,7 @@ export default function RepoGrid({
             repo={repo}
             status={repoStatuses[repo.name] || 'idle'}
             onAnalyze={onAnalyzeRepo}
+            onViewReport={onViewRepoReport}
           />
         ))}
       </div>
@@ -136,6 +138,7 @@ export default function RepoGrid({
                     repo={repo}
                     status={repoStatuses[repo.name] || 'idle'}
                     onAnalyze={onAnalyzeRepo}
+                    onViewReport={onViewRepoReport}
                   />
                 ))}
               </div>

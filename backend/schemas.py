@@ -41,6 +41,8 @@ class FindingSchema(BaseModel):
 class ScanResponse(BaseModel):
     scan_id: str = Field(validation_alias="id")
     username: str
+    repo_name: Optional[str] = None
+    scan_type: Optional[str] = None
     status: str
     created_at: datetime
     completed_at: Optional[datetime] = None

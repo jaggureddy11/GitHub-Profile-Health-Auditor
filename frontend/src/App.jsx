@@ -63,6 +63,7 @@ export default function App() {
   const [targetRepoName, setTargetRepoName] = useState(null);
   const [userReposLoading, setUserReposLoading] = useState(false);
   const [repoStatuses, setRepoStatuses] = useState({});
+  const [repoScanReports, setRepoScanReports] = useState({});
   const [activeUsername, setActiveUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [currentScanId, setCurrentScanId] = useState('');
@@ -211,6 +212,11 @@ export default function App() {
         try { setRepoStatuses(JSON.parse(savedRepoStatuses)); } catch (e) {}
       }
 
+      const savedRepoScanReports = localStorage.getItem('auditor_repo_scan_reports');
+      if (savedRepoScanReports) {
+        try { setRepoScanReports(JSON.parse(savedRepoScanReports)); } catch (e) {}
+      }
+
       const savedScanReport = localStorage.getItem('auditor_scan_report');
       if (savedScanReport) {
         try {
@@ -273,12 +279,15 @@ export default function App() {
     if (repoStatuses && Object.keys(repoStatuses).length > 0) {
       localStorage.setItem('auditor_repo_statuses', JSON.stringify(repoStatuses));
     }
+    if (repoScanReports && Object.keys(repoScanReports).length > 0) {
+      localStorage.setItem('auditor_repo_scan_reports', JSON.stringify(repoScanReports));
+    }
     if (scanReport) {
       localStorage.setItem('auditor_scan_report', JSON.stringify(scanReport));
     } else {
       localStorage.removeItem('auditor_scan_report');
     }
-  }, [activeUsername, view, quickstats, userRepos, repoStatuses, scanReport]);
+  }, [activeUsername, view, quickstats, userRepos, repoStatuses, repoScanReports, scanReport]);
 
 
 
@@ -691,11 +700,13 @@ export default function App() {
           clearInterval(pollInterval);
           setScanState('completed');
           setRepoStatuses((prev) => ({ ...prev, [repoName]: 'completed' }));
+          setRepoScanReports((prev) => ({ ...prev, [repoName]: report }));
           window.scrollTo({ top: 0, behavior: 'smooth' });
           fetchScanHistory();
         } else if (report.status === 'failed' || report.status === 'timed_out') {
           clearInterval(pollInterval);
           setRepoStatuses((prev) => ({ ...prev, [repoName]: report.status }));
+          setRepoScanReports((prev) => ({ ...prev, [repoName]: report }));
           setScanState('completed');
         }
       } catch (err) {
@@ -767,8 +778,9 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           const report = await pollScanJobToCompletion(data.scan_id);
-          if (report && report.status === 'completed') {
-            setRepoStatuses((prev) => ({ ...prev, [repoName]: 'completed' }));
+          if (report && (report.status === 'completed' || report.status === 'failed')) {
+            setRepoStatuses((prev) => ({ ...prev, [repoName]: report.status }));
+            setRepoScanReports((prev) => ({ ...prev, [repoName]: report }));
           } else {
             setRepoStatuses((prev) => ({ ...prev, [repoName]: 'failed' }));
           }
@@ -782,6 +794,72 @@ export default function App() {
     }
 
     setIsBatchScanning(false);
+  };
+
+  const handleViewRepoReport = async (repo) => {
+    const repoName = typeof repo === 'string' ? repo : repo?.name;
+    if (!repoName) return;
+    const targetUsername = activeUsername || (typeof repo === 'object' ? repo.owner?.login : '') || 'guest';
+
+    // 1. Check in-memory report map
+    let report = repoScanReports[repoName];
+
+    // 2. Check current scanReport if it matches
+    if (!report && scanReport && (scanReport.repo_name === repoName || (scanReport.repositories && scanReport.repositories.some(r => r.name === repoName)))) {
+      report = scanReport;
+    }
+
+    // 3. Try loading from scanHistory or API
+    if (!report) {
+      try {
+        let scanIdToFetch = null;
+        const historyItem = scanHistory.find(item => item.repo_name === repoName);
+        if (historyItem) {
+          scanIdToFetch = historyItem.scan_id || historyItem.id;
+        }
+
+        if (!scanIdToFetch) {
+          const res = await fetch(`${API_BASE_URL}/api/scans`, {
+            credentials: 'include',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          if (res.ok) {
+            const scans = await res.json();
+            // First try: exact repo_name match (new field)
+            let match = scans.find(s => s.repo_name === repoName);
+            // Second try: single_repo scan type for this username (most recent)
+            if (!match) match = scans.find(s => s.scan_type === 'single_repo' && s.username === targetUsername);
+            if (match) scanIdToFetch = match.scan_id || match.id;
+          }
+        }
+
+        if (scanIdToFetch) {
+          const res = await fetch(`${API_BASE_URL}/api/scan/${scanIdToFetch}`, {
+            credentials: 'include',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          if (res.ok) {
+            report = await res.json();
+          }
+        }
+      } catch (e) {
+        console.warn("Notice: Failed to fetch historical report for repo:", e);
+      }
+    }
+
+    // 4. Render the report if found
+    if (report && (report.status === 'completed' || report.status === 'failed')) {
+      setTargetRepoName(repoName);
+      setScanReport(report);
+      setCurrentScanId(report.scan_id || report.id);
+      setScanState('completed');
+      setRepoScanReports(prev => ({ ...prev, [repoName]: report }));
+      setRepoStatuses(prev => ({ ...prev, [repoName]: 'completed' }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Re-run single scan if no prior report was found
+      handleStartSingleRepoScan(typeof repo === 'string' ? { name: repo } : repo);
+    }
   };
 
   const handleSelectPastScan = async (scanId) => {
@@ -1492,6 +1570,7 @@ export default function App() {
                       repoStatuses={repoStatuses} 
                       isLoading={userReposLoading}
                       onAnalyzeRepo={handleStartSingleRepoScan}
+                      onViewRepoReport={handleViewRepoReport}
                       onAuditAll={handleAuditAllRepos}
                       isBatchScanning={isBatchScanning}
                       batchProgress={batchProgress}
@@ -1583,6 +1662,7 @@ export default function App() {
                       repoStatuses={repoStatuses} 
                       isLoading={userReposLoading}
                       onAnalyzeRepo={handleStartSingleRepoScan}
+                      onViewRepoReport={handleViewRepoReport}
                       onAuditAll={handleAuditAllRepos}
                       isBatchScanning={isBatchScanning}
                       batchProgress={batchProgress}

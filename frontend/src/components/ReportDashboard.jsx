@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson, BadgeCheck } from 'lucide-react';
+import { ShieldCheck, Sparkles, AlertTriangle, Tag, Bot, Download, Printer, RefreshCw, X, Copy, Check, CheckCircle2, FileJson, BadgeCheck, FileText } from 'lucide-react';
 import SecurityCopilot from './SecurityCopilot';
 import PublicBadgeModal from './PublicBadgeModal';
 import QuickStatsCard from './QuickStatsCard';
@@ -8,7 +8,10 @@ import RepoBreakdown from './RepoBreakdown';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function ReportDashboard({ report, onReset, onReRun, token, quickstats, quickstatsLoading, onOpenCopilot }) {
-  const { scan_id, overall_score, summary, repositories, findings, username, created_at } = report;
+  if (!report) return null;
+  const { scan_id, overall_score = 0, summary, username, created_at } = report;
+  const repositories = report.repositories || [];
+  const findings = report.findings || [];
   const [copiedType, setCopiedType] = useState(null);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);

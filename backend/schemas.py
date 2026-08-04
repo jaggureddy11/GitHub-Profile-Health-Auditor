@@ -76,6 +76,7 @@ class GroupProgress(BaseModel):
 class FullReportResponse(BaseModel):
     scan_id: str = Field(validation_alias="id")
     username: str
+    repo_name: Optional[str] = None
     status: str
     is_partial: bool = False
     overall_score: Optional[int] = None

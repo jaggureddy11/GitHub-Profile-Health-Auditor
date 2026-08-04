@@ -891,6 +891,7 @@ async def start_single_repo_scan(
     return schemas.FullReportResponse(
         scan_id=db_scan.id,
         username=db_scan.username,
+        repo_name=request.repo_name,
         status=db_scan.status,
         is_partial=False,
         repositories=[schemas.RepositorySchema(name=request.repo_name, url=repo_url, default_branch="main")],
@@ -1171,6 +1172,7 @@ def get_scan_report(
     return schemas.FullReportResponse(
         scan_id=db_scan.id,
         username=db_scan.username,
+        repo_name=db_scan.repo_name,
         status=db_scan.status,
         is_partial=is_partial,
         overall_score=db_scan.overall_score,

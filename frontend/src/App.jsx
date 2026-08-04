@@ -566,6 +566,7 @@ export default function App() {
     const repoName = repo.name;
     const targetUsername = activeUsername || repo.owner?.login || 'octocat';
     
+    setTargetRepoName(repoName);
     setScanState('loading');
     setErrorMessage('');
     setScanReport(null);

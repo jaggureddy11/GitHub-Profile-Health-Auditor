@@ -76,7 +76,7 @@ def _safe_run_coroutine(coro):
 
     if loop and loop.is_running():
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            return pool.submit(asyncio.run, coro).result()
+            return pool.submit(lambda: asyncio.run(coro)).result()
     else:
         return asyncio.run(coro)
 

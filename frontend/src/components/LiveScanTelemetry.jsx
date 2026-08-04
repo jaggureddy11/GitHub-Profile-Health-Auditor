@@ -6,7 +6,7 @@ export default function LiveScanTelemetry({ report }) {
   const total = group.total_repos || report?.repositories?.length || 1;
   const completed = group.completed_count || (report?.status === 'completed' ? 1 : 0);
   const running = group.running_count || (report?.status === 'running' ? 1 : 0);
-  const queued = group.queued_count || 0;
+  const queued = group.queued_count || (report?.status === 'queued' ? 1 : 0);
   const percent = Math.min(100, Math.round((completed / Math.max(1, total)) * 100));
 
   const findingsList = report?.findings || [];

@@ -1070,6 +1070,8 @@ def get_scan_report(
     
     # Self-healing check: If single scan is stuck in queued status, trigger direct execution thread
     if db_scan.scan_type != "group" and db_scan.status in ["queued", "pending"]:
+        db_scan.status = "running"
+        db.commit()
         repo_name = db_scan.repositories[0].name if db_scan.repositories else db_scan.username
         repo_url = db_scan.repositories[0].url if db_scan.repositories else f"https://github.com/{db_scan.username}/{repo_name}"
         try:
